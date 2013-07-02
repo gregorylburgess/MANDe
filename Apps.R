@@ -1,9 +1,4 @@
-helloWorld <- function(env){
-	req <- Rook::Request$new(env)
-	res <- Rook::Response$new()
-	res$write("HELLO WORLD")
-	res$finish()
-}
+
 
 index <- function(env){
 	req <- Rook::Request$new(env)
