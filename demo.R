@@ -1,5 +1,6 @@
 require('Rook')
 rook <- Rhttpd$new()
+# rook$start(listen='127.0.0.1', port=8000)
 rook$start(listen="0.0.0.0", port=as.numeric(Sys.getenv("PORT")))
 
 while(T) {
