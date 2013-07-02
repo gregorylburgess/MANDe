@@ -1,4 +1,4 @@
-library('Rook')
+require('Rook')
 rook <- Rhttpd$new()
 
 helloWorld <- function(env){
