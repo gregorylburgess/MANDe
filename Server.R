@@ -1,13 +1,14 @@
-require('Rook')
+library('Rook')
 source('Apps.R')
 
 rook <- Rhttpd$new()
+
+rook$start(listen="0.0.0.0", port=as.numeric(Sys.getenv("PORT")))
+#rook$start('127.0.0.1', 8000)
 rook$add(index,'index')
 rook$add(helloWorld,'helloWorld')
 rook$add(summary,'summary')
 rook$add(rookTestApp,'rookTestApp')
-# rook$start('127.0.0.1', 8000)
-rook$start(listen="0.0.0.0", port=as.numeric(Sys.getenv("PORT")))
 
 # check if we should stop
 #while(TRUE) {
