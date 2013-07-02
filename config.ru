@@ -1,1 +1,1 @@
-`R -e "source('Server.R')"`
+`R -e "source('demo.R')"`
