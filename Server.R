@@ -1,4 +1,5 @@
 require('Rook')
+source('Apps.R')
 rook <- Rhttpd$new()
 
 helloWorld <- function(env){
