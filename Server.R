@@ -12,8 +12,7 @@ rook$add(index,'index')
 rook$add(helloWorld,'helloWorld')
 rook$add(summary,'summary')
 rook$add(rookTestApp,'rookTestApp')
-#rook$start(listen="0.0.0.0", port=as.numeric(Sys.getenv("PORT")))
-rook$start(listen="127.0.0.1", port=8000)
+rook$start(listen="0.0.0.0", port=as.numeric(Sys.getenv("PORT")))
 while(T) {
 	Sys.sleep(10000)
 }
