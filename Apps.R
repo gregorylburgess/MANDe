@@ -10,6 +10,13 @@ index <- function(env){
 	res$finish()
 }
 
+helloWorld <- function(env){
+	req <- Rook::Request$new(env)
+	res <- Rook::Response$new()
+	res$write("HELLO WORLD")
+	res$finish()
+}
+
 summary <- function(env) {
 	req <- Rook::Request$new(env)
 	res <- Rook::Response$new()
