@@ -4,9 +4,10 @@ index <- function(env){
 	req <- Rook::Request$new(env)
 	res <- Rook::Response$new()
 	res$write("<h1>Index</h1></br>")
+	res$write("<a href='/custom/base/'>Bootstrap</a></br>")
 	res$write("<a href='/custom/helloWorld/'>HelloWorld</a></br>")
-	res$write("<a href='/custom/summary/'>Summary</a></br>")
-	res$write("<a href='/custom/rookTestApp/'>RookTestApp</a>")
+	res$write("<a href='/custom/summary/'>Forms</a></br>")
+	res$write("<a href='/custom/rookTestApp/'>Post Data</a>")
 	res$finish()
 }
 
