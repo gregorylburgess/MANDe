@@ -1,7 +1,22 @@
 require('Rook')
-rook <- Rhttpd$new()
-rook$start(listen="0.0.0.0", port=as.numeric(Sys.getenv("PORT")))
 
-while(T) {
-	Sys.sleep(10000)
-}
+library(Rook)
+library(rjson)
+
+rook = Rhttpd$new()
+rook$add(
+		name ="summarize",
+		app = function(env) {
+			req = Rook::Request$new(env)
+			numbers = as.numeric(unlist(strsplit(req$params()$numbers, ",")))
+			results = list()
+			results$mean = mean(numbers)
+			results$sd = sd(numbers)
+			
+			res = Rook::Response$new()
+			res$write(toJSON(results))
+			res$finish()
+		}
+)
+
+rook$browse("summarize")
