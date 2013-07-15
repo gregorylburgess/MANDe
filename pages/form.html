@@ -1,0 +1,41 @@
+<div class="span9">
+	<div id="theForum">
+	</div>
+</div>
+
+<script>
+	var form = "<legend id=\"legend\">" + indexProps.Legend + "</legend>";
+	delete formProps.Legend;
+	fields = Object.keys(formProps);
+	for (field in fields) {
+		var name = fields[field];
+		var value = formProps[name]
+		form += "<label>" + name + "</label>";
+		form += "<input id=\"" + name.toLowerCase().replace(/\s/g,'_') + "\" type=\"text\" value=\""+ value + "\">";
+	}
+	
+	form += "</br><button type=\"submit\" class=\"btn\" onClick=\"submitForm()\">Submit</button>";
+	//$("#theForum").attr("action", "/custom/job");
+	$("#theForum").html(form);
+	
+	function submitForm() {
+		dic = "{"
+		var name = ""
+		var value = ""
+		for(field in fields) {
+			name = fields[field].toLowerCase().replace(/\s/g,'_');
+			value = $("#" + name).val();
+			value = value.toString();
+			dic += "\"" + name + "\":" + "\"" + value + "\",";
+		}
+		dic = dic.substring(0,dic.length-1)
+		dic += "}";
+		alert(dic);
+		$.ajax({
+			url: '../../query', 
+			data: dic,
+			success: function(data) {$('#theForum').html(data);}
+		});
+	}
+
+</script>

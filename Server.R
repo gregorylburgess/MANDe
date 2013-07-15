@@ -2,13 +2,14 @@ require('Rook')
 source('Apps.R')
 rook <- Rhttpd$new()
 
-Heroku = TRUE
+Heroku = FALSE
 
 rook$add(name="base", Redirect$new("/../static/pages/index.html"))
-rook$add(index,'index')
-rook$add(helloWorld,'helloWorld')
-rook$add(summary,'summary')
-rook$add(rookTestApp,'rookTestApp')
+rook$add(query, name="query")
+rook$add(index,name='index')
+rook$add(helloWorld,name='helloWorld')
+rook$add(summary,name='summary')
+rook$add(rookTestApp,name='rookTestApp')
 rook$add(name="static", 
 		Builder$new( 
 				Static$new(
@@ -36,17 +37,4 @@ if (Heroku) {
 } else {
 	rook$start(listen="127.0.0.1", port=8000)
 
-	while(TRUE) {
-	  y<-scan(n=1, what=character())
-	  # s stops the server
-	  if('s' %in% y ) {
-		print("Exiting...")
-	    rook$stop()
-		break
-	  }
-	  if('r' %in% y) {
-		rook$stop()
-		rook$start(listen="127.0.0.1", port=8000)
-	  }
-	}
 }

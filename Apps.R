@@ -1,4 +1,11 @@
+source("src/Main.R")
 
+query <- function(env) {
+	req <- Rook::Request$new(env)
+	res <- Rook::Response$new()
+	res$write(req$params())
+	res$finish()
+}
 
 index <- function(env){
 	req <- Rook::Request$new(env)
