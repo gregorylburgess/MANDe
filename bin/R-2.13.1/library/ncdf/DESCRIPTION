@@ -34,5 +34,4 @@ License: GPL (>= 2)
 Packaged: 2011-09-01 09:09:24 UTC; ripley
 Repository: CRAN
 Date/Publication: 2011-09-02 11:16:12
-Built: R 3.0.0; x86_64-apple-darwin10.8.0; 2013-04-03 15:55:36 UTC; unix
-Archs: ncdf.so.dSYM
+Built: R 3.0.0; x86_64-pc-linux-gnu; 2013-05-11 00:14:38 UTC; unix
