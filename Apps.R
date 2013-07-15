@@ -1,4 +1,4 @@
-source("src/Main.R")
+
 
 query <- function(env) {
 	req <- Rook::Request$new(env)
