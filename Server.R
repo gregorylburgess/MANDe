@@ -2,7 +2,7 @@ require('Rook')
 source('Apps.R')
 rook <- Rhttpd$new()
 
-Heroku = TRUE
+Heroku = FALSE
 
 rook$add(name="base", Redirect$new("/../static/pages/index.html"))
 rook$add(query, name="query")
@@ -13,7 +13,7 @@ rook$add(rookTestApp,name='rookTestApp')
 rook$add(name="static", 
 		Builder$new( 
 				Static$new(
-							urls = c('/css','/img','/js', '/pages'),
+							urls = c('/css','/img','/js', '/pages', '/bin'),
 							root = '.'
 				),
 				Static$new(urls='/plots',root=tempdir()), 

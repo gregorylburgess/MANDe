@@ -15,7 +15,6 @@
 	}
 	
 	form += "</br><button type=\"submit\" class=\"btn\" onClick=\"submitForm()\">Submit</button>";
-	//$("#theForum").attr("action", "/custom/job");
 	$("#theForum").html(form);
 	
 	function submitForm() {
@@ -30,12 +29,10 @@
 		}
 		dic = dic.substring(0,dic.length-1)
 		dic += "}";
-		alert(dic);
 		$.ajax({
 			url: '../../query', 
 			data: dic,
 			success: function(data) {$('#theForum').html(data);}
 		});
 	}
-
 </script>
