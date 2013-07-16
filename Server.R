@@ -13,7 +13,7 @@ rook$add(rookTestApp,name='rookTestApp')
 rook$add(name="static", 
 		Builder$new( 
 				Static$new(
-							urls = c('/css','/img','/js', '/pages'),
+							urls = c('/css','/img','/js', '/pages', '/bin'),
 							root = '.'
 				),
 				Static$new(urls='/plots',root=tempdir()), 
