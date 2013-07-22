@@ -2,7 +2,7 @@ require('Rook')
 source('Apps.R')
 rook <- Rhttpd$new()
 
-Heroku = TRUE
+Heroku = F
 
 rook$add(name="base", Redirect$new("/../static/pages/index.html"))
 rook$add(query, name="query")
@@ -32,7 +32,7 @@ rook$add(name="static",
 if (Heroku) {
 	rook$start(listen="0.0.0.0", port=as.numeric(Sys.getenv("PORT")))
 	while(T) {
-		Sys.sleep(10000)
+		Sys.sleep(1)
 	}
 } else {
 	rook$start(listen="127.0.0.1", port=8000)

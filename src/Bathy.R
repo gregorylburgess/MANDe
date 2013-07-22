@@ -27,8 +27,8 @@ bathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, se
     }
     else {
         ## Create test bGrid to use if real data unavailable
-        nx <- 100
-        ny <- 100
+		nx = XDist
+		ny = YDist
         x <- seq(-2*pi,2*pi,length=nx)
         X <- matrix(rep(x,ny),ny,nx,byrow=TRUE)
         y <- seq(-2*pi,2*pi,length=ny)

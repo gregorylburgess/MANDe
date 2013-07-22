@@ -1,9 +1,11 @@
-
+source("src/Main.R")
 
 query <- function(env) {
 	req <- Rook::Request$new(env)
 	res <- Rook::Response$new()
 	res$write(req$params())
+	results = test()
+	res$write(results)
 	res$finish()
 }
 

@@ -19,6 +19,7 @@ run <- function(params, debug=FALSE){
 
     ## Create/Load the Bathy grid for the area of interest
     bGrid <- bathy(params$inputFile,
+			params$inputFileType,
             params$startX, params$startY, 
             params$XDist, params$YDist,
             params$seriesName,
@@ -42,24 +43,25 @@ run <- function(params, debug=FALSE){
     return(results)
 }
 
-test <- function() {
+test <- function(debug=FALSE) {
+	print("Recieved Request")
+	print(Sys.time())
 	#### TEST RUN
 	params = list()
 	## Array variables
 	params$numSensors = 10 
 	params$range = 4 
 	params$cellRatio = 1
-	params$bias = 3
+	params$bias = 1
 	
 	# BGrid Variables
-	params$inputFile = "himbsyn.bathytopo.v19.grd\\bathy.grd"
+	#params$inputFile = "himbsyn.bathytopo.v19.grd\\bathy.grd"
 	params$inputFileType = "netcdf"
 	params$startX = 9000
 	params$startY = 8000 
-	params$XDist = 5
-	params$YDist = 5
+	params$XDist = 25
+	params$YDist = 25
 	params$seriesName = 'z'
-	
 	## Receiver variables
 	params$sd=1
 	params$peak=.75 
@@ -77,14 +79,14 @@ test <- function() {
 	## Choose random walk type movement model
 	params$fishmodel <- 'rw'
 	## Set to TRUE if vertical habitat range is applied
-	if(TRUE){
+	if(FALSE){
 	    ## Minimum depth
 	    params$mindepth <- -58
 	    ## Maximum depth
 	    params$maxdepth <- -60
 	}
 	## Set to TRUE if depth preference should be applied
-	if(TRUE){
+	if(FALSE){
 	    ## Depth preference of fish relative to bottom (in meters off the bottom)
 	    params$dp <- 10
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
@@ -102,22 +104,9 @@ test <- function() {
 	
 	## Print time stamp (to be able to check run time)
 	startTime = Sys.time()
-	result = run(params,FALSE)
-	print(result)
+	result = run(params, debug)
 	## Print time stamp (to be able to check run time)
 	endTime = Sys.time()
-	paste('Starting:', startTime)
-	paste('Finished:', endTime)
-	
-	## Plotting
-	graphics.off()
-	image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
-	contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
-	dev.new()
-	image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
-	numSensors <- length(result$sensors)
-	for(i in 1:numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
-	dev.new()
-	image(1:25, 1:25 ,result$sumGrid,main='sumGrid')
 	return(result)
 }
+test()

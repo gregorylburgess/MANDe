@@ -29,6 +29,8 @@ sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE) 
     # calculate the sumGrid
     grids = sumGrid(grids, range, bias, params, debug)
     sumGrid = grids$sumGrid
+	print(fGrid)
+	print(sumGrid)
     # for each sensor, find a good placement
     for (i in 1:numSensors) {
         # find the max location 
@@ -72,7 +74,7 @@ sumGrid<- function (grid, range, bias, params, debug=FALSE) {
         return(sumGrid.sumBathy(grid, range, params$shapeFcn, params, debug))
     }
     #Combo
-    else if (bias ==3) {
+    else if (bias == 3) {
         return(sumGrid.sumProduct(grid, range, params$shapeFcn, params, debug))
     }
     else {
@@ -92,7 +94,7 @@ sumGrid.sumSimple <- function (grid, key, range, debug=FALSE) {
         for(j in 1:cols) {
             vals = getArea(list(r=i,c=j), dim(tempGrid), range)
             tempGrid[i,j] = sum(tempCopy[vals$rs:vals$re, 
-                            vals$cs:vals$ce])
+                            vals$cs:vals$ce], na.rm=TRUE)
         }
     }
     
@@ -131,7 +133,7 @@ sumGrid.sumBathy <- function (grid, range, shapeFcn="shape.t",
                                     params, debug))
                 }
             }
-            sumGrid0[i,j] = sum(visibilities)
+            sumGrid0[i,j] = sum(visibilities, na.rm=TRUE)
         }
     }
     
@@ -173,12 +175,12 @@ sumGrid.sumProduct <- function (grids, range, shapeFcn="shape.t",
                                     params, debug) * fGrid[r,c])
                 }
             }
-            sumGrid0[i,j] = sum(visibilities)
+            sumGrid0[i,j] = sum(visibilities, na.rm=TRUE)
         }
     }
     
     grids$sumGrid = sumGrid0
-    if(debug){
+    if(TRUE){
         cat("\n[sumGrid.sumProduct]\n")
         print("visibilities")
         print(visibilities)
@@ -446,6 +448,18 @@ offset<- function(point){
     return(list("r"=r,"c"=c))
 }
 
+graph <- function(results, params) {
+	## Plotting
+	graphics.off()
+	image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
+	contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
+	dev.new()
+	image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
+	numSensors <- length(result$sensors)
+	for(i in 1:numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
+	dev.new()
+	image(1:params$XDist, 1:params$YDist ,result$sumGrid,main='sumGrid')
+}
 # Provides Statistical data on detection, given a particular bGrid, fGrid, and sensor 
 # arrangement.
 # Returns a dictionary of staistical values.
@@ -496,12 +510,19 @@ stats <- function(params, bGrid, fGrid, sensors) {
 # Provides default parameter values if none are provided.
 checkParams <- function(params) {
     names = names(params)
+	print(names)
     if(!('numSensors' %in% names)) {
         write("Error: 'numSensors' is required", stderr())
     }
     if(!('bias' %in% names)) {
         write("Error: 'bias' value is required.")
     }
+	if('dp' %in% names  && !('inputFile' %in% names)) {
+		write("Error: Using dp option without a known input file may be bad!.
+				For example, if the generated habitat grid contains no cells near
+				the depth specified, no fish will be generated.", stderr())
+		
+	}
     if(!('range' %in% names)) {
         params$range = 1
     }

@@ -1,1 +1,3 @@
-HELLO WORLD
+Error: Using dp option without a known input file may be bad!.
+				For example, if the generated habitat grid contains no cells near
+				the depth specified, no fish will be generated.
