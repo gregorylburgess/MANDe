@@ -2,14 +2,14 @@
 # Returns a grid of depths for the area of interest.
 # Dependency: Have the ncdf module installed.
 
-library(ncdf)
 library(sp)
 library(raster)
 library(rgdal)
 
 bathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, seriesName, debug=FALSE) {
-    
-    if(file.exists(inputFile)){
+
+    if(file.exists(inputFile) && require(ncdf)){
+		library(ncdf)
         switch(inputFileType, 
             "netcdf" = {
                 ## open the netCDF file
