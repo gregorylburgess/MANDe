@@ -4,7 +4,7 @@
  *
  *   Purpose:   C++ class interface for netCDF
  *
- *   $Header: /upc/share/CVS/netcdf-3/cxx/netcdfcpp.h,v 1.15 2009/03/10 15:20:54 russ Exp $
+ *   $Header: /upc/share/CVS/netcdf-3/cxx/netcdfcpp.h,v 1.14 2006/07/31 20:42:48 russ Exp $
  *********************************************************************/
 
 #ifndef NETCDF_HH
@@ -46,7 +46,7 @@ class NcFile
     };
 
     NcFile( const char * path, FileMode = ReadOnly ,
-	    size_t *bufrsizeptr = NULL,    // optional tuning parameters
+	    size_t *chunksizeptr = NULL, // optional tuning parameters
 	    size_t initialsize = 0,
 	    FileFormat = Classic );
 
