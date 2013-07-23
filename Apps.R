@@ -2,10 +2,22 @@ source("src/Main.R")
 library("rjson")
 
 query <- function(env) {
-	req <- Rook::Request$new(env)
-	res <- Rook::Response$new()
+	req = Rook::Request$new(env)
+	res = Rook::Response$new()
 	results = test()
+	#params = as.character(req$params())
+	#parser = newJSONParser()
+	#parser$addData(params)
+	#params <- parser$getObject()
+	#run(params)
 	res$write(toJSON(results, method="C"))
+	res$finish()
+}
+
+testquery <- function(env) {
+	req = Rook::Request$new(env)
+	res = Rook::Response$new()
+	res$write(req$params())
 	res$finish()
 }
 

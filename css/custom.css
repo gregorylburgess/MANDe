@@ -15,3 +15,8 @@ body {
 		padding-right: 5px;
 	}
 }
+
+.form-horizontal .controls {
+    margin-left: 180px;
+    width: 222px;
+}

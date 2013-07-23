@@ -2,10 +2,11 @@ require('Rook')
 source('Apps.R')
 
 rook <- Rhttpd$new()
-Heroku = T
+Heroku = F
 
 rook$add(name="base", Redirect$new("/../static/pages/index.html"))
 rook$add(query, name="query")
+rook$add(testquery, name="testquery")
 rook$add(index,name='index')
 rook$add(helloWorld,name='helloWorld')
 rook$add(summary,name='summary')

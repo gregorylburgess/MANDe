@@ -1,5 +1,6 @@
 <div class="span9">
-	<div id="theForum">
+	<div id="theForum" class="form-horizontal">
+
 	</div>
 </div>
 
@@ -7,40 +8,41 @@
 	var form = "<legend id=\"legend\">" + indexProps.Legend + "</legend>";
 	delete formProps.Legend;
 	fields = Object.keys(formProps);
-	for (field in fields) {
+	for(field in fields) {
 		var name = fields[field];
-		var value = formProps[name]
-		form += "<label>" + name + "</label>";
-		form += "<input id=\"" + name.toLowerCase().replace(/\s/g,'_') + "\" type=\"text\" value=\""+ value + "\">";
+		var value = formProps[name];
+		var defaultVal = value.split(';')[0];
+		var hoverText = value.split(';')[1];
+		var fieldName = name;
+		form += "<div id=\"" + fieldName + "-cg\" class=\"control-group\">" 
+					+"<a class=\"link\" data-original-title=\"" + hoverText + "\"><label class=\"control-label\" for=\"" + fieldName + "\">" + name + "</label>"
+					+"<div class=\"controls\">"
+							+"<input id=\"" + fieldName + "\" type=\"text\" value=\""+ defaultVal + "\">"
+					+"</div>"
+				+"</div></a>";
 	}
 	
 	form += "</br><button type=\"submit\" class=\"btn\" onClick=\"submitForm()\">Submit</button>";
 	$("#theForum").html(form);
+	$(".link").tooltip();
 	
 	function submitForm() {
 		var dic = new Array();
 		for(field in fields) {
-			name = fields[field].toLowerCase().replace(/\s/g,'_');
+			name = fields[field];
 			value = $("#" + name).val();
 			dic[name] = value;
 		}
-		dic = JSON.stringify(dic);
-		/*dic = "{"
-		var name = ""
-		var value = ""
-		for(field in fields) {
-			name = fields[field].toLowerCase().replace(/\s/g,'_');
-			value = $("#" + name).val();
-			value = value.toString();
-			dic += "\"" + name + "\":" + "\"" + value + "\",";
-		}
-		dic = dic.substring(0,dic.length-1)
-		dic += "}";*/
+		//FIX THIS
 		$.ajax({
 			url: '../../query', 
 			data: dic,
 			success: parseResponse,
 		})
+	}
+	
+	function echoData(data) {
+		$('#theForum').html(data);
 	}
 	
 	function parseResponse(data) {
