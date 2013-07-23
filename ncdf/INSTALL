@@ -1,0 +1,35 @@
+This package will work with netcdf3 or netcdf4.
+
+netcdf >= 4.1 should have a utility 'nc-config'.  This is looked for
+on the path or where specified by the --with-nc-config configure
+argument or NC_CONFIG environment variable, and if found is used to
+set PKG_CPPFLAGS and PKG_LIBS.  Occasionally this is unreliable, and
+can be skipped by setting either the argument or the environment
+variable to a non-existent path
+
+If no valid 'nc-config' utility is found, the rest of this file applies.
+
+The location of the netcdf header can be specified by the environment
+variable NETCDF_INCLUDE or the configure argument
+--with-netcdf-include, e.g. Fedora 12 needed
+--with-netcdf-include=/usr/include/netcdf3
+and Solaris' native compilers needs
+--with-netcdf-include=/usr/local/include
+
+The location of the netcdf library can be specified by the environment
+variable NETCDF_LIB or the configure argument --with-netcdf-lib.
+
+netcdf <= 4.0.1 is normally self-contained, but netcdf >= 4.1.0 is
+usually linked against HDF5.  Environment variable HDF5_LIB or
+configure argument --with-hdf5-lib can be used to specify the path to
+the HDF5 libraries.
+
+The configure script looks to link against first
+-lnetcdf
+and if that fails
+-lnetcdf -lhdf5 -lhdf5_hl -lcurl -lz
+The latter is what is usually required for a static build of netcdf
+4.1.x, but provision is made to specify another set of additional
+libraries via environment variable NETCDF_EXTRAS or configure argument
+--with-netcdf-extra-libs.
+

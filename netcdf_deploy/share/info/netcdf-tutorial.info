@@ -1,7 +1,8 @@
-This is netcdf-tutorial.info, produced by makeinfo version 4.12 from
-/machine/netcdf/nc_test_7752/man4//defines.texi.
+This is netcdf-tutorial.info, produced by makeinfo version 4.7 from
+netcdf-tutorial.texi.
 
-Copyright (C) 2005-2009 University Corporation for Atmospheric Research
+   Copyright (C) 2005-2006 University Corporation for Atmospheric
+Research
 
 
 
@@ -36,46 +37,34 @@ NetCDF Tutorial
 ***************
 
 This tutorial aims to give a quick and painless introduction to netCDF.
+Then again, the guillotine was also intended to be painless.
 
-   For the basic concepts of netCDF see *note Intro::. Read this to
-understand the netCDF data models and how to use netCDF.
+   The first chapter, "What is NetCDF?," covers the basics concepts of
+netCDF. Read this to understand the netCDF data model.
 
-   For sets of examples of increasing complexity see *note Examples::.
-The example programs are provided for each of four netCDF API languages,
-C, C++, F77, and F90. (No new netCDF-4 API extensions are used in these
-examples.)
+   The second chapter, "Example Programs," contains three sets of
+examples of increasing complexity. The example programs are provided
+for each of four netCDF API languages, C, C++, F77, and F90.
 
-   For a quick reference to the important functions in the netCDF-3 C,
-C++, Fortran 77, and Fortran 90 APIs, with hyper-links to the full
-documentation of each function, see *note Useful Functions::.
+   The final chapter, "The Functions You Need in NetCDF-3," provides a
+quick reference to the important functions in each API, with
+hyper-links to the full documentation of each function.
 
-   To learn about the new features of netCDF-4, see *note
-API-Extensions::. For some examples see *note NetCDF-4 Examples::.
-
-   NetCDF interface guides are available for C (*note The NetCDF C
-Interface Guide: (netcdf-c)Top.), C++ (*note The NetCDF C++ Interface
-Guide: (netcdf-cxx)Top.), Fortran 77 (*note The NetCDF Fortran 77
-Interface Guide: (netcdf-f77)Top.), and Fortran 90 (*note The NetCDF
-Fortran 90 Interface Guide: (netcdf-f90)Top.).
-
-   This document applies to netCDF version 4.1.1; it was last updated
-on 30 September 2009.
+   This document applies to netCDF version 3.6.3; it was last updated
+on 8 April 2008.
 
 * Menu:
 
 * Intro::                       What is NetCDF?
-* Examples::                    Examples of increasing complexity.
+* Examples::                    Three examples of increasing complexity.
 * Useful Functions::            Quick reference to useful netCDF functions.
-* API-Extensions::              New features added in netCDF-4.
-* NetCDF-4 Examples::
 * Combined Index::
 
  --- The Detailed Node Listing ---
 
 What is NetCDF?
 
-* Data Model::                  How netCDF classic sees data.
-* Common Data Model::           The new, expanded data model.
+* Data Model::                  How netCDF sees data.
 * Errors::                      When things go tragically awry.
 * Unlimited Dimensions::        Arbitrarily extending a dimension.
 * Fill Values::                 Handling missing data.
@@ -83,6 +72,7 @@ What is NetCDF?
 * APIs::                        Programming languages and netCDF.
 * Documentation::               Introducing the netCDF documentation!
 * Versions::                    Different versions of netCDF.
+* Future::
 
 Example Programs
 
@@ -206,63 +196,6 @@ Reading and Writing Subsets of Data
 * Subsetting in F90::
 * Subsetting in C++::
 
-API Extensions Introduced with NetCDF-4
-
-* Interoperability::            Reading and writing HDF5 files.
-* Multiple-Unlimited-Dimensions::  Use more than one unlimited dimension.
-* Groups::                      Organizing data hierarchically.
-* Compound-Types::              Creating data type like C structs.
-* Opaque-Types::                Creating a data type of known size.
-* VLEN-Type::                   Variable length arrays.
-* Strings::                     Storing strings of data.
-* New-inq-Functions::           Functions to help explore a file.
-* Parallel::                    How to get parallel I/O.
-* Future::                      What's coming next!
-
-Collective/Independent Access
-
-* simple_xy_par in C::
-
-simple_xy_par_wr.c and simple_xy_par_rd.c
-
-* simple_xy_par_wr.f90::
-* simple_xy_par_rd.f90::
-
-NetCDF-4 Examples
-
-* simple_nc4::
-* simple_xy_nc4::
-
-The simple_nc4 Example
-
-* simple_nc4 in C::
-
-simple_nc4_wr.c and simple_nc4_rd.c
-
-* simple_nc4_wr.c::
-* simple_nc4_rd.c::
-
-The simple_xy_nc4 Example
-
-* simple_xy_nc4 in C::
-* simple_xy_nc4 in F77::
-* simple_xy_nc4 in F90::
-
-simple_xy_nc4_wr.c and simple_xy_nc4_rd.c
-
-* simple_xy_nc4_wr.c::
-* simple_xy_nc4_rd.c::
-
-simple_xy_nc4_wr.f and simple_xy_nc4_rd.f
-
-* simple_xy_nc4_wr.f::
-* simple_xy_nc4_rd.f::
-
-simple_xy_nc4_wr.f90 and simple_xy_nc4_rd.f90
-
-* simple_xy_nc4_wr.f90::
-* simple_xy_nc4_rd.f90::
-
 
 File: netcdf-tutorial.info,  Node: Intro,  Next: Examples,  Prev: Top,  Up: Top
 
@@ -272,10 +205,11 @@ File: netcdf-tutorial.info,  Node: Intro,  Next: Examples,  Prev: Top,  Up: Top
 NetCDF is a set of data formats, programming interfaces, and software
 libraries that help read and write scientific data files.
 
-   NetCDF was developed and is maintained at Unidata, part of the
-University Corporation for Atmospheric Research (UCAR) Office of
-Programs (UOP). Unidata is funded primarily by the National Science
-Foundation.
+   NetCDF was developed and is maintained at Unidata.
+
+   Unidata, funded primarily by the National Science Foundation, is one
+of eight programs in the University Corporation for Atmospheric
+Research (UCAR) Office of Programs (UOP).
 
    Unidata provides data and software tools for use in geoscience
 education and research. For more information see the web sites of
@@ -287,8 +221,7 @@ documentation is available on-line (*note Documentation::).
 
 * Menu:
 
-* Data Model::                  How netCDF classic sees data.
-* Common Data Model::           The new, expanded data model.
+* Data Model::                  How netCDF sees data.
 * Errors::                      When things go tragically awry.
 * Unlimited Dimensions::        Arbitrarily extending a dimension.
 * Fill Values::                 Handling missing data.
@@ -296,43 +229,39 @@ documentation is available on-line (*note Documentation::).
 * APIs::                        Programming languages and netCDF.
 * Documentation::               Introducing the netCDF documentation!
 * Versions::                    Different versions of netCDF.
+* Future::
 
 
-File: netcdf-tutorial.info,  Node: Data Model,  Next: Common Data Model,  Prev: Intro,  Up: Intro
+File: netcdf-tutorial.info,  Node: Data Model,  Next: Errors,  Prev: Intro,  Up: Intro
 
-1.1 The Classic NetCDF Data Model
-=================================
+1.1 The NetCDF Data Model
+=========================
 
-The classic netCDF data model consists of "variables", "dimensions",
-and "attributes". This way of thinking about data was introduced with
-the very first netCDF release, and is still the core of all netCDF
-files.
-
-   (In version 4.0, the netCDF data model has been expanded. *Note
-Common Data Model::.)
+The netCDF data model consists of "variables", "dimensions", and
+"attributes".
 
 `Variables'
      N-dimensional arrays of data. Variables in netCDF files can be one
      of six types (char, byte, short, int, float, double). For more
-     information see *note Variables: (netcdf)Variables.
+     information see *Note Variables: (netcdf)Variables.
 
 `Dimensions'
      describe the axes of the data arrays. A dimension has a name and a
      length. An unlimited dimension has a length that can be expanded
      at any time, as more data are written to it. NetCDF files can
      contain at most one unlimited dimension. For more information see
-     *note Dimensions: (netcdf)Dimensions.
+     *Note Dimensions: (netcdf)Dimensions.
 
 `Attributes'
      annotate variables or files with small notes or supplementary
      metadata. Attributes are always scalar values or 1D arrays, which
      can be associated with either a variable or the file as a whole.
      Although there is no enforced limit, the user is expected to keep
-     attributes small. For more information see *note Attributes:
+     attributes small. For more information see *Note Attributes:
      (netcdf)Attributes.
 
 
-   For more information on the netCDF data model see *note The NetCDF
+   For more information on the netCDF data model see *Note The NetCDF
 Data Model: (netcdf)The NetCDF Data Model.
 
 1.1.1 Meteorological Example
@@ -359,7 +288,7 @@ name and an associated set of netCDF dimensions.
    It is also customary to add one variable for each dimension, to hold
 the values along that axis. These variables are call "coordinate
 variables." The latitude coordinate variable would be a one-dimensional
-variable (with latitude as its dimension), and it would hold the
+variable (with latitude as it's dimension), and it would hold the
 latitude values at each point along the axis.
 
    The additional bits of metadata would be stored as netCDF attributes.
@@ -373,59 +302,9 @@ a file containing some four-dimensional pressure and temperature data,
 including all the metadata needed. *Note pres_temp_4D::.
 
 
-File: netcdf-tutorial.info,  Node: Common Data Model,  Next: Errors,  Prev: Data Model,  Up: Intro
+File: netcdf-tutorial.info,  Node: Errors,  Next: Unlimited Dimensions,  Prev: Data Model,  Up: Intro
 
-1.2 The Common Data Model and NetCDF-4
-======================================
-
-With netCDF-4, the netCDF data model has been extended, in a backwards
-compatible way.
-
-   The new data model, which is known as the "Common Data Model" is
-part of an effort here at Unidata to find a common engineering language
-for the development of scientific data solutions. It contains the
-variables, dimensions, and attributes of the classic data model, but
-adds:
-
-   * groups A way of hierarchically organizing data, similar to
-     directories in a Unix file system.
-
-   * user-defined types The user can now define compound types (like C
-     structures), enumeration types, variable length arrays, and opaque
-     types.
-
-
-   These features may only be used when working with a netCDF-4/HDF5
-file. Files created in classic or 64-bit offset format cannot support
-groups or user-defined types.
-
-   With netCDF-4/HDF5 files, the user may define groups, which may
-contain variables, dimensions, and attributes. In this way, a group
-acts as a container for the classic netCDF dataset. But netCDF-4/HDF5
-files can have many groups, organized hierarchically.
-
-   Each file begins with at least one group, the root group. The user
-may then add more groups, receiving a new ncid for each group created.
-
-   Since each group functions as a complete netCDF classic dataset, it
-is possible to have variables with the same name in two or more
-different groups, within the same netCDF-4/HDF5 data file.
-
-   Dimensions have a special scope: they may me seen my all variables in
-their group, and all descendant groups. This allows the user to define
-dimensions in a top-level group, and use them in many sub-groups.
-
-   Since it may be necessary to write code which works with all types of
-netCDF data files, we also introduce the ability to create
-netCDF-4/HDF5 files which follow all the rules of the classic netCDF
-model. That is, these files are in HDF5, but will not support multiple
-unlimited dimensions, user-defined types, groups, etc. They act just
-like a classic netCDF file.
-
-
-File: netcdf-tutorial.info,  Node: Errors,  Next: Unlimited Dimensions,  Prev: Common Data Model,  Up: Intro
-
-1.3 NetCDF Error Handling
+1.2 NetCDF Error Handling
 =========================
 
 Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
@@ -435,8 +314,8 @@ Each netCDF function in the C, Fortran 77, and Fortran 90 APIs returns
 values of every netCDF API call. The return code can be looked up in
 netcdf.h (for C programmers) or netcdf.inc (for Fortran programmers),
 or you can use the strerror function to print out an error message.
-(See *note nc_strerror: (netcdf-c)nc_strerror./*note NF_STRERROR:
-(netcdf-f77)NF_STRERROR./*note NF90_STRERROR:
+(See *Note nc_strerror: (netcdf-c)nc_strerror./*Note NF_STRERROR:
+(netcdf-f77)NF_STRERROR./*Note NF90_STRERROR:
 (netcdf-f90)NF90_STRERROR.).
 
    In general, if a function returns an error code, you can assume it
@@ -455,16 +334,16 @@ type conversion *note Type Conversion: (netcdf-c)Type Conversion.).
 
    Error handling in C++ is different. For some objects, the is_valid()
 method should be called. Other error handling is controlled by the
-NcError class. For more information see *note Class NcError:
+NcError class. For more information see *Note Class NcError:
 (netcdf-cxx)Class NcError.
 
-   For a complete list of netCDF error codes see *note Error Codes:
+   For a complete list of netCDF error codes see *Note Error Codes:
 (netcdf-c)Error Codes.
 
 
 File: netcdf-tutorial.info,  Node: Unlimited Dimensions,  Next: Fill Values,  Prev: Errors,  Up: Intro
 
-1.4 Unlimited Dimensions
+1.3 Unlimited Dimensions
 ========================
 
 Sometimes you don't know the size of all dimensions when you create a
@@ -481,8 +360,8 @@ specifying a length of "unlimited" when defining a dimension, you
 indicate to netCDF that the dimension may be extended, and its length
 may increase.
 
-   In netCDF classic files, there can only be one unlimited dimension,
-and it must be declared first in the list of dimensions for a variable.
+   In netCDF files, there can only be one unlimited dimension, and it
+must be declared first in the list of dimensions for a variable.
 
    For programmers, the unlimited dimension will correspond with the
 slowest-varying dimension. In C this is the first dimension of an
@@ -490,19 +369,15 @@ array, in Fortran, the last.
 
    The third example in this tutorial, pres_temp_4D, demonstrates how to
 write and read data one time step at a time along an unlimited
-dimension in a classic netCDF file. *Note pres_temp_4D::.
+dimension. *Note pres_temp_4D::.
 
-   In netCDF-4/HDF5 files, any number of unlimited dimensions may be
-used, and there is no restriction as to where they appear in a
-variable's list of dimension IDs.
-
-   For more detailed information about dimensions see *note Dimensions:
+   For more detailed information about dimensions see *Note Dimensions:
 (netcdf)Dimensions.
 
 
 File: netcdf-tutorial.info,  Node: Fill Values,  Next: Tools,  Prev: Unlimited Dimensions,  Up: Intro
 
-1.5 Fill Values
+1.4 Fill Values
 ===============
 
 Sometimes there are missing values in the data, and some value is
@@ -524,18 +399,18 @@ community, and that contain enough details to be useful as a long-term
 archive.
 
    For more information on _FillValue and other attribute conventions,
-see *note Attribute Conventions: (netcdf)Attribute Conventions.
+see *Note Attribute Conventions: (netcdf)Attribute Conventions.
 
    Climate and meteorological users are urged to follow the Climate and
 Forecast (CF) metadata conventions when producing data files. For more
 information about the CF conventions, see `http://cf-pcmdi.llnl.gov'.
 
-   For information about creating attributes, see *note Creation::.
+   For information about creating attributes, see *Note Creation::.
 
 
 File: netcdf-tutorial.info,  Node: Tools,  Next: APIs,  Prev: Fill Values,  Up: Intro
 
-1.6 Tools for Manipulating NetCDF Files
+1.5 Tools for Manipulating NetCDF Files
 =======================================
 
 Many existing software applications can read and manipulate netCDF
@@ -552,7 +427,7 @@ file, to see what it contains. At the beginning of each example in this
 tutorial, an ncdump of the resulting data file is shown. *Note
 simple_xy::.
 
-   For more information about ncdump and ncgen see *note NetCDF
+   For more information about ncdump and ncgen see *Note NetCDF
 Utilities: (netcdf)NetCDF Utilities.
 
    The following general-purpose tools have been found to be useful in
@@ -577,14 +452,14 @@ NCO            NetCDF Command line           `http://nco.sourceforge.net'
                manipulate netCDF files.      
 
    For a list of netCDF tools that we know about see
-`http://www.unidata.ucar.edu/netcdf/software.html'. If you know of any
-that should be added to this list, send email to
-support-netcdf@unidata.ucar.edu.
+`http://www.unidata.ucar.edu/software/netcdf/software.html'. If you
+know of any that should be added to this list, send email to
+support@unidata.ucar.edu.
 
 
 File: netcdf-tutorial.info,  Node: APIs,  Next: Documentation,  Prev: Tools,  Up: Intro
 
-1.7 The NetCDF Programming APIs
+1.6 The NetCDF Programming APIs
 ===============================
 
 Unidata supports netCDF APIs in C, C++, Fortran 77, Fortran 90, and
@@ -605,30 +480,18 @@ build.
 C++ and Fortran 90, users of those languages can also use the C and
 Fortran 77 APIs (respectively) directly.
 
-   In the netCDF-4.0 beta release, only the C API is well-tested. The
-Fortran APIs include support for netCDF-4 advanced features, but need
-more testing, which will be added in a future release of netCDF.
-
-   The C++ API can handle netCDF-4.0/HDF5 files, but can not yet handle
-advanced netCDF-4 features. The successor to the current C++ API is
-under active development, and will include support for netCDF-4
-advanced features.
-
    Full documentation exists for each API (*note Documentation::).
 
    In addition, many other language APIs exist, including Perl, Python,
 and Ruby. Most of these APIs were written and supported by netCDF
 users. Some of them are listed on the netCDF software page, see
-`http://www.unidata.ucar.edu/netcdf/software.html'. Since these
-generally use the C API, they should work well with netCDF-4/HDF5
-files, but the maintainers of the APIs must add support for netCDF-4
-advanced features.
+`http://www.unidata.ucar.edu/software/netcdf/software.html'.
 
    In addition to the main netCDF-3 C API, there is an additional
 (older) C API, the netCDF-2 API. This API produces exactly the same
 files as the netCDF-3 API - only the API is different. (That is, users
 can create either classic format files, the default, or 64-bit offset
-files, or netCDF-4/HDF5 files.)
+files.)
 
    The version 2 API was the API before netCDF-3.0 came out. It is still
 fully supported, however. Programs written to the version 2 API will
@@ -640,21 +503,21 @@ documentation.
 
    The netCDF-2 API is provided for backward compatibility.
 Documentation for the netCDF-2 API can be found on the netCDF website,
-see `http://www.unidata.ucar.edu/netcdf/guide_toc.html'.
+see `http://www.unidata.ucar.edu/software/netcdf/guide_toc.html'.
 
 
 File: netcdf-tutorial.info,  Node: Documentation,  Next: Versions,  Prev: APIs,  Up: Intro
 
-1.8 NetCDF Documentation
+1.7 NetCDF Documentation
 ========================
 
 This tutorial is brief. A much more complete description of netCDF can
 be found in The NetCDF Users Guide. It fully describes the netCDF model
-and format. For more information see *note The NetCDF Users Guide:
+and format. For more information see *Note The NetCDF Users Guide:
 (netcdf)Top.
 
    The netCDF distribution, in various forms, can be obtained from the
-netCDF web site: `http://www.unidata.ucar.edu/netcdf'.
+netCDF web site: `http://www.unidata.ucar.edu/software/netcdf'.
 
    A porting and installation guide for the C, C++, Fortran 77, and
 Fortran 90 APIs describes how to build these APIs on a variety of
@@ -665,16 +528,16 @@ platforms. *Note The NetCDF Installation and Porting Guide:
 C, C++, Fortran 77, Fortran 90, and Java APIs:
 
 `C'
-     *note The NetCDF C Interface Guide: (netcdf-c)Top.
+     *Note The NetCDF C Interface Guide: (netcdf-c)Top.
 
 `C++'
-     *note The NetCDF C++ Interface Guide: (netcdf-cxx)Top.
+     *Note The NetCDF C++ Interface Guide: (netcdf-cxx)Top.
 
 `Fortran 77'
-     *note The NetCDF Fortran 77 Interface Guide: (netcdf-f77)Top.
+     *Note The NetCDF Fortran 77 Interface Guide: (netcdf-f77)Top.
 
 `Fortran 90'
-     *note The NetCDF Fortran 90 Interface Guide: (netcdf-f90)Top.
+     *Note The NetCDF Fortran 90 Interface Guide: (netcdf-f90)Top.
 
 `Java'
      `http://www.unidata.ucar.edu/software/netcdf-java/v2.1/NetcdfJavaUserManual.htm'.
@@ -682,17 +545,17 @@ C, C++, Fortran 77, Fortran 90, and Java APIs:
 
    Man pages for the C, F77, and F90 interfaces, and ncgen and ncdump,
 are available on the documentation page of the netCDF web site
-(`http://www.unidata.ucar.edu/netcdf/docs'), and are installed with the
-netCDF distribution.
+(`http://www.unidata.ucar.edu/software/netcdf/docs'), and are installed
+with the netCDF distribution.
 
    The latest version of all netCDF documentation can always be found at
 the documentation page of the netCDF web site:
-`http://www.unidata.ucar.edu/netcdf/docs'
+`http://www.unidata.ucar.edu/software/netcdf/docs'
 
 
-File: netcdf-tutorial.info,  Node: Versions,  Prev: Documentation,  Up: Intro
+File: netcdf-tutorial.info,  Node: Versions,  Next: Future,  Prev: Documentation,  Up: Intro
 
-1.9 A Note on NetCDF Versions and Formats
+1.8 A Note on NetCDF Versions and Formats
 =========================================
 
 NetCDF has changed (and improved) over its lifetime. That means the
@@ -701,106 +564,60 @@ user must have some understanding of netCDF versions.
    To add to the confusion, there are versions for the APIs, and also
 for the data files that they produce. The API version is the version
 number that appears in the tarball file that is downloaded from the
-netCDF website. For example this document applied to API version 4.1.1.
+netCDF website. For example the current version is 3.6.3.
+
+   Since version 3.6.0 there are two versions of the netCDF file
+format. Both underlying formats are accessed by the same netCDF API,
+but are stored differently on disk. The formats are called "classic
+format," and "64-bit offset format."
 
    The good news is that all netCDF files ever written can always be
 read by the latest netCDF release. That is, we guarantee backward data
 compatibility.
 
-1.9.1 Classic Format
---------------------
+   As long as you have a version of netCDF greater than 3.6.0, you can
+use either format. To share data in 64-bit offset format, everyone who
+wants to read the data must use at least version 3.6.0.
 
-The default format is classic format. This is the original netCDF
-binary format - the format that the netCDF library has been using for
-almost 20 years, since its introduction with the first release of
-netCDF. No special flag is needed to create a file in classic format;
-it is the default.
+   The default format is classic format. To get 64-bit offset format,
+set a flag when creating the file. For more information about the
+format, see *Note Format: (netcdf)Format.
 
    Classic format has some strict limitations for files larger than two
 gigabytes. (*note NetCDF Classic Format Limitations: (netcdf)NetCDF
 Classic Format Limitations.).
-
-1.9.2 64-bit Offset Format
---------------------------
-
-In December, 2004, version 3.6.0 of the netCDF library was released. It
-allows users to use a new version of the netCDF file format which
-greatly expands the sizes of variables and files which may be written.
-
-   The format which was introduced in 3.6.0 is called "64-bit Offset
-Format."
-
-   Create files in this format by passing the 64-bit offset format flag
-to the create call (for example, in C, set the NC_64BIT_OFFSET flag
-when calling the function nc_create. (*note nc_create:
-(netcdf-c)nc_create.).
 
    64-bit offset is very useful for very large data files (over two
 gigabytes), however these files can only be shared with those who have
 upgraded to version 3.6.0 (or better) of netCDF. Earlier versions of
 netCDF will not be able to read these files.
 
-1.9.3 NetCDF-4/HDF5 Format
---------------------------
+
+File: netcdf-tutorial.info,  Node: Future,  Prev: Versions,  Up: Intro
 
-With version 4.0 of netCDF, we introduce another new data format:
-netCDF-4/HDF5 format. This format is HDF5, with full use of the new
-dimension scales, creation ordering, and other features of HDF5 added
-in its version 1.8.0 release.
+1.9 The Future of NetCDF
+========================
 
-   As with 64-bit offset, this format is turned on when the file is
-created. (For example, with the nf_netcdf4 flag in the nf_create
-function. *note nf_create: (netcdf-f77)nf_create.).
+NetCDF continues under active development at Unidata (see
+`http://www.unidata.ucar.edu').
 
-1.9.4 Sharing Data
-------------------
+   The upcoming and long anticipated release of netCDF-4.0 will
+introduce another format: HDF5. This does not represent the weakening
+of support for the classic and 64-bit offset formats! NetCDF-4.0 will
+maintain full backward compatibility, and will continue to use classic
+format by default. NetCDF-4.0 will introduce many interesting new
+features, such as groups and compound data types, which will only be
+available for files using the HDF5 format. Classic and 64-bit offset
+files will behave as always, and will be fully supported in netCDF-4.
 
-The classic format is the most portable. Classic format files can be
-read correctly by any version of netCDF. A netCDF-4 user can create a
-classic file, and share it with a user who has not upgraded netCDF
-since the version 2.3 in 1994.
+   NetCDF-4 is in advanced alpha release, and adventurous users can try
+it out for themselves, but it is not ready for operational use and
+won't be until HDF5 1.8.0 is released. See
+`http://www.unidata.ucar.edu/software/netcdf/netcdf-4'.
 
-   64-bit offset format files can be read by any user who has at least
-version 3.6.0 of the netCDF API (released in Dec., 2004).
-
-   Users must have netCDF 4.0 to read netCDF-4/HDF5 files. However,
-netCDF-4 does produce backward compatible classic and 64-bit offset
-format files. That is, a netCDF-4.0 user can create a classic format
-file, and share it with researchers who are still using a old version
-of netCDF. Similarly a netCDF-4.0 user can read any existing netCDF
-data file, whatever version of netCDF was used to create it.
-
-1.9.5 Classic Model
--------------------
-
-The original netCDF API represents a data model as well as a
-programming API. That is, the idea of variables, attributes, and the
-six data types (char, byte, short, integer, float, and double),
-comprises a model of how data may be stored.
-
-   The netCDF-4 release expands this model with groups, user-defined
-types, and new base types. New functions have been added to the APIs to
-accommodate these extensions, but once they are used, the file can no
-longer be output as a classic format file.
-
-   That is, once you use groups in your code, you can only produce
-netCDF-4/HDF5 files. If you try to change the format to classic, you
-will get an error when you attempt to use any of the group functions.
-
-   Since it is convenient to be able to produce files of all formats
-from the same code (restricting oneself to the classic data model), a
-flag has been added which, when used in the creation of a netCDF-4/HDF5
-file, will instruct the library to disallow the use of any advanced
-features in the file.
-
-   This is referred to as a "classic model" netCDF-4/HDF5 file.
-
-   To get a classic model file, use the classic model flag when creating
-the file. For example, in Fortran 77, use the nf_classic_model flag
-when calling nf_create (*note nf_create: (netcdf-f77)nf_create.).
-
-   For more information about format issues see *note The NetCDF Users
-Guide: (netcdf)Format.
+   The netCDF-Java library has many advanced capabilities, and is
+actively maintained and developed. See
+`http://www.unidata.ucar.edu/software/netcdf-java/v2.1/NetcdfJavaUserManual.htm'.
 
 
 File: netcdf-tutorial.info,  Node: Examples,  Next: Useful Functions,  Prev: Intro,  Up: Top
@@ -811,22 +628,17 @@ File: netcdf-tutorial.info,  Node: Examples,  Next: Useful Functions,  Prev: Int
 The netCDF example programs show how to use netCDF.
 
    In the netCDF distribution, the "examples" directory contains
-examples in C, Fortran 77, Fortran 90, C++, and CDL.
-
-   There are three sets of netCDF-3 example programs in each language.
-Each language has its own subdirectory under the "examples" directory
-(for example, the Fortran 77 examples are in "examples/F77").
-
-   There is also one example for netCDF-4, which is only provided in the
-C language. This example will only be run if the -enable-netcdf-4
-option was used with configure.
+examples in C, Fortran 77, Fortran 90, C++, and CDL. There are three
+sets of example programs in each language. Each language has its own
+subdirectory under the "examples" directory (for example, the Fortran
+77 examples are in "examples/F77").
 
    The examples are built and run with the "make check" command. (For
 more information on building netCDF, *note The NetCDF Installation and
 Porting Guide: (netcdf-install)Top.).
 
-   The examples create, and then read, example data files of increasing
-complexity.
+   The examples create, and then read, three different example files, of
+increasing complexity.
 
    The corresponding examples in each language create identical netCDF
 data files. For example, the C program sfc_pres_temp_wr.c produces the
@@ -874,7 +686,7 @@ By default, ncdump shows the CDL description of the file. This CDL
 description can be fed into ncgen to create the data file.
 
    The CDL for this example is shown below. For more information on
-ncdump and ncgen see *note NetCDF Utilities: (netcdf)NetCDF Utilities.
+ncdump and ncgen see *Note NetCDF Utilities: (netcdf)NetCDF Utilities.
 
      netcdf simple_xy {
      dimensions:
@@ -1140,7 +952,7 @@ File: netcdf-tutorial.info,  Node: simple_xy_wr.f,  Next: simple_xy_rd.f,  Prev:
      C     Full documentation of the netCDF Fortran 77 API can be found at:
      C     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f77
 
-     C     $Id: simple_xy_wr.f,v 1.11 2008/08/20 22:29:56 russ Exp $
+     C     $Id: simple_xy_wr.f,v 1.10 2007/02/14 20:59:20 ed Exp $
 
            program simple_xy_wr
            implicit none
@@ -1199,7 +1011,7 @@ File: netcdf-tutorial.info,  Node: simple_xy_wr.f,  Next: simple_xy_rd.f,  Prev:
            dimids(1) = y_dimid
 
      C     Define the variable. The type of the variable in this case is
-     C     NF_INT (4-byte integer).
+     C     NF_INT (4-byte little-endian integer).
            retval = nf_def_var(ncid, "data", NF_INT, NDIMS, dimids, varid)
            if (retval .ne. nf_noerr) call handle_err(retval)
 
@@ -1349,7 +1161,7 @@ File: netcdf-tutorial.info,  Node: simple_xy_wr.f90,  Next: simple_xy_rd.f90,  P
      !     Full documentation of the netCDF Fortran 90 API can be found at:
      !     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
 
-     !     $Id: simple_xy_wr.f90,v 1.11 2010/04/06 19:32:08 ed Exp $
+     !     $Id: simple_xy_wr.f90,v 1.9 2008/02/19 16:32:21 ed Exp $
 
      program simple_xy_wr
        use netcdf
@@ -1369,13 +1181,10 @@ File: netcdf-tutorial.info,  Node: simple_xy_wr.f90,  Next: simple_xy_rd.f90,  P
 
        ! This is the data array we will write. It will just be filled with
        ! a progression of integers for this example.
-       integer, dimension(:,:), allocatable :: data_out
+       integer :: data_out(NY, NX)
 
        ! Loop indexes, and error handling.
        integer :: x, y
-
-       ! Allocate memory for data.
-       allocate(data_out(NY, NX))
 
        ! Create some pretend data. If this wasn't an example program, we
        ! would have some real data to write, for example, model output.
@@ -1404,7 +1213,7 @@ File: netcdf-tutorial.info,  Node: simple_xy_wr.f90,  Next: simple_xy_rd.f90,  P
        dimids =  (/ y_dimid, x_dimid /)
 
        ! Define the variable. The type of the variable in this case is
-       ! NF90_INT (4-byte integer).
+       ! NF90_INT (4-byte little-endian integer).
        call check( nf90_def_var(ncid, "data", NF90_INT, dimids, varid) )
 
        ! End define mode. This tells netCDF we are done defining metadata.
@@ -1445,7 +1254,7 @@ File: netcdf-tutorial.info,  Node: simple_xy_rd.f90,  Prev: simple_xy_wr.f90,  U
      ! This is a simple example which reads a small dummy array, from a
      ! netCDF data file created by the companion program simple_xy_wr.f90.
 
-     ! This is intended to illustrate the use of the netCDF fortran 90
+     ! This is intended to illustrate the use of the netCDF fortran 77
      ! API. This example program is part of the netCDF tutorial, which can
      ! be found at:
      ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
@@ -1453,7 +1262,7 @@ File: netcdf-tutorial.info,  Node: simple_xy_rd.f90,  Prev: simple_xy_wr.f90,  U
      ! Full documentation of the netCDF Fortran 90 API can be found at:
      ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
 
-     ! $Id: simple_xy_rd.f90,v 1.11 2010/04/06 19:32:09 ed Exp $
+     ! $Id: simple_xy_rd.f90,v 1.9 2008/02/19 16:32:21 ed Exp $
 
      program simple_xy_rd
        use netcdf
@@ -1464,16 +1273,13 @@ File: netcdf-tutorial.info,  Node: simple_xy_rd.f90,  Prev: simple_xy_wr.f90,  U
 
        ! We are reading 2D data, a 12 x 6 grid.
        integer, parameter :: NX = 6, NY = 12
-       integer, dimension(:,:), allocatable :: data_in
+       integer :: data_in(NY, NX)
 
        ! This will be the netCDF ID for the file and data variable.
        integer :: ncid, varid
 
        ! Loop indexes, and error handling.
        integer :: x, y
-
-       ! Allocate memory for data.
-       allocate(data_in(NY, NX))
 
        ! Open the file. NF90_NOWRITE tells netCDF we want read-only access to
        ! the file.
@@ -1715,7 +1521,7 @@ the latitudes and longitudes that describe the data grid.
    The CDL version of the data file, generated by ncdump, is shown
 below.
 
-   For more information on ncdump and ncgen see *note NetCDF Utilities:
+   For more information on ncdump and ncgen see *Note NetCDF Utilities:
 (netcdf)NetCDF Utilities.
 
      netcdf sfc_pres_temp {
@@ -2573,7 +2379,7 @@ File: netcdf-tutorial.info,  Node: sfc_pres_temp_wr.f90,  Next: sfc_pres_temp_rd
      ! Full documentation of the netCDF Fortran 90 API can be found at:
      ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
 
-     ! $Id: sfc_pres_temp_wr.f90,v 1.12 2010/04/06 19:32:09 ed Exp $
+     ! $Id: sfc_pres_temp_wr.f90,v 1.11 2008/02/19 16:32:21 ed Exp $
 
      program sfc_pres_temp_wr
        use netcdf
@@ -2614,17 +2420,12 @@ File: netcdf-tutorial.info,  Node: sfc_pres_temp_wr.f90,  Next: sfc_pres_temp_rd
        character (len = *), parameter :: LON_UNITS = "degrees_east"
 
        ! We will create some pressure and temperature data to write out.
-       real, dimension(:,:), allocatable :: temp_out
-       real, dimension(:,:), allocatable :: pres_out
+       real :: pres_out(NLONS, NLATS), temp_out(NLONS, NLATS)
        real, parameter :: SAMPLE_PRESSURE = 900.0
        real, parameter :: SAMPLE_TEMP = 9.0
 
        ! Loop indices
        integer :: lat, lon
-
-       ! Allocate memory.
-       allocate(pres_out(NLONS, NLATS))
-       allocate(temp_out(NLONS, NLATS))
 
        ! Create pretend data. If this were not an example program, we would
        ! have some real data to write, for example, model output.
@@ -2723,7 +2524,7 @@ File: netcdf-tutorial.info,  Node: sfc_pres_temp_rd.f90,  Prev: sfc_pres_temp_wr
      ! Full documentation of the netCDF Fortran 90 API can be found at:
      ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
 
-     ! $Id: sfc_pres_temp_rd.f90,v 1.10 2010/04/06 19:32:09 ed Exp $
+     ! $Id: sfc_pres_temp_rd.f90,v 1.9 2008/02/19 16:32:21 ed Exp $
 
      program sfc_pres_temp_rd
        use netcdf
@@ -2738,6 +2539,7 @@ File: netcdf-tutorial.info,  Node: sfc_pres_temp_rd.f90,  Prev: sfc_pres_temp_wr
        integer, parameter :: NLATS = 6, NLONS = 12
        character (len = *), parameter :: LAT_NAME = "latitude"
        character (len = *), parameter :: LON_NAME = "longitude"
+       integer :: lat_dimid, lon_dimid
 
        ! For the lat lon coordinate netCDF variables.
        real :: lats(NLATS), lons(NLONS)
@@ -2747,6 +2549,7 @@ File: netcdf-tutorial.info,  Node: sfc_pres_temp_rd.f90,  Prev: sfc_pres_temp_wr
        character (len = *), parameter :: PRES_NAME = "pressure"
        character (len = *), parameter :: TEMP_NAME = "temperature"
        integer :: pres_varid, temp_varid
+       integer :: dimids(NDIMS)
 
        ! To check the units attributes.
        character (len = *), parameter :: UNITS = "units"
@@ -2760,8 +2563,7 @@ File: netcdf-tutorial.info,  Node: sfc_pres_temp_rd.f90,  Prev: sfc_pres_temp_wr
        character*(MAX_ATT_LEN) :: lat_units_in, lon_units_in
 
        ! Read the data into these arrays.
-       real, dimension(:,:), allocatable :: pres_in
-       real, dimension(:,:), allocatable :: temp_in
+       real :: pres_in(NLONS, NLATS), temp_in(NLONS, NLATS)
 
        ! These are used to calculate the values we expect to find.
        real, parameter :: START_LAT = 25.0, START_LON = -125.0
@@ -2774,10 +2576,6 @@ File: netcdf-tutorial.info,  Node: sfc_pres_temp_rd.f90,  Prev: sfc_pres_temp_wr
 
        ! Loop indices
        integer :: lat, lon
-
-       ! Allocate memory.
-       allocate(pres_in(NLONS, NLATS))
-       allocate(temp_in(NLONS, NLATS))
 
        ! Open the file.
        call check( nf90_open(FILE_NAME, nf90_nowrite, ncid) )
@@ -3217,7 +3015,7 @@ unlimited dimension.
 
    The sample data file created by pres_temp_4D_wr can be examined with
 the utility ncdump. The output is shown below. For more information on
-ncdump see *note NetCDF Utilities: (netcdf)NetCDF Utilities.
+ncdump see *Note NetCDF Utilities: (netcdf)NetCDF Utilities.
 
      netcdf pres_temp_4D {
      dimensions:
@@ -3955,10 +3753,10 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f,  Prev: pres_temp_4D_wr.f, 
      C     Copyright 2006 University Corporation for Atmospheric Research/Unidata.
      C     See COPYRIGHT file for conditions of use.
 
-     C     This is an example which reads some 4D pressure and
-     C     temperatures. The data file read by this program is produced by
-     C     the companion program pres_temp_4D_wr.f. It is intended to
-     C     illustrate the use of the netCDF Fortran 77 API.
+     C     This is an example program which writes some 4D pressure and
+     C     temperatures. It is intended to illustrate the use of the netCDF
+     C     fortran 77 API. The companion program pres_temp_4D_rd.f shows how
+     C     to read the netCDF data file created by this program.
 
      C     This program is part of the netCDF tutorial:
      C     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
@@ -3966,18 +3764,18 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f,  Prev: pres_temp_4D_wr.f, 
      C     Full documentation of the netCDF Fortran 77 API can be found at:
      C     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f77
 
-     C     $Id: pres_temp_4D_rd.f,v 1.12 2007/02/14 20:59:20 ed Exp $
+     C     $Id: pres_temp_4D_wr.f,v 1.12 2007/02/14 20:59:20 ed Exp $
 
-           program pres_temp_4D_rd
+           program pres_temp_4D_wr
            implicit none
            include 'netcdf.inc'
 
-     C     This is the name of the data file we will read.
+     C     This is the name of the data file we will create.
            character*(*) FILE_NAME
-           parameter (FILE_NAME='pres_temp_4D.nc')
+           parameter (FILE_NAME = 'pres_temp_4D.nc')
            integer ncid
 
-     C     We are reading 4D data, a 12 x 6 x 2 lon-lat-lvl grid, with 2
+     C     We are writing 4D data, a 12 x 6 x 2 lon-lat-lvl grid, with 2
      C     timesteps of data.
            integer NDIMS, NRECS
            parameter (NDIMS = 4, NRECS = 2)
@@ -3990,19 +3788,15 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f,  Prev: pres_temp_4D_wr.f, 
            integer lvl_dimid, lon_dimid, lat_dimid, rec_dimid
 
      C     The start and count arrays will tell the netCDF library where to
-     C     read our data.
+     C     write our data.
            integer start(NDIMS), count(NDIMS)
 
-     C     In addition to the latitude and longitude dimensions, we will also
-     C     create latitude and longitude variables which will hold the actual
-     C     latitudes and longitudes. Since they hold data about the
-     C     coordinate system, the netCDF term for these is: "coordinate
-     C     variables."
+     C     These program variables hold the latitudes and longitudes.
            real lats(NLATS), lons(NLONS)
            integer lon_varid, lat_varid
 
-     C     We will read surface temperature and pressure fields. In netCDF
-     C     terminology these are called "variables."
+     C     We will create two netCDF variables, one each for temperature and
+     C     pressure fields.
            character*(*) PRES_NAME, TEMP_NAME
            parameter (PRES_NAME='pressure')
            parameter (TEMP_NAME='temperature')
@@ -4017,16 +3811,17 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f,  Prev: pres_temp_4D_wr.f, 
            parameter (LAT_UNITS = 'degrees_north')
            parameter (LON_UNITS = 'degrees_east')
 
-     C     Program variables to hold the data we will read in. We will only
+     C     Program variables to hold the data we will write out. We will only
      C     need enough space to hold one timestep of data; one record.
-           real pres_in(NLONS, NLATS, NLVLS)
-           real temp_in(NLONS, NLATS, NLVLS)
+           real pres_out(NLONS, NLATS, NLVLS)
+           real temp_out(NLONS, NLATS, NLVLS)
            real SAMPLE_PRESSURE
            parameter (SAMPLE_PRESSURE = 900.0)
            real SAMPLE_TEMP
            parameter (SAMPLE_TEMP = 9.0)
 
-     C     Use these to calculate the values we expect to find.
+     C     Use these to construct some latitude and longitude data for this
+     C     example.
            integer START_LAT, START_LON
            parameter (START_LAT = 25.0, START_LON = -125.0)
 
@@ -4036,39 +3831,101 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f,  Prev: pres_temp_4D_wr.f, 
      C     Error handling.
            integer retval
 
-     C     Open the file.
-           retval = nf_open(FILE_NAME, nf_nowrite, ncid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Get the varids of the latitude and longitude coordinate variables.
-           retval = nf_inq_varid(ncid, LAT_NAME, lat_varid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-           retval = nf_inq_varid(ncid, LON_NAME, lon_varid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Read the latitude and longitude data.
-           retval = nf_get_var_real(ncid, lat_varid, lats)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-           retval = nf_get_var_real(ncid, lon_varid, lons)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Check to make sure we got what we expected.
+     C     Create pretend data. If this wasn't an example program, we would
+     C     have some real data to write, for example, model output.
            do lat = 1, NLATS
-              if (lats(lat) .ne. START_LAT + (lat - 1) * 5.0) stop 2
+              lats(lat) = START_LAT + (lat - 1) * 5.0
            end do
            do lon = 1, NLONS
-              if (lons(lon) .ne. START_LON + (lon - 1) * 5.0) stop 2
+              lons(lon) = START_LON + (lon - 1) * 5.0
+           end do
+           i = 0
+           do lvl = 1, NLVLS
+              do lat = 1, NLATS
+                 do lon = 1, NLONS
+                    pres_out(lon, lat, lvl) = SAMPLE_PRESSURE + i
+                    temp_out(lon, lat, lvl) = SAMPLE_TEMP + i
+                    i = i + 1
+                 end do
+              end do
            end do
 
-     C     Get the varids of the pressure and temperature netCDF variables.
-           retval = nf_inq_varid(ncid, PRES_NAME, pres_varid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-           retval = nf_inq_varid(ncid, TEMP_NAME, temp_varid)
+     C     Create the file.
+           retval = nf_create(FILE_NAME, nf_clobber, ncid)
            if (retval .ne. nf_noerr) call handle_err(retval)
 
-     C     Read 1 record of NLONS*NLATS*NLVLS values, starting at the
-     C     beginning of the record (the (1, 1, 1, rec) element in the netCDF
-     C     file).
+     C     Define the dimensions. The record dimension is defined to have
+     C     unlimited length - it can grow as needed. In this example it is
+     C     the time dimension.
+           retval = nf_def_dim(ncid, LVL_NAME, NLVLS, lvl_dimid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_def_dim(ncid, LAT_NAME, NLATS, lat_dimid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_def_dim(ncid, LON_NAME, NLONS, lon_dimid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_def_dim(ncid, REC_NAME, NF_UNLIMITED, rec_dimid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+
+     C     Define the coordinate variables. We will only define coordinate
+     C     variables for lat and lon.  Ordinarily we would need to provide
+     C     an array of dimension IDs for each variable's dimensions, but
+     C     since coordinate variables only have one dimension, we can
+     C     simply provide the address of that dimension ID (lat_dimid) and
+     C     similarly for (lon_dimid).
+           retval = nf_def_var(ncid, LAT_NAME, NF_REAL, 1, lat_dimid,
+          +     lat_varid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_def_var(ncid, LON_NAME, NF_REAL, 1, lon_dimid,
+          +     lon_varid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+
+     C     Assign units attributes to coordinate variables.
+           retval = nf_put_att_text(ncid, lat_varid, UNITS, len(LAT_UNITS),
+          +     LAT_UNITS)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_put_att_text(ncid, lon_varid, UNITS, len(LON_UNITS),
+          +     LON_UNITS)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+
+     C     The dimids array is used to pass the dimids of the dimensions of
+     C     the netCDF variables. Both of the netCDF variables we are creating
+     C     share the same four dimensions. In Fortran, the unlimited
+     C     dimension must come last on the list of dimids.
+           dimids(1) = lon_dimid
+           dimids(2) = lat_dimid
+           dimids(3) = lvl_dimid
+           dimids(4) = rec_dimid
+
+     C     Define the netCDF variables for the pressure and temperature data.
+           retval = nf_def_var(ncid, PRES_NAME, NF_REAL, NDIMS, dimids,
+          +     pres_varid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_def_var(ncid, TEMP_NAME, NF_REAL, NDIMS, dimids,
+          +     temp_varid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+
+     C     Assign units attributes to the netCDF variables.
+           retval = nf_put_att_text(ncid, pres_varid, UNITS, len(PRES_UNITS),
+          +     PRES_UNITS)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_put_att_text(ncid, temp_varid, UNITS, len(TEMP_UNITS),
+          +     TEMP_UNITS)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+
+     C     End define mode.
+           retval = nf_enddef(ncid)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+
+     C     Write the coordinate variable data. This will put the latitudes
+     C     and longitudes of our data grid into the netCDF file.
+           retval = nf_put_var_real(ncid, lat_varid, lats)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+           retval = nf_put_var_real(ncid, lon_varid, lons)
+           if (retval .ne. nf_noerr) call handle_err(retval)
+
+     C     These settings tell netcdf to write one timestep of data. (The
+     C     setting of start(4) inside the loop below tells netCDF which
+     C     timestep to write.)
            count(1) = NLONS
            count(2) = NLATS
            count(3) = NLVLS
@@ -4077,39 +3934,26 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f,  Prev: pres_temp_4D_wr.f, 
            start(2) = 1
            start(3) = 1
 
-     C     Read the surface pressure and temperature data from the file, one
-     C     record at a time.
+     C     Write the pretend data. This will write our surface pressure and
+     C     surface temperature data. The arrays only hold one timestep worth
+     C     of data. We will just rewrite the same data for each timestep. In
+     C     a real application, the data would change between timesteps.
            do rec = 1, NRECS
               start(4) = rec
-              retval = nf_get_vara_real(ncid, pres_varid, start, count,
-          $        pres_in)
+              retval = nf_put_vara_real(ncid, pres_varid, start, count,
+          +        pres_out)
               if (retval .ne. nf_noerr) call handle_err(retval)
-              retval = nf_get_vara_real(ncid, temp_varid, start, count,
-          $        temp_in)
+              retval = nf_put_vara_real(ncid, temp_varid, start, count,
+          +        temp_out)
               if (retval .ne. nf_noerr) call handle_err(retval)
-
-              i = 0
-              do lvl = 1, NLVLS
-                 do lat = 1, NLATS
-                    do lon = 1, NLONS
-                       if (pres_in(lon, lat, lvl) .ne. SAMPLE_PRESSURE + i)
-          $                 stop 2
-                       if (temp_in(lon, lat, lvl) .ne. SAMPLE_TEMP + i)
-          $                 stop 2
-                       i = i + 1
-                    end do
-                 end do
-              end do
-     C     next record
            end do
 
-     C     Close the file. This frees up any internal netCDF resources
-     C     associated with the file.
+     C     Close the file. This causes netCDF to flush all buffers and make
+     C     sure your data are really written to disk.
            retval = nf_close(ncid)
            if (retval .ne. nf_noerr) call handle_err(retval)
 
-     C     If we got this far, everything worked as expected. Yipee!
-           print *,'*** SUCCESS reading example file pres_temp_4D.nc!'
+           print *,'*** SUCCESS writing example file', FILE_NAME, '!'
            end
 
            subroutine handle_err(errcode)
@@ -4160,7 +4004,7 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_wr.f90,  Next: pres_temp_4D_rd.f
      ! Full documentation of the netCDF Fortran 90 API can be found at:
      ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
 
-     ! $Id: pres_temp_4D_wr.f90,v 1.10 2010/04/06 19:32:09 ed Exp $
+     ! $Id: pres_temp_4D_wr.f90,v 1.9 2008/02/19 16:32:21 ed Exp $
 
      program pres_temp_4D_wr
        use netcdf
@@ -4204,8 +4048,8 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_wr.f90,  Next: pres_temp_4D_rd.f
 
        ! Program variables to hold the data we will write out. We will only
        ! need enough space to hold one timestep of data; one record.
-       real, dimension(:,:,:), allocatable :: pres_out
-       real, dimension(:,:,:), allocatable :: temp_out
+       real :: pres_out(NLONS, NLATS, NLVLS)
+       real :: temp_out(NLONS, NLATS, NLVLS)
        real, parameter :: SAMPLE_PRESSURE = 900.0
        real, parameter :: SAMPLE_TEMP = 9.0
 
@@ -4215,10 +4059,6 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_wr.f90,  Next: pres_temp_4D_rd.f
 
        ! Loop indices
        integer :: lvl, lat, lon, rec, i
-
-       ! Allocate memory.
-       allocate(pres_out(NLONS, NLATS, NLVLS))
-       allocate(temp_out(NLONS, NLATS, NLVLS))
 
        ! Create pretend data. If this were not an example program, we would
        ! have some real data to write, for example, model output.
@@ -4341,7 +4181,7 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f90,  Prev: pres_temp_4D_wr.f
      ! Full documentation of the netCDF Fortran 90 API can be found at:
      ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
 
-     ! $Id: pres_temp_4D_rd.f90,v 1.9 2010/04/06 19:32:09 ed Exp $
+     ! $Id: pres_temp_4D_rd.f90,v 1.8 2008/02/19 16:32:21 ed Exp $
 
      program pres_temp_4D_rd
        use netcdf
@@ -4359,6 +4199,7 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f90,  Prev: pres_temp_4D_wr.f
        character (len = *), parameter :: LAT_NAME = "latitude"
        character (len = *), parameter :: LON_NAME = "longitude"
        character (len = *), parameter :: REC_NAME = "time"
+       integer :: lvl_dimid, lon_dimid, lat_dimid, rec_dimid
 
        ! The start and count arrays will tell the netCDF library where to
        ! read our data.
@@ -4377,6 +4218,7 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f90,  Prev: pres_temp_4D_wr.f
        character (len = *), parameter :: PRES_NAME="pressure"
        character (len = *), parameter :: TEMP_NAME="temperature"
        integer :: pres_varid, temp_varid
+       integer :: dimids(NDIMS)
 
        ! We recommend that each variable carry a "units" attribute.
        character (len = *), parameter :: UNITS = "units"
@@ -4386,9 +4228,8 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f90,  Prev: pres_temp_4D_wr.f
 
        ! Program variables to hold the data we will read in. We will only
        ! need enough space to hold one timestep of data; one record.
-       ! Allocate memory for data.
-       real, dimension(:,:,:), allocatable :: pres_in
-       real, dimension(:,:,:), allocatable :: temp_in
+       real :: pres_in(NLONS, NLATS, NLVLS)
+       real :: temp_in(NLONS, NLATS, NLVLS)
        real, parameter :: SAMPLE_PRESSURE = 900.0
        real, parameter :: SAMPLE_TEMP = 9.0
 
@@ -4398,9 +4239,9 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.f90,  Prev: pres_temp_4D_wr.f
        ! Loop indices
        integer :: lvl, lat, lon, rec, i
 
-       ! Allocate memory.
-       allocate(pres_in(NLONS, NLATS, NLVLS))
-       allocate(temp_in(NLONS, NLATS, NLVLS))
+       ! To check the units attributes.
+       character*80 pres_units_in, temp_units_in
+       character*80 lat_units_in, lon_units_in
 
        ! Open the file.
        call check( nf90_open(FILE_NAME, nf90_nowrite, ncid) )
@@ -4777,7 +4618,7 @@ File: netcdf-tutorial.info,  Node: pres_temp_4D_rd.cpp,  Prev: pres_temp_4D_wr.c
      }
 
 
-File: netcdf-tutorial.info,  Node: Useful Functions,  Next: API-Extensions,  Prev: Examples,  Up: Top
+File: netcdf-tutorial.info,  Node: Useful Functions,  Next: Combined Index,  Prev: Examples,  Up: Top
 
 3 The Functions You Need in NetCDF-3
 ************************************
@@ -4852,19 +4693,19 @@ file are returned to the operating system.
    For a typical sequence of calls to the C versions of these functions,
 see *Note Creating a NetCDF Dataset: (netcdf-c)Creating.
 
-*note nc_create:                     create a new netCDF file
+*Note nc_create:                     create a new netCDF file
 (netcdf-c)nc_create.                 
-*note nc_def_dim:                    define a dimension
+*Note nc_def_dim:                    define a dimension
 (netcdf-c)nc_def_dim.                
-*note nc_def_var:                    define a variable
+*Note nc_def_var:                    define a variable
 (netcdf-c)nc_def_var.                
-*note nc_put_att_ type:              write attributes
+*Note nc_put_att_ type:              write attributes
 (netcdf-c)nc_put_att_ type.          
-*note nc_enddef:                     leave define mode
+*Note nc_enddef:                     leave define mode
 (netcdf-c)nc_enddef.                 
-*note nc_put_vara_ type:             write arrays of data
+*Note nc_put_vara_ type:             write arrays of data
 (netcdf-c)nc_put_vara_ type.         
-*note nc_close: (netcdf-c)nc_close.  close a file
+*Note nc_close: (netcdf-c)nc_close.  close a file
 
 
 File: netcdf-tutorial.info,  Node: Creation in F77,  Next: Creation in F90,  Prev: Creation in C,  Up: Creation
@@ -4882,7 +4723,7 @@ and ready to start writing the data.
 all buffers are flushed, and any resources associated with the open
 file are returned to the operating system.
 
-   For a typical sequence of calls see *note Creating a NetCDF Dataset:
+   For a typical sequence of calls see *Note Creating a NetCDF Dataset:
 (netcdf-f77)Creating.
 
    Fortran users take note: the netCDF Fortran 77 API consists of
@@ -4893,19 +4734,19 @@ ensure that the wrappers work.
    The name of each Fortran function shows the outline of the C function
 it wraps (for example, NF_CREATE is a wrapper around nc_create).
 
-*note NF_CREATE:                     create a new netCDF file
+*Note NF_CREATE:                     create a new netCDF file
 (netcdf-f77)NF_CREATE.               
-*note NF_DEF_DIM:                    define a dimension
+*Note NF_DEF_DIM:                    define a dimension
 (netcdf-f77)NF_DEF_DIM.              
-*note NF_DEF_VAR:                    define a variable
+*Note NF_DEF_VAR:                    define a variable
 (netcdf-f77)NF_DEF_VAR.              
-*note NF_PUT_ATT_ type:              write an attribute
+*Note NF_PUT_ATT_ type:              write an attribute
 (netcdf-f77)NF_PUT_ATT_ type.        
-*note NF_ENDDEF:                     end define mode
+*Note NF_ENDDEF:                     end define mode
 (netcdf-f77)NF_ENDDEF.               
-*note NF_PUT_VARA_ type:             write arrays of data
+*Note NF_PUT_VARA_ type:             write arrays of data
 (netcdf-f77)NF_PUT_VARA_ type.       
-*note NF_CLOSE:                      close the netCDF file
+*Note NF_CLOSE:                      close the netCDF file
 (netcdf-f77)NF_CLOSE.                
 
 
@@ -4924,7 +4765,7 @@ and ready to start writing the data.
 that all buffers are flushed, and any resources associated with the
 open file are returned to the operating system.
 
-   For a typical sequence of calls see *note Creating a NetCDF Dataset:
+   For a typical sequence of calls see *Note Creating a NetCDF Dataset:
 (netcdf-f90)Creating.
 
    The netCDF Fortran 90 API calls the Fortran 77 API, which in turn
@@ -4935,19 +4776,19 @@ function it wraps (for example, NF90_CREATE is a wrapper around
 NF_CREATE). The F77 functions are, in turn, wrappers around the C
 functions.
 
-*note NF90_CREATE:                   create a netCDF file
+*Note NF90_CREATE:                   create a netCDF file
 (netcdf-f90)NF90_CREATE.             
-*note NF90_DEF_DIM:                  define a dimension
+*Note NF90_DEF_DIM:                  define a dimension
 (netcdf-f90)NF90_DEF_DIM.            
-*note NF90_DEF_VAR:                  define a variable
+*Note NF90_DEF_VAR:                  define a variable
 (netcdf-f90)NF90_DEF_VAR.            
-*note NF90_PUT_ATT_ type:            write an attribute
+*Note NF90_PUT_ATT_ type:            write an attribute
 (netcdf-f90)NF90_PUT_ATT_ type.      
-*note NF90_ENDDEF:                   end define mode
+*Note NF90_ENDDEF:                   end define mode
 (netcdf-f90)NF90_ENDDEF.             
-*note NF90_PUT_VARA_ type:           write arrays of data
+*Note NF90_PUT_VARA_ type:           write arrays of data
 (netcdf-f90)NF90_PUT_VARA_ type.     
-*note NF90_CLOSE:                    close the netCDF file
+*Note NF90_CLOSE:                    close the netCDF file
 (netcdf-f90)NF90_CLOSE.              
 
 
@@ -4962,18 +4803,18 @@ add_att method is available for both NcFile and NcVar.
 
    Use the NcError class to specify error handling behavior.
 
-   For an example creating a simple file see *note simple_xy_wr.cpp::.
-For a more complex example see *note pres_temp_4D_wr.cpp::.
+   For an example creating a simple file see *Note simple_xy_wr.cpp::.
+For a more complex example see *Note pres_temp_4D_wr.cpp::.
 
-*note Class NcFile:                  a C++ class to manipulate netCDF
+*Note Class NcFile:                  a C++ class to manipulate netCDF
 (netcdf-cxx)Class NcFile.            files
-*note Class NcDim:                   a C++ class to manipulate netCDF
+*Note Class NcDim:                   a C++ class to manipulate netCDF
 (netcdf-cxx)Class NcDim.             dimensions
-*note Class NcVar:                   a C++ class to manipulate netCDF
+*Note Class NcVar:                   a C++ class to manipulate netCDF
 (netcdf-cxx)Class NcVar.             variables
-*note Class NcAtt:                   a C++ class to manipulate netCDF
+*Note Class NcAtt:                   a C++ class to manipulate netCDF
 (netcdf-cxx)Class NcAtt.             attributes
-*note Class NcError:                 a C++ class to control netCDF error
+*Note Class NcError:                 a C++ class to control netCDF error
 (netcdf-cxx)Class NcError.           handling
 
 
@@ -4996,7 +4837,7 @@ To read a netCDF file of known structure, you need to:
 
 
    Use ncdump to learn the structure of a file (use the -h option). For
-more information about ncdump see *note NetCDF Utilities:
+more information about ncdump see *Note NetCDF Utilities:
 (netcdf)NetCDF Utilities.
 
 3.2.1 Numbering of NetCDF IDs
@@ -5044,21 +4885,21 @@ File: netcdf-tutorial.info,  Node: Reading in C,  Next: Reading in F77,  Prev: R
 3.2.2 Reading a Known NetCDF File in C
 --------------------------------------
 
-For a typical sequence of calls to these C functions see *note Reading
+For a typical sequence of calls to these C functions see *Note Reading
 a NetCDF Dataset with Known Names: (netcdf-c)Reading Known.
 
-*note        open a netCDF file      
+*Note        open a netCDF file      
 nc_open:                             
 (netcdf-c)nc_open.                        
-*note        read an attribute       
+*Note        read an attribute       
 nc_get_att:                          
 (netcdf-c)nc_get_att.                        
-*note        read arrays of data     
+*Note        read arrays of data     
 nc_get_vara_                         
 type:                                
 (netcdf-c)nc_get_vara_                        
 type.                                
-*note        close the file          
+*Note        close the file          
 nc_close:                            
 (netcdf-c)nc_close.                        
 
@@ -5068,15 +4909,15 @@ File: netcdf-tutorial.info,  Node: Reading in F77,  Next: Reading in F90,  Prev:
 3.2.3 Reading a Known NetCDF File in Fortran 77
 -----------------------------------------------
 
-For a typical sequence of calls to these functions see *note Reading a
+For a typical sequence of calls to these functions see *Note Reading a
 NetCDF Dataset with Known Names: (netcdf-f77)Reading Known.
 
-*note NF_OPEN: (netcdf-f77)NF_OPEN.  open a netCDF file
-*note NF_GET_ATT:                    read an attribute
+*Note NF_OPEN: (netcdf-f77)NF_OPEN.  open a netCDF file
+*Note NF_GET_ATT:                    read an attribute
 (netcdf-f77)NF_GET_ATT.              
-*note NF_GET_VARA_ type:             read arrays of data
+*Note NF_GET_VARA_ type:             read arrays of data
 (netcdf-f77)NF_GET_VARA_ type.       
-*note NF_CLOSE:                      close the file
+*Note NF_CLOSE:                      close the file
 (netcdf-f77)NF_CLOSE.                
 
 
@@ -5085,16 +4926,16 @@ File: netcdf-tutorial.info,  Node: Reading in F90,  Next: Reading in C++,  Prev:
 3.2.4 Reading a Known NetCDF File in Fortran 90
 -----------------------------------------------
 
-For a typical sequence of calls to these functions see *note Reading a
+For a typical sequence of calls to these functions see *Note Reading a
 NetCDF Dataset with Known Names: (netcdf-f90)Reading Known.
 
-*note NF90_OPEN:                     open a netCDF file
+*Note NF90_OPEN:                     open a netCDF file
 (netcdf-f90)NF90_OPEN.               
-*note NF90_GET_ATT:                  read an attribute
+*Note NF90_GET_ATT:                  read an attribute
 (netcdf-f90)NF90_GET_ATT.            
-*note NF90_GET_VARA:                 read arrays of data
+*Note NF90_GET_VARA:                 read arrays of data
 (netcdf-f90)NF90_GET_VARA.           
-*note NF90_CLOSE:                    close the file
+*Note NF90_CLOSE:                    close the file
 (netcdf-f90)NF90_CLOSE.              
 
 
@@ -5103,19 +4944,19 @@ File: netcdf-tutorial.info,  Node: Reading in C++,  Prev: Reading in F90,  Up: R
 3.2.5 Reading a Known NetCDF File in C++
 ----------------------------------------
 
-*note Class  a C++ class to          
+*Note Class  a C++ class to          
 NcFile:      manipulate netCDF files 
 (netcdf-cxx)Class                        
 NcFile.                              
-*note Class  a C++ class to          
+*Note Class  a C++ class to          
 NcDim:       manipulate netCDF       
 (netcdf-cxx)Classdimensions              
 NcDim.                               
-*note Class  a C++ class to          
+*Note Class  a C++ class to          
 NcVar:       manipulate netCDF       
 (netcdf-cxx)Classvariables               
 NcVar.                               
-*note Class  a C++ class to          
+*Note Class  a C++ class to          
 NcAtt:       manipulate netCDF       
 (netcdf-cxx)Classattributes              
 NcAtt.                               
@@ -5177,7 +5018,7 @@ is an array of integers.)
 To find IDs from the names, use functions nc_inq_dimid, nc_inq_attnum,
 and nc_inq_varid.
 
-   For a typical sequence of calls to these functions see *note Reading
+   For a typical sequence of calls to these functions see *Note Reading
 a netCDF Dataset with Unknown Names: (netcdf-c)Reading Unknown.
 
 3.3.1.1 NULL Parameters in Inquiry Functions
@@ -5199,7 +5040,7 @@ which only finds the number of dimensions, exactly as if you had called
 nc_inq, with NULLs in all parameters except ndimsp. (In fact, this is
 just what the nc_inq_ndims functions does).
 
-*note        Find number                     
+*Note        Find number                     
 nc_inq:      of                              
 (netcdf-c)nc_inq.dimensions,                     
              variables,                      
@@ -5208,16 +5049,16 @@ nc_inq:      of
              and the                         
              unlimited                       
              dimid.                          
-*note        Find                            
+*Note        Find                            
 nc_inq_att:  attribute                       
 (netcdf-c)nc_inq_att.name, type,                     
              and length.                     
-*note        Find                            
+*Note        Find                            
 nc_inq_dim   dimension                       
 Family:      name and                        
 (netcdf-c)nc_inq_dimlength.                         
 Family.                                      
-*note        Find                            
+*Note        Find                            
 nc_inq_var:  variable                        
 (netcdf-c)nc_inq_var.name, type,                     
              num                             
@@ -5225,24 +5066,24 @@ nc_inq_var:  variable
              dim IDs,                        
              and num                         
              attributes.                     
-*note        Find                            
+*Note        Find                            
 nc_inq_dimid:dimension                       
 (netcdf-c)nc_inq_dimid.ID from its                     
              name.                           
-*note        Find                            
+*Note        Find                            
 nc_inq_varid:variable ID                     
 (netcdf-c)nc_inq_varid.from its                        
              name.                           
-*note        Find file                       
+*Note        Find file                       
 nc_inq_format:format:                         
 (netcdf-c)nc_inq_format.classic or                      
              64-bit                          
              offset                          
-*note        Find the                        
+*Note        Find the                        
 nc_inq_libvers:netCDF                          
 (netcdf-c)nc_inq_libvers.version.                        
              (Currently                      
-             4.1.1).                         
+             3.6.3).                         
 
 
 File: netcdf-tutorial.info,  Node: Inquiry in F77,  Next: Inquiry in F90,  Prev: Inquiry in C,  Up: Inquiry Functions
@@ -5254,39 +5095,39 @@ First use NF_INQ, which will tell you how many variables and global
 attributes there are in the file. Then start with varid 1, and proceed
 to varid nvars, calling NF_INQ_VAR.
 
-   For a typical sequence of calls to these functions see *note Reading
+   For a typical sequence of calls to these functions see *Note Reading
 a netCDF Dataset with Unknown Names: (netcdf-f77)Reading Unknown.
 
-*note NF_INQ:       Find number of      
+*Note NF_INQ:       Find number of      
 (netcdf-f77)NF_INQ. dimensions,         
                     variables, and      
                     global attributes,  
                     and the unlimited   
                     dimid.              
-*note NF_INQ_DIM:   Find dimension      
+*Note NF_INQ_DIM:   Find dimension      
 (netcdf-f77)NF_INQ_DIM.name and length.    
-*note               Find variable ID    
+*Note               Find variable ID    
 NF_INQ_VARID:       from its name.      
 (netcdf-f77)NF_INQ_VARID.                    
-*note NF_INQ_VAR:   Find variable       
+*Note NF_INQ_VAR:   Find variable       
 (netcdf-f77)NF_INQ_VAR.name, type, num     
                     dimensions, dim     
                     IDs, and num        
                     attributes.         
-*note               Find dimension ID   
+*Note               Find dimension ID   
 NF_INQ_DIMID:       from its name.      
 (netcdf-f77)NF_INQ_DIMID.                    
-*note NF_INQ_DIM:   Find dimension      
+*Note NF_INQ_DIM:   Find dimension      
 (netcdf-f77)NF_INQ_DIM.name and length.    
-*note NF_INQ_ATT:   Find attribute      
+*Note NF_INQ_ATT:   Find attribute      
 (netcdf-f77)NF_INQ_ATT.name, type, and     
                     length.             
-*note               Find file format:   
+*Note               Find file format:   
 NF_INQ_FORMAT:      classic or 64-bit   
 (netcdf-f77)NF_INQ_FORMAT.offset              
-*note               Find the netCDF     
+*Note               Find the netCDF     
 NF_INQ_LIBVERS:     version.            
-(netcdf-f77)NF_INQ_LIBVERS.(Currently 4.1.1).  
+(netcdf-f77)NF_INQ_LIBVERS.(Currently 3.6.3).  
 
 
 File: netcdf-tutorial.info,  Node: Inquiry in F90,  Next: Inquiry in C++,  Prev: Inquiry in F77,  Up: Inquiry Functions
@@ -5302,38 +5143,38 @@ to varid nvars, calling NF90_INQ_VAR.
 Reading a netCDF Dataset with Unknown Names: (netcdf-f90)Reading
 Unknown.
 
-*note NF90_INQ:     Find number of      
+*Note NF90_INQ:     Find number of      
 (netcdf-f90)NF90_INQ.dimensions,         
                     variables, and      
                     global attributes,  
                     and the unlimited   
                     dimid.              
-*note               Find dimension      
+*Note               Find dimension      
 NF90_INQ_DIM:       name and length.    
 (netcdf-f90)NF90_INQ_DIM.                    
-*note               Find variable ID    
+*Note               Find variable ID    
 NF90_INQ_VARID:     from its name.      
 (netcdf-f90)NF90_INQ_VARID.                    
-*note               Find variable       
+*Note               Find variable       
 NF90_INQ_VAR:       name, type, num     
 (netcdf-f90)NF90_INQ_VAR.dimensions, dim     
                     IDs, and num        
                     attributes.         
-*note               Find dimension ID   
+*Note               Find dimension ID   
 NF90_INQ_DIMID:     from its name.      
 (netcdf-f90)NF90_INQ_DIMID.                    
-*note               Find dimension      
+*Note               Find dimension      
 NF90_INQ_DIM:       name and length.    
 (netcdf-f90)NF90_INQ_DIM.                    
-*note               Find attribute      
+*Note               Find attribute      
 NF90_INQ_ATT:       name, type, and     
 (netcdf-f90)NF90_INQ_ATT.length.             
-*note               Find file format:   
+*Note               Find file format:   
 NF90_INQ_FORMAT:    classic or 64-bit   
 (netcdf-f90)NF90_INQ_FORMAT.offset              
-*note               Find the netCDF     
+*Note               Find the netCDF     
 NF90_INQ_LIBVERS:   version.            
-(netcdf-f90)NF90_INQ_LIBVERS.(Currently 4.1.1).  
+(netcdf-f90)NF90_INQ_LIBVERS.(Currently 3.6.3).  
 
 
 File: netcdf-tutorial.info,  Node: Inquiry in C++,  Prev: Inquiry in F90,  Up: Inquiry Functions
@@ -5341,21 +5182,21 @@ File: netcdf-tutorial.info,  Node: Inquiry in C++,  Prev: Inquiry in F90,  Up: I
 3.3.4 Inquiry Functions in the C++ API
 --------------------------------------
 
-*note Class  a C++ class                     
+*Note Class  a C++ class                     
 NcFile:      to                              
 (netcdf-cxx)Classmanipulate                      
 NcFile.      netCDF files                    
-*note Class  a C++ class                     
+*Note Class  a C++ class                     
 NcDim:       to                              
 (netcdf-cxx)Classmanipulate                      
 NcDim.       netCDF                          
              dimensions                      
-*note Class  a C++ class                     
+*Note Class  a C++ class                     
 NcVar:       to                              
 (netcdf-cxx)Classmanipulate                      
 NcVar.       netCDF                          
              variables                       
-*note Class  a C++ class                     
+*Note Class  a C++ class                     
 NcAtt:       to                              
 (netcdf-cxx)Classmanipulate                      
 NcAtt.       netCDF                          
@@ -5408,43 +5249,43 @@ File: netcdf-tutorial.info,  Node: Subsetting in C,  Next: Subsetting in F77,  P
 ----------------------------------------------
 
 The type of the data may be automatically converted on read or write.
-For more information about type conversion see *note Type Conversion:
+For more information about type conversion see *Note Type Conversion:
 (netcdf-c)Type Conversion.
 
-Read the entire variable at once     *note nc_get_var_  
+Read the entire variable at once     *Note nc_get_var_  
                                      type:              
                                      (netcdf-c)nc_get_var_
                                      type.              
-Write the entire variable at once    *note nc_put_var_  
+Write the entire variable at once    *Note nc_put_var_  
                                      type:              
                                      (netcdf-c)nc_put_var_
                                      type.              
-Read just one value                  *note              
+Read just one value                  *Note              
                                      nc_get_var1_       
                                      type:              
                                      (netcdf-c)nc_get_var1_
                                      type.              
-Write just one value                 *note              
+Write just one value                 *Note              
                                      nc_put_var1_       
                                      type:              
                                      (netcdf-c)nc_put_var1_
                                      type.              
-Read an array subset                 *note              
+Read an array subset                 *Note              
                                      nc_get_vara_       
                                      type:              
                                      (netcdf-c)nc_get_vara_
                                      type.              
-Write an array subset                *note              
+Write an array subset                *Note              
                                      nc_put_vara_       
                                      type:              
                                      (netcdf-c)nc_put_vara_
                                      type.              
-Read an array with strides           *note              
+Read an array with strides           *Note              
                                      nc_get_vars_       
                                      type:              
                                      (netcdf-c)nc_get_vars_
                                      type.              
-Write an array with strides          *note              
+Write an array with strides          *Note              
                                      nc_put_vars_       
                                      type:              
                                      (netcdf-c)nc_put_vars_
@@ -5457,43 +5298,43 @@ File: netcdf-tutorial.info,  Node: Subsetting in F77,  Next: Subsetting in F90, 
 -------------------------------------------------------
 
 The type of the data may be automatically converted on read or write.
-For more information about type conversion see *note Type Conversion:
+For more information about type conversion see *Note Type Conversion:
 (netcdf-f77)Type Conversion.
 
-Read the entire variable at once     *note NF_GET_VAR_  
+Read the entire variable at once     *Note NF_GET_VAR_  
                                      type:              
                                      (netcdf-f77)NF_GET_VAR_
                                      type.              
-Write the entire variable at once    *note NF_PUT_VAR_  
+Write the entire variable at once    *Note NF_PUT_VAR_  
                                      type:              
                                      (netcdf-f77)NF_PUT_VAR_
                                      type.              
-Read just one value                  *note              
+Read just one value                  *Note              
                                      NF_GET_VAR1_       
                                      type:              
                                      (netcdf-f77)NF_GET_VAR1_
                                      type.              
-Write just one value                 *note              
+Write just one value                 *Note              
                                      NF_PUT_VAR1_       
                                      type:              
                                      (netcdf-f77)NF_PUT_VAR1_
                                      type.              
-Read an array subset                 *note              
+Read an array subset                 *Note              
                                      NF_GET_VARA_       
                                      type:              
                                      (netcdf-f77)NF_GET_VARA_
                                      type.              
-Write an array subset                *note              
+Write an array subset                *Note              
                                      NF_PUT_VARA_       
                                      type:              
                                      (netcdf-f77)NF_PUT_VARA_
                                      type.              
-Read an array with strides           *note              
+Read an array with strides           *Note              
                                      NF_GET_VARS_       
                                      type:              
                                      (netcdf-f77)NF_GET_VARS_
                                      type.              
-Write an array with strides          *note              
+Write an array with strides          *Note              
                                      NF_PUT_VARS_       
                                      type:              
                                      (netcdf-f77)NF_PUT_VARS_
@@ -5506,45 +5347,45 @@ File: netcdf-tutorial.info,  Node: Subsetting in F90,  Next: Subsetting in C++, 
 -------------------------------------------------------
 
 The type of the data may be automatically converted on read or write.
-For more information about type conversion see *note Type Conversion:
+For more information about type conversion see *Note Type Conversion:
 (netcdf-f90)Type Conversion.
 
-Read the entire variable at once     *note              
+Read the entire variable at once     *Note              
                                      NF90_GET_VAR_      
                                      type:              
                                      (netcdf-f90)NF90_GET_VAR_
                                      type.              
-Write the entire variable at once    *note              
+Write the entire variable at once    *Note              
                                      NF90_PUT_VAR_      
                                      type:              
                                      (netcdf-f90)NF90_PUT_VAR_
                                      type.              
-Read just one value                  *note              
+Read just one value                  *Note              
                                      NF90_GET_VAR1_     
                                      type:              
                                      (netcdf-f90)NF90_GET_VAR1_
                                      type.              
-Write just one value                 *note              
+Write just one value                 *Note              
                                      NF90_PUT_VAR1_     
                                      type:              
                                      (netcdf-f90)NF90_PUT_VAR1_
                                      type.              
-Read an array subset                 *note              
+Read an array subset                 *Note              
                                      NF90_GET_VARA_     
                                      type:              
                                      (netcdf-f90)NF90_GET_VARA_
                                      type.              
-Write an array subset                *note              
+Write an array subset                *Note              
                                      NF90_PUT_VARA_     
                                      type:              
                                      (netcdf-f90)NF90_PUT_VARA_
                                      type.              
-Read an array with strides           *note              
+Read an array with strides           *Note              
                                      NF90_GET_VARS_     
                                      type:              
                                      (netcdf-f90)NF90_GET_VARS_
                                      type.              
-Write an array with strides          *note              
+Write an array with strides          *Note              
                                      NF90_PUT_VARS_     
                                      type:              
                                      (netcdf-f90)NF90_PUT_VARS_
@@ -5560,7 +5401,7 @@ To read a record of data at a time, use the set_cur method of the NcVar
 class to set the number of the record of interest, and then use the get
 method to read the record.
 
-*note Class NcVar:                   a C++ class to     
+*Note Class NcVar:                   a C++ class to     
 (netcdf-cxx)Class NcVar.             manipulate netCDF  
                                      variables, use     
                                      the set_cur and    
@@ -5569,1516 +5410,7 @@ method to read the record.
                                      a file.            
 
 
-File: netcdf-tutorial.info,  Node: API-Extensions,  Next: NetCDF-4 Examples,  Prev: Useful Functions,  Up: Top
-
-4 API Extensions Introduced with NetCDF-4
-*****************************************
-
-NetCDF-4 includes many advanced features. These features are only
-available when working with files created in the netCDF format. (That
-is, HDF5 files, created by netCDF, or simple-model HDF5 files).
-
-* Menu:
-
-* Interoperability::            Reading and writing HDF5 files.
-* Multiple-Unlimited-Dimensions::  Use more than one unlimited dimension.
-* Groups::                      Organizing data hierarchically.
-* Compound-Types::              Creating data type like C structs.
-* Opaque-Types::                Creating a data type of known size.
-* VLEN-Type::                   Variable length arrays.
-* Strings::                     Storing strings of data.
-* New-inq-Functions::           Functions to help explore a file.
-* Parallel::                    How to get parallel I/O.
-* Future::                      What's coming next!
-
-
-File: netcdf-tutorial.info,  Node: Interoperability,  Next: Multiple-Unlimited-Dimensions,  Prev: API-Extensions,  Up: API-Extensions
-
-4.1 Interoperability with HDF5
-==============================
-
-NetCDF-4 allows some interoperability with HDF5.
-
-4.1.1 Reading and Editing NetCDF-4 Files with HDF5
---------------------------------------------------
-
-The HDF5 Files produced by netCDF-4 are perfectly respectable HDF5
-files, and can be read by any HDF5 application.
-
-   NetCDF-4 relies on several new features of HDF5, including dimension
-scales. The HDF5 dimension scales feature adds a bunch of attributes to
-the HDF5 file to keep track of the dimension information.
-
-   It is not just wrong, but wrong-headed, to modify these attributes
-except with the HDF5 dimension scale API. If you do so, then you will
-deserve what you get, which will be a mess.
-
-   Additionally, netCDF stores some extra information for dimensions
-without dimension scale information. (That is, a dimension without an
-associated coordinate variable). So HDF5 users should not write data to
-a netCDF-4 file which extends any unlimited dimension.
-
-   Also there are some types allowed in HDF5, but not allowed in
-netCDF-4 (for example the time type). Using any such type in a netCDF-4
-file will cause the file to become unreadable to netCDF-4. So don't do
-it.
-
-   NetCDF-4 ignores all HDF5 references. Can't make head nor tail of
-them. Also netCDF-4 assumes a strictly hierarchical group structure. No
-looping, you weirdo!
-
-   Attributes can be added (they must be one of the netCDF-4 types),
-modified, or even deleted, in HDF5.
-
-4.1.2 Reading and Editing HDF5 Files with NetCDF-4
---------------------------------------------------
-
-Assuming a HDF5 file is written in accordance with the netCDF-4 rules
-(i.e. no strange types, no looping groups), and assuming that *every*
-dataset has a dimension scale attached to each dimension, the netCDF-4
-API can be used to read and edit the file.
-
-   In HDF5 (version 1.8.0 and later), dimension scales are (generally)
-1D datasets, that hold dimension data. A multi-dimensional dataset can
-then attach a dimension scale to any or all of its dimensions. For
-example, a user might have 1D dimension scales for lat and lon, and a
-2D dataset which has lat attached to the first dimension, and lon to
-the second.
-
-   Dimension scales are vital to netCDF-4, which uses shared
-dimensions. If you want to read a HDF5 file with netCDF-4, it must use
-dimension scales, and one dimension scale must be attached to each
-dimension of every dataset in the file.
-
-
-File: netcdf-tutorial.info,  Node: Multiple-Unlimited-Dimensions,  Next: Groups,  Prev: Interoperability,  Up: API-Extensions
-
-4.2 Multiple Unlimited Dimensions
-=================================
-
-With classic and 64-bit offset netCDF files, each variable may use at
-most one unlimited dimension. With netCDF-4 format files, this
-restriction is lifted.
-
-   Simply define as many unlimited dimensions as you wish, and use them
-in a variable. When data are written to that variable, the dimensions
-will be expanded as needed.
-
-
-File: netcdf-tutorial.info,  Node: Groups,  Next: Compound-Types,  Prev: Multiple-Unlimited-Dimensions,  Up: API-Extensions
-
-4.3 Groups
-==========
-
-NetCDF-4 files can store attributes, variables, and dimensions in
-hierarchical groups.
-
-   This allows the user to create a structure much like a Unix file
-system. In netCDF, each group gets an ncid. Opening or creating a file
-returns the ncid for the root group (which is named "/"). Groups can be
-added with the nc_def_grp function. Get the number of groups, and their
-ncids, with the nc_inq_grps function.
-
-   Dimensions are scoped such that they are visible to all child
-groups. For example, you can define a dimension in the root group, and
-use its dimension id when defining a variable in a sub-group.
-
-   Attributes defined as NC_GLOBAL apply to the group, not the entire
-file.
-
-   The degenerate case, in which only the root group is used,
-corresponds exactly with the classic data mode, before groups were
-introduced.
-
-
-File: netcdf-tutorial.info,  Node: Compound-Types,  Next: Opaque-Types,  Prev: Groups,  Up: API-Extensions
-
-4.4 Compound Types
-==================
-
-In netCDF-4 files it's possible to create a data type which corresponds
-to a C struct. These are known as "compound" types (following HDF5
-nomenclature).
-
-   That is, a netCDF compound type is a data structure which contains an
-arbitrary collection of other data types, including other compound
-types.
-
-   To define a new compound type, use nc_def_compound. Then call
-nc_insert_compound for each type within the compound type.
-
-   Read and write arrays of compound data with the nc_get_vara and
-nc_put_vara functions. These functions were actually part of the
-netCDF-2 API, brought out of semi-retirement to handle user-defined
-types in netCDF-4.
-
-
-File: netcdf-tutorial.info,  Node: Opaque-Types,  Next: VLEN-Type,  Prev: Compound-Types,  Up: API-Extensions
-
-4.5 Opaque Types
-================
-
-Store blobs of bits in opaque types. Create an opaque type with
-nc_def_opaque. Read and write them with nc_get_vara/nc_put_vara.
-
-
-File: netcdf-tutorial.info,  Node: VLEN-Type,  Next: Strings,  Prev: Opaque-Types,  Up: API-Extensions
-
-4.6 Variable Length Arrays (VLEN)
-=================================
-
-Create a VLEN type to store variable length arrays of a known base
-type. Use nc_def_vlen to define a VLEN type, read and write them with
-nc_get_vara/nc_put_vara.
-
-
-File: netcdf-tutorial.info,  Node: Strings,  Next: New-inq-Functions,  Prev: VLEN-Type,  Up: API-Extensions
-
-4.7 Strings
-===========
-
-Use the NC_STRING type to store arrays of strings. Read and write them
-with nc_get_vara/nc_put_vara.
-
-
-File: netcdf-tutorial.info,  Node: New-inq-Functions,  Next: Parallel,  Prev: Strings,  Up: API-Extensions
-
-4.8 New Inquiry Functions
-=========================
-
-There are many new inquiry functions to allow a program to navigate a
-completely unknown netCDF file.
-
-   To find the number To find all the dimensions visible from a group,
-use nc_inq_dimids.
-
-
-File: netcdf-tutorial.info,  Node: Parallel,  Next: Future,  Prev: New-inq-Functions,  Up: API-Extensions
-
-4.9 Parallel I/O with NetCDF
-============================
-
-Parallel I/O allows many processes to read/write netCDF data at the
-same time. Used properly, it allows users to overcome I/O bottlenecks
-in high performance computing environments.
-
-4.9.1 Parallel I/O Choices for NetCDF Users
--------------------------------------------
-
-Parallel read-only access can be achieved netCDF files using the netCDF
-C/Fortran library.  Each process can run a copy of the netCDF library
-and open and read any subsets of the data in the file. This sort of
-"fseek parallelism" will break down dramatically for any kind of
-writing.
-
-   There are two methods available to users for read/write parallel I/O
-netCDF-4 or the parallel netCDF package from Argonne/Northwestern.
-Unfortunately the two methods involve different APIs, and different
-binary formats.
-
-   For parallel read/write access to classic and 64-bit offset data
-users must use the parallel-netcdf library from Argonne/Northwestern
-University. This is not a Unidata software package, but was developed
-using the Unidata netCDF C library as a starting point. For more
-information see the parallel netcdf web site:
-http://www.mcs.anl.gov/parallel-netcdf.
-
-   For parallel read/write access to netCDF-4/HDF5 files users must use
-the netCDF-4 API. The Argonne/Northwestern parallel netcdf package
-cannot read netCDF-4/HDF5 files.
-
-4.9.2 Parallel I/O with NetCDF-4
---------------------------------
-
-NetCDF-4 provides access to HDF5 parallel I/O features for
-netCDF-4/HDF5 files. NetCDF classic and 64-bit offset format may not be
-opened or created for use with parallel I/O. (They may be opened and
-created, but parallel I/O is not available.)
-
-   A few functions have been added to the netCDF C API to handle
-parallel I/O.  These functions are also available in the Fortran 90 and
-Fortran 77 APIs.
-
-4.9.2.1 Building NetCDF-4 for Parallel I/O
-..........................................
-
-You must build netCDF-4 properly to take advantage of parallel features.
-
-   For parallel I/O HDF5 must be built with -enable-parallel.  Typically
-the CC environment variable is set to mpicc. You must build HDF5 and
-netCDF-4 with the same compiler and compiler options.
-
-   The netCDF configure script will detect the parallel capability of
-HDF5 and build the netCDF-4 parallel I/O features automatically. No
-configure options to the netcdf configure are required. If the Fortran
-APIs are desired set environmental variable FC to mpif90 (or some local
-variant.)
-
-4.9.2.2 Opening/Creating Files for Parallel I/O
-...............................................
-
-The nc_open_par and nc_create_par functions are used to create/open a
-netCDF file with the C API. (Or use nf_open_par/nf_create_par from
-Fortran 77).
-
-   For Fortran 90 users the nf90_open and nf90_create calls have been
-modified to permit parallel I/O files to be opened/created using
-optional parameters comm and info.
-
-   The parallel access associated with these functions is not a
-characteristic of the data file, but the way it was opened.
-
-4.9.2.3 Collective/Independent Access
-.....................................
-
-Parallel file access is either collective (all processors must
-participate) or independent (any processor may access the data without
-waiting for others).
-
-   All netCDF metadata writing operations are collective. That is, all
-creation of groups, types, variables, dimensions, or attributes.
-
-   Data reads and writes (ex. calls to nc_put_vara_int and
-nc_get_vara_int) may be independent (the default) or collective. To
-make writes to a variable collective, call the nc_var_par_access
-function (or nf_var_par_access for Fortran 77 users, or
-nf90_var_par_access for Fortran 90 users).
-
-   The example program below demonstrates simple parallel writing and
-reading of a netCDF file.
-
-* Menu:
-
-* simple_xy_par in C::
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_par in C,  Prev: Parallel,  Up: Parallel
-
-4.9.3 simple_xy_par_wr.c and simple_xy_par_rd.c
------------------------------------------------
-
-For this release, only a Fortran 90 language version of this example is
-provided. Other APIs will be demonstrated in examples in future
-releases.
-
-   In the simple_xy_par_wr example program an num_procs x num_procs
-array is written to the disk, where num_proc is the number of
-processors on which this program is run. Each processor writes one row
-of length num_proc.
-
-   In the simple_xy_par_rd program the file is read in, and each
-processor expects to read in a row with its own MPI rank stored. (The
-read program must be run on no more processors than were used to create
-the file.)
-
-* Menu:
-
-* simple_xy_par_wr.f90::
-* simple_xy_par_rd.f90::
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_par_wr.f90,  Next: simple_xy_par_rd.f90,  Prev: simple_xy_par in C,  Up: simple_xy_par in C
-
-4.9.3.1 simple_xy_par_wr.f90
-............................
-
-     !     This is part of the netCDF package.
-     !     Copyright 2006 University Corporation for Atmospheric Research/Unidata.
-     !     See COPYRIGHT file for conditions of use.
-
-     !     This is a very simple example which writes a 2D array of sample
-     !     data. To handle this in netCDF we create two shared dimensions,
-     !     "x" and "y", and a netCDF variable, called "data". It uses
-     !     parallel I/O to write the file from all processors at the same
-     !     time.
-
-     !     This example demonstrates the netCDF Fortran 90 API. This is part
-     !     of the netCDF tutorial, which can be found at:
-     !     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
-
-     !     Full documentation of the netCDF Fortran 90 API can be found at:
-     !     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
-
-     !     $Id: simple_xy_par_wr.f90,v 1.2 2009/03/12 18:29:48 ed Exp $
-
-     program simple_xy_par_wr
-       use netcdf
-       implicit none
-       include 'mpif.h'
-
-       ! This is the name of the data file we will create.
-       character (len = *), parameter :: FILE_NAME = "simple_xy_par.nc"
-
-       ! We are writing 2D data.
-       integer, parameter :: NDIMS = 2
-
-       ! When we create netCDF files, variables and dimensions, we get back
-       ! an ID for each one.
-       integer :: ncid, varid, dimids(NDIMS)
-       integer :: x_dimid, y_dimid
-
-       ! These will tell where in the data file this processor should
-       ! write.
-       integer :: start(NDIMS), count(NDIMS)
-
-       ! This is the data array we will write. It will just be filled with
-       ! the rank of this processor.
-       integer, allocatable :: data_out(:)
-
-       ! MPI stuff: number of processors, rank of this processor, and error
-       ! code.
-       integer :: p, my_rank, ierr
-
-       ! Loop indexes, and error handling.
-       integer :: x, y, stat
-
-       ! Initialize MPI, learn local rank and total number of processors.
-       call MPI_Init(ierr)
-       call MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-       call MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
-
-       ! Create some pretend data. We just need one row.
-       allocate(data_out(p), stat = stat)
-       if (stat .ne. 0) stop 3
-       do x = 1, p
-          data_out(x) = my_rank
-       end do
-
-       ! Create the netCDF file. The NF90_NETCDF4 flag causes a
-       ! HDF5/netCDF-4 file to be created. The comm and info parameters
-       ! cause parallel I/O to be enabled.
-       call check( nf90_create(FILE_NAME, NF90_NETCDF4, ncid, comm = MPI_COMM_WORLD, &
-            info = MPI_INFO_NULL) )
-
-       ! Define the dimensions. NetCDF will hand back an ID for
-       ! each. Metadata operations must take place on all processors.
-       call check( nf90_def_dim(ncid, "x", p, x_dimid) )
-       call check( nf90_def_dim(ncid, "y", p, y_dimid) )
-
-       ! The dimids array is used to pass the IDs of the dimensions of
-       ! the variables. Note that in fortran arrays are stored in
-       ! column-major format.
-       dimids =  (/ y_dimid, x_dimid /)
-
-       ! Define the variable. The type of the variable in this case is
-       ! NF90_INT (4-byte integer).
-       call check( nf90_def_var(ncid, "data", NF90_INT, dimids, varid) )
-
-       ! End define mode. This tells netCDF we are done defining
-       ! metadata. This operation is collective and all processors will
-       ! write their metadata to disk.
-       call check( nf90_enddef(ncid) )
-
-       ! Write the pretend data to the file. Each processor writes one row.
-       start = (/ 1, my_rank + 1/)
-       count = (/ p, 1 /)
-       call check( nf90_put_var(ncid, varid, data_out, start = start, &
-            count = count) )
-
-       ! Close the file. This frees up any internal netCDF resources
-       ! associated with the file, and flushes any buffers.
-       call check( nf90_close(ncid) )
-
-       ! Free my local memory.
-       deallocate(data_out)
-
-       ! MPI library must be shut down.
-       call MPI_Finalize(ierr)
-
-       if (my_rank .eq. 0) print *, "*** SUCCESS writing example file ", FILE_NAME, "! "
-
-     contains
-       subroutine check(status)
-         integer, intent ( in) :: status
-
-         if(status /= nf90_noerr) then
-           print *, trim(nf90_strerror(status))
-           stop 2
-         end if
-       end subroutine check
-     end program simple_xy_par_wr
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_par_rd.f90,  Prev: simple_xy_par_wr.f90,  Up: simple_xy_par in C
-
-4.9.3.2 simple_xy_par_rd.f90
-............................
-
-     ! This is part of the netCDF package.
-     ! Copyright 2008 University Corporation for Atmospheric Research/Unidata.
-     ! See COPYRIGHT file for conditions of use.
-
-     ! This is a simple example which reads a small dummy array, from a
-     ! netCDF data file created by the companion program
-     ! simple_xy_par_wr.f90. The data are read using parallel I/O.
-
-     ! This is intended to illustrate the use of the netCDF fortran 90
-     ! API. This example program is part of the netCDF tutorial, which can
-     ! be found at:
-     ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
-
-     ! Full documentation of the netCDF Fortran 90 API can be found at:
-     ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
-
-     ! $Id: simple_xy_par_rd.f90,v 1.2 2009/03/12 18:30:41 ed Exp $
-
-     program simple_xy_par_rd
-       use netcdf
-       implicit none
-       include 'mpif.h'
-
-       ! This is the name of the data file we will read.
-       character (len = *), parameter :: FILE_NAME = "simple_xy_par.nc"
-
-       ! These will tell where in the data file this processor should
-       ! write.
-       integer, parameter :: NDIMS = 2
-       integer :: start(NDIMS), count(NDIMS)
-
-       ! We will read data into this array.
-       integer, allocatable :: data_in(:)
-
-       ! This will be the netCDF ID for the file and data variable.
-       integer :: ncid, varid
-
-       ! MPI stuff: number of processors, rank of this processor, and error
-       ! code.
-       integer :: p, my_rank, ierr
-
-       ! Loop indexes, and error handling.
-       integer :: x, y, stat
-
-       ! Initialize MPI, learn local rank and total number of processors.
-       call MPI_Init(ierr)
-       call MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-       call MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
-
-       ! Allocate space to read in data.
-       allocate(data_in(p), stat = stat)
-       if (stat .ne. 0) stop 3
-
-       ! Open the file. NF90_NOWRITE tells netCDF we want read-only access to
-       ! the file.
-       call check( nf90_open(FILE_NAME, NF90_NOWRITE, ncid, comm = MPI_COMM_WORLD, &
-            info = MPI_INFO_NULL) )
-
-       ! Get the varid of the data variable, based on its name.
-       call check( nf90_inq_varid(ncid, "data", varid) )
-
-       ! Read the data.
-       start = (/ 1, my_rank + 1/)
-       count = (/ p, 1 /)
-       call check( nf90_get_var(ncid, varid, data_in, &
-            start = start, count = count) )
-
-       ! Check the data.
-       do x = 1, p
-          if (data_in(x) .ne. my_rank) then
-             print *, "data_in(", x, ") = ", data_in(x)
-             stop "Stopped"
-          endif
-       end do
-
-       ! Close the file, freeing all resources.
-       call check( nf90_close(ncid) )
-
-       ! Free my local memory.
-       deallocate(data_in)
-
-       ! MPI library must be shut down.
-       call MPI_Finalize(ierr)
-
-       if (my_rank .eq. 0) print *,"*** SUCCESS reading example file ", FILE_NAME, "! "
-
-     contains
-       subroutine check(status)
-         integer, intent ( in) :: status
-
-         if(status /= nf90_noerr) then
-           print *, trim(nf90_strerror(status))
-           stop 2
-         end if
-       end subroutine check
-     end program simple_xy_par_rd
-
-
-File: netcdf-tutorial.info,  Node: Future,  Prev: Parallel,  Up: API-Extensions
-
-4.10 The Future of NetCDF
-=========================
-
-NetCDF continues under active development at Unidata (see
-`http://www.unidata.ucar.edu').
-
-   The next few releases of netCDF will include:
-  1. A new C++ API which has better error handling and handles netCDF-4
-     advanced features, such as groups and compound types.
-
-  2. Remote access to files stored on a DAP server.
-
-  3. Bundled packaging with udunits and other useful tools.
-
-  4. More documentation, more examples, more tests, and more fun!
-
-
-
-File: netcdf-tutorial.info,  Node: NetCDF-4 Examples,  Next: Combined Index,  Prev: API-Extensions,  Up: Top
-
-5 NetCDF-4 Examples
-*******************
-
-Any existing netCDF applications can be converted to generate
-netCDF-4/HDF5 files. Simply change the file creation call to include
-the correct mode flag.
-
-   For example, in one of the C examples which write a data file, change
-the nc_create call so that NC_NETCDF4 is one of the flags set on the
-create.
-
-   The corresponding read example will work without modification; netCDF
-will notice that the file is a NetCDF-4/HDF5 file, and will read it
-automatically, just as if it were a netCDF classic format file.
-
-   In the example in this section we show some of the advanced features
-of netCDF-4. More examples will be added in future releases.
-
-* Menu:
-
-* simple_nc4::
-* simple_xy_nc4::
-
-
-File: netcdf-tutorial.info,  Node: simple_nc4,  Next: simple_xy_nc4,  Prev: NetCDF-4 Examples,  Up: NetCDF-4 Examples
-
-5.1 The simple_nc4 Example
-==========================
-
-This example, like the simple_xy netCDF-3 example above, is an overly
-simplified example which demonstrates how to use groups in a netCDF-4
-file.
-
-   This example is only available in C for this version of netCDF-4. The
-example creates and then reads the file "simple_nc4.nc."
-
-   The simple_xy.nc data file contains two dimensions, "x" and "y", two
-groups, "grp1" and "grp2", and two data variables, one in each group,
-both named: "data." One data variable is an unsigned 64-bit integer,
-the other a user-defined compound type.
-
-   The example program simple_nc4_wr.c creates the example data file
-simple_nc4.nc. The example program simple_nc4_rd.c reads the data file.
-
-* Menu:
-
-* simple_nc4 in C::
-
-
-File: netcdf-tutorial.info,  Node: simple_nc4 in C,  Prev: simple_nc4,  Up: simple_nc4
-
-5.1.1 simple_nc4_wr.c and simple_nc4_rd.c
------------------------------------------
-
-For this release, only a C language version of this example is
-provided. Other APIs will be demonstrated in examples in future
-releases.
-
-* Menu:
-
-* simple_nc4_wr.c::
-* simple_nc4_rd.c::
-
-
-File: netcdf-tutorial.info,  Node: simple_nc4_wr.c,  Next: simple_nc4_rd.c,  Prev: simple_nc4 in C,  Up: simple_nc4 in C
-
-5.1.1.1 simple_nc4_wr.c
-.......................
-
-     /* This is part of the netCDF-4 package. Copyright 2007 University
-        Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
-        for conditions of use.
-
-        This is a very simple example which demonstrates some of the
-        new features of netCDF-4.0.
-
-        We create two shared dimensions, "x" and "y", in a parent group,
-        and some netCDF variables in different subgroups. The variables
-        will include a compound and an enum type, as well as some of the
-        new atomic types, like the unsigned 64-bit integer.
-
-        This example demonstrates the netCDF-4 C API. This is part of the
-        netCDF tutorial, which can be found at:
-        http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial.html
-
-        To understand this example program, users should have a good
-        understanding of the netCDF-3 API. See the example program
-        simple_xy_wr.c for a netCDF-3 example.
-
-        Full documentation of the netCDF-4 C API can be found at:
-        http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.html
-
-        $Id: simple_nc4_wr.c,v 1.4 2008/06/19 13:29:18 ed Exp $
-     */
-
-     #include <stdlib.h>
-     #include <stdio.h>
-     #include <netcdf.h>
-
-     /* This is the name of the data file we will create. */
-     #define FILE_NAME "simple_nc4.nc"
-
-     /* We are writing 2D data, a 6 x 12 grid. */
-     #define NDIMS 2
-     #define NX 6
-     #define NY 12
-
-     /* Handle errors by printing an error message and exiting with a
-      * non-zero status. */
-     #define ERRCODE 2
-     #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
-
-     int
-     main()
-     {
-        /* When we create netCDF variables, groups, dimensions, or types,
-         * we get back an ID for each one. */
-        int ncid, x_dimid, y_dimid, varid1, varid2, grp1id, grp2id, typeid;
-        int dimids[NDIMS];
-
-        /* This is the data array we will write. It will be filled with a
-         * progression of numbers for this example. */
-        unsigned long long data_out[NX][NY];
-
-        /* Loop indexes, and error handling. */
-        int x, y, retval;
-
-        /* The following struct is written as a compound type. */
-        struct s1
-        {
-              int i1;
-              int i2;
-        };
-        struct s1 compound_data[NX][NY];
-
-        /* Create some pretend data. */
-        for (x = 0; x < NX; x++)
-           for (y = 0; y < NY; y++)
-           {
-              data_out[x][y] = x * NY + y;
-              compound_data[x][y].i1 = 42;
-              compound_data[x][y].i2 = -42;
-           }
-
-        /* Create the file. The NC_NETCDF4 flag tells netCDF to
-         * create a netCDF-4/HDF5 file.*/
-        if ((retval = nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)))
-           ERR(retval);
-
-        /* Define the dimensions in the root group. Dimensions are visible
-         * in all subgroups. */
-        if ((retval = nc_def_dim(ncid, "x", NX, &x_dimid)))
-           ERR(retval);
-        if ((retval = nc_def_dim(ncid, "y", NY, &y_dimid)))
-           ERR(retval);
-
-        /* The dimids passes the IDs of the dimensions of the variable. */
-        dimids[0] = x_dimid;
-        dimids[1] = y_dimid;
-
-        /* Define two groups, "grp1" and "grp2." */
-        if ((retval = nc_def_grp(ncid, "grp1", &grp1id)))
-           ERR (retval);
-        if ((retval = nc_def_grp(ncid, "grp2", &grp2id)))
-           ERR (retval);
-
-        /* Define an unsigned 64bit integer variable in grp1, using dimensions
-         * in the root group. */
-        if ((retval = nc_def_var(grp1id, "data", NC_UINT64, NDIMS,
-                                 dimids, &varid1)))
-           ERR(retval);
-
-        /* Write unsigned long long data to the file. For netCDF-4 files,
-         * nc_enddef will be called automatically. */
-        if ((retval = nc_put_var_ulonglong(grp1id, varid1, &data_out[0][0])))
-           ERR(retval);
-
-        /* Create a compound type. This will cause nc_reddef to be called. */
-        if (nc_def_compound(grp2id, sizeof(struct s1), "sample_compound_type",
-                            &typeid))
-           ERR(retval);
-        if (nc_insert_compound(grp2id, typeid, "i1",
-                               offsetof(struct s1, i1), NC_INT))
-           ERR(retval);
-        if (nc_insert_compound(grp2id, typeid, "i2",
-                               offsetof(struct s1, i2), NC_INT))
-           ERR(retval);
-
-        /* Define a compound type variable in grp2, using dimensions
-         * in the root group. */
-        if ((retval = nc_def_var(grp2id, "data", typeid, NDIMS,
-                                 dimids, &varid2)))
-           ERR(retval);
-
-        /* Write the array of struct to the file. This will cause nc_endef
-         * to be called. */
-        if ((retval = nc_put_var(grp2id, varid2, &compound_data[0][0])))
-           ERR(retval);
-
-        /* Close the file. */
-        if ((retval = nc_close(ncid)))
-           ERR(retval);
-
-        printf("*** SUCCESS writing example file simple_nc4.nc!\n");
-        return 0;
-     }
-
-
-File: netcdf-tutorial.info,  Node: simple_nc4_rd.c,  Prev: simple_nc4_wr.c,  Up: simple_nc4 in C
-
-5.1.1.2 simple_nc4_rd.c
-.......................
-
-     /* This is part of the netCDF package. Copyright 2006 University
-        Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
-        for conditions of use.
-
-        This is a very simple example which demonstrates some of the
-        new features of netCDF-4.0.
-
-        This example reads a simple file created by simple_nc4_wr.c. This
-        is intended to illustrate the use of the netCDF-4 C API.
-
-        This program is part of the netCDF tutorial:
-        http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial.html
-
-        Full documentation of the netCDF C API can be found at:
-        http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-c.html
-
-        $Id: simple_nc4_rd.c,v 1.3 2008/06/19 13:29:18 ed Exp $
-     */
-     #include <stdlib.h>
-     #include <stdio.h>
-     #include <netcdf.h>
-
-     /* This is the name of the data file we will read. */
-     #define FILE_NAME "simple_nc4.nc"
-
-     /* We are reading 2D data, a 6 x 12 grid. */
-     #define NX 6
-     #define NY 12
-
-     /* Handle errors by printing an error message and exiting with a
-      * non-zero status. */
-     #define ERRCODE 2
-     #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
-
-     int
-     main()
-     {
-        /* There will be netCDF IDs for the file, each group, and each
-         * variable. */
-        int ncid, varid1, varid2, grp1id, grp2id;
-
-        unsigned long long data_in[NX][NY];
-
-        /* Loop indexes, and error handling. */
-        int x, y, retval;
-
-        /* The following struct is written as a compound type. */
-        struct s1
-        {
-              int i1;
-              int i2;
-        };
-        struct s1 compound_data[NX][NY];
-
-        /* Open the file. NC_NOWRITE tells netCDF we want read-only access
-         * to the file.*/
-        if ((retval = nc_open(FILE_NAME, NC_NOWRITE, &ncid)))
-           ERR(retval);
-
-        /* Get the group ids of our two groups. */
-        if ((retval = nc_inq_ncid(ncid, "grp1", &grp1id)))
-           ERR(retval);
-        if ((retval = nc_inq_ncid(ncid, "grp2", &grp2id)))
-           ERR(retval);
-
-        /* Get the varid of the uint64 data variable, based on its name, in
-         * grp1. */
-        if ((retval = nc_inq_varid(grp1id, "data", &varid1)))
-           ERR(retval);
-
-        /* Read the data. */
-        if ((retval = nc_get_var_ulonglong(grp1id, varid1, &data_in[0][0])))
-           ERR(retval);
-
-        /* Get the varid of the compound data variable, based on its name,
-         * in grp2. */
-        if ((retval = nc_inq_varid(grp2id, "data", &varid2)))
-           ERR(retval);
-
-        /* Read the data. */
-        if ((retval = nc_get_var(grp2id, varid2, &compound_data[0][0])))
-           ERR(retval);
-
-        /* Check the data. */
-        for (x = 0; x < NX; x++)
-           for (y = 0; y < NY; y++)
-           {
-              if (data_in[x][y] != x * NY + y ||
-                  compound_data[x][y].i1 != 42 ||
-                  compound_data[x][y].i2 != -42)
-                 return ERRCODE;
-           }
-
-        /* Close the file, freeing all resources. */
-        if ((retval = nc_close(ncid)))
-           ERR(retval);
-
-        printf("*** SUCCESS reading example file %s!\n", FILE_NAME);
-        return 0;
-     }
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4,  Prev: simple_nc4,  Up: NetCDF-4 Examples
-
-5.2 The simple_xy_nc4 Example
-=============================
-
-This example, like the simple_xy netCDF-3 example above, is an overly
-simplified example. It is based on the simple_xy example, but used data
-chunking, compression, and the fletcher32 filter.
-
-   (These are all HDF5 features. For more information see
-http://hdfgroup.org/HDF5/).
-
-   This example is not yet available in C++. We hope to have the C++
-example in a future release of netCDF.
-
-   The example creates and then reads the file "simple_xy_nc4.nc."
-
-   The example program simple_xy_nc4_wr.c creates the example data file
-simple_xy_nc4.nc. The example program simple_xy_nc4_rd.c reads the data
-file.
-
-* Menu:
-
-* simple_xy_nc4 in C::
-* simple_xy_nc4 in F77::
-* simple_xy_nc4 in F90::
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4 in C,  Next: simple_xy_nc4 in F77,  Prev: simple_xy_nc4,  Up: simple_xy_nc4
-
-5.2.1 simple_xy_nc4_wr.c and simple_xy_nc4_rd.c
------------------------------------------------
-
-This is just like the simple_xy example, but with chunking and variable
-compression.
-
-* Menu:
-
-* simple_xy_nc4_wr.c::
-* simple_xy_nc4_rd.c::
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4_wr.c,  Next: simple_xy_nc4_rd.c,  Prev: simple_xy_nc4 in C,  Up: simple_xy_nc4 in C
-
-5.2.1.1 simple_xy_nc4_wr.c
-..........................
-
-     /* This is part of the netCDF package. Copyright 2007 University
-        Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
-        for conditions of use.
-
-        This is a very simple example which is based on the simple_xy
-        example, but whch uses netCDF-4 features, such as
-        compression. Please see the simple_xy example to learn more about
-        the netCDF-3 API.
-
-        Like simple_xy_wr.c, this program writes a 2D netCDF variable
-        (called "data") and fills it with sample data.  It has two
-        dimensions, "x" and "y".
-
-        This example demonstrates the netCDF C API, and netCDF-4
-        extensions. This is part of the netCDF-4 tutorial, which can be
-        found at:
-        http://www.unidata.ucar.edu/software/netcdf/netcdf-4/newdocs/netcdf-tutorial
-
-        Full documentation of the netCDF C API, including netCDF-4
-        extensions, can be found at:
-        http://www.unidata.ucar.edu/software/netcdf/netcdf-4/newdocs/netcdf-c
-
-        $Id: simple_xy_nc4_wr.c,v 1.6 2008/12/11 16:40:05 russ Exp $
-     */
-     #include <stdlib.h>
-     #include <stdio.h>
-     #include <netcdf.h>
-
-     /* This is the name of the data file we will create. */
-     #define FILE_NAME "simple_xy_nc4.nc"
-
-     /* We are writing 2D data, a 6 x 12 grid. */
-     #define NDIMS 2
-     #define NX 60
-     #define NY 120
-
-     /* Handle errors by printing an error message and exiting with a
-      * non-zero status. */
-     #define ERRCODE 2
-     #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
-
-     int
-     main()
-     {
-        int ncid, x_dimid, y_dimid, varid;
-        int dimids[NDIMS];
-        size_t chunks[NDIMS];
-        int shuffle, deflate, deflate_level;
-        int data_out[NX][NY];
-        int x, y, retval;
-
-        /* Set chunking, shuffle, and deflate. */
-        shuffle = NC_SHUFFLE;
-        deflate = 1;
-        deflate_level = 1;
-
-        /* Create some pretend data. If this wasn't an example program, we
-         * would have some real data to write, for example, model output. */
-        for (x = 0; x < NX; x++)
-           for (y = 0; y < NY; y++)
-              data_out[x][y] = x * NY + y;
-
-        /* Create the file. The NC_NETCDF4 parameter tells netCDF to create
-         * a file in netCDF-4/HDF5 standard. */
-        if ((retval = nc_create(FILE_NAME, NC_NETCDF4, &ncid)))
-           ERR(retval);
-
-        /* Define the dimensions. */
-        if ((retval = nc_def_dim(ncid, "x", NX, &x_dimid)))
-           ERR(retval);
-        if ((retval = nc_def_dim(ncid, "y", NY, &y_dimid)))
-           ERR(retval);
-
-        /* Set up variabe data. */
-        dimids[0] = x_dimid;
-        dimids[1] = y_dimid;
-        chunks[0] = NX/4;
-        chunks[1] = NY/4;
-
-        /* Define the variable. */
-        if ((retval = nc_def_var(ncid, "data", NC_INT, NDIMS,
-                                 dimids, &varid)))
-           ERR(retval);
-        if ((retval = nc_def_var_chunking(ncid, varid, 0, &chunks[0])))
-           ERR(retval);
-        if ((retval = nc_def_var_deflate(ncid, varid, shuffle, deflate,
-                                         deflate_level)))
-           ERR(retval);
-
-        /* No need to explicitly end define mode for netCDF-4 files. Write
-         * the pretend data to the file. */
-        if ((retval = nc_put_var_int(ncid, varid, &data_out[0][0])))
-           ERR(retval);
-
-        /* Close the file. */
-        if ((retval = nc_close(ncid)))
-           ERR(retval);
-
-        printf("*** SUCCESS writing example file simple_xy_nc4.nc!\n");
-        return 0;
-     }
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4_rd.c,  Prev: simple_xy_nc4_wr.c,  Up: simple_xy_nc4 in C
-
-5.2.1.2 simple_xy_nc4_rd.c
-..........................
-
-     /* This is part of the netCDF package. Copyright 2007 University
-        Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
-        for conditions of use.
-
-        This is a very simple example which is based on the simple_xy
-        example, but whch uses netCDF-4 features, such as
-        compression. Please see the simple_xy example to learn more about
-        the netCDF-3 API.
-
-        Like simple_xy_rd.c, this example reads a small dummy array, which
-        was written by simple_xy_wr.c, and is compressed. This is intended
-        to illustrate the use of the netCDF C API.
-
-        This program is part of the netCDF-4 tutorial:
-        http://www.unidata.ucar.edu/software/netcdf/netcdf-4/newdocs/netcdf-tutorial
-
-        Full documentation of the netCDF-4 C API can be found at:
-        http://www.unidata.ucar.edu/software/netcdf/netcdf-4/newdocs/netcdf-c
-
-        $Id: simple_xy_nc4_rd.c,v 1.2 2007/06/05 21:47:50 ed Exp $
-     */
-
-     #include <config.h>
-     #include <stdlib.h>
-     #include <stdio.h>
-     #include <netcdf.h>
-
-     /* This is the name of the data file we will read. */
-     #define FILE_NAME "simple_xy_nc4.nc"
-
-     /* We are reading 2D data, a 6 x 12 grid. */
-     #define NX 60
-     #define NY 120
-
-     /* Handle errors by printing an error message and exiting with a
-      * non-zero status. */
-     #define ERRCODE 2
-     #define ERR(e) {printf("Error: %s\n", nc_strerror(e)); exit(ERRCODE);}
-
-     int
-     main()
-     {
-        /* This will be the netCDF ID for the file and data variable. */
-        int ncid, varid;
-
-        int data_in[NX][NY];
-
-        /* Loop indexes, and error handling. */
-        int x, y, retval;
-
-        /* Open the file. NC_NOWRITE tells netCDF we want read-only access
-         * to the file.*/
-        if ((retval = nc_open(FILE_NAME, NC_NOWRITE, &ncid)))
-           ERR(retval);
-
-        /* Get the varid of the data variable, based on its name. */
-        if ((retval = nc_inq_varid(ncid, "data", &varid)))
-           ERR(retval);
-
-        /* Read the data. */
-        if ((retval = nc_get_var_int(ncid, varid, &data_in[0][0])))
-           ERR(retval);
-
-        /* Check the data. */
-        for (x = 0; x < NX; x++)
-           for (y = 0; y < NY; y++)
-     	 if (data_in[x][y] != x * NY + y)
-     	    return ERRCODE;
-
-        /* Close the file, freeing all resources. */
-        if ((retval = nc_close(ncid)))
-           ERR(retval);
-
-        printf("*** SUCCESS reading example file %s!\n", FILE_NAME);
-        return 0;
-     }
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4 in F77,  Next: simple_xy_nc4 in F90,  Prev: simple_xy_nc4 in C,  Up: simple_xy_nc4
-
-5.2.2 simple_xy_nc4_wr.f and simple_xy_nc4_rd.f
------------------------------------------------
-
-This is just like the simple_xy example, but with chunking and variable
-compression.
-
-* Menu:
-
-* simple_xy_nc4_wr.f::
-* simple_xy_nc4_rd.f::
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4_wr.f,  Next: simple_xy_nc4_rd.f,  Prev: simple_xy_nc4 in F77,  Up: simple_xy_nc4 in F77
-
-5.2.2.1 simple_xy_nc4_wr.f
-..........................
-
-     C     This is part of the netCDF package.
-     C     Copyright 2006 University Corporation for Atmospheric Research/Unidata.
-     C     See COPYRIGHT file for conditions of use.
-
-     C     This is a very simple example which writes a 2D array of
-     C     sample data. To handle this in netCDF we create two shared
-     C     dimensions, "x" and "y", and a netCDF variable, called "data".
-
-     C     This example demonstrates the netCDF Fortran 77 API. This is part
-     C     of the netCDF tutorial, which can be found at:
-     C     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
-
-     C     Full documentation of the netCDF Fortran 77 API can be found at:
-     C     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f77
-
-     C     $Id: simple_xy_nc4_wr.f,v 1.5 2008/02/19 22:01:49 ed Exp $
-
-           program simple_xy_wr
-           implicit none
-           include 'netcdf.inc'
-
-           character*(*) FILE_NAME
-           parameter (FILE_NAME='simple_xy_nc4.nc')
-           integer NDIMS
-           parameter (NDIMS = 2)
-           integer NX, NY
-           parameter (NX = 60, NY = 120)
-           integer ncid, varid, dimids(NDIMS)
-           integer x_dimid, y_dimid
-           integer data_out(NY, NX)
-           integer x, y, retval
-           integer chunks(2)
-           integer contiguous, shuffle, deflate, deflate_level
-
-     C     Create some pretend data. If this wasn't an example program, we
-     C     would have some real data to write, for example, model output.
-           do x = 1, NX
-              do y = 1, NY
-                 data_out(y, x) = (x - 1) * NY + (y - 1)
-              end do
-           end do
-
-     C     Create the netCDF file. The nf_netcdf4  tells netCDF to
-     C     create a netCDF-4/HDF5 file.
-           retval = nf_create(FILE_NAME, NF_NETCDF4, ncid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Define the dimensions.
-           retval = nf_def_dim(ncid, "x", NX, x_dimid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-           retval = nf_def_dim(ncid, "y", NY, y_dimid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     The dimids array is used to pass the IDs of the dimensions of
-     C     the variables. Note that in fortran arrays are stored in
-     C     column-major format.
-           dimids(2) = x_dimid
-           dimids(1) = y_dimid
-
-     C     Define the variable.
-           retval = nf_def_var(ncid, "data", NF_INT, NDIMS, dimids, varid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Set up chunking and compression.
-           contiguous = 0
-           chunks(1) = NY
-           chunks(2) = NX
-           shuffle = 1
-           deflate = 1
-           deflate_level = 4
-
-           retval = nf_def_var_chunking(ncid, varid, contiguous, chunks)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-           retval = nf_def_var_deflate(ncid, varid, shuffle, deflate,
-          &     deflate_level)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Write the pretend data to the file.
-           retval = nf_put_var_int(ncid, varid, data_out)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Close the file.
-           retval = nf_close(ncid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-           print *,'*** SUCCESS writing example file simple_xy_nc4.nc!'
-           end
-
-           subroutine handle_err(errcode)
-           implicit none
-           include 'netcdf.inc'
-           integer errcode
-
-           print *, 'Error: ', nf_strerror(errcode)
-           stop 2
-           end
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4_rd.f,  Prev: simple_xy_nc4_wr.f,  Up: simple_xy_nc4 in F77
-
-5.2.2.2 simple_xy_nc4_rd.f
-..........................
-
-     C     This is part of the netCDF package.
-     C     Copyright 2006 University Corporation for Atmospheric Research/Unidata.
-     C     See COPYRIGHT file for conditions of use.
-
-     C     This is a simple example which reads a small dummy array, from a
-     C     netCDF data file created by the companion program simple_xy_wr.f.
-
-     C     This is intended to illustrate the use of the netCDF fortran 77
-     C     API. This example program is part of the netCDF tutorial, which can
-     C     be found at:
-     C     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
-
-     C     Full documentation of the netCDF Fortran 77 API can be found at:
-     C     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f77
-
-     C     $Id: simple_xy_nc4_rd.f,v 1.1 2007/05/04 13:33:20 ed Exp $
-
-           program simple_xy_rd
-           implicit none
-           include 'netcdf.inc'
-
-     C     This is the name of the data file we will read.
-           character*(*) FILE_NAME
-           parameter (FILE_NAME='simple_xy_nc4.nc')
-
-     C     We are reading 2D data, a 12 x 6 grid.
-           integer NX, NY
-           parameter (NX = 60, NY = 120)
-           integer data_in(NY, NX)
-
-     C     This will be the netCDF ID for the file and data variable.
-           integer ncid, varid
-
-     C     Loop indexes, and error handling.
-           integer x, y, retval
-
-     C     Open the file. NF_NOWRITE tells netCDF we want read-only access to
-     C     the file.
-           retval = nf_open(FILE_NAME, NF_NOWRITE, ncid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Get the varid of the data variable, based on its name.
-           retval = nf_inq_varid(ncid, 'data', varid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Read the data.
-           retval = nf_get_var_int(ncid, varid, data_in)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-     C     Check the data.
-           do x = 1, NX
-              do y = 1, NY
-                 if (data_in(y, x) .ne. (x - 1) * NY + (y - 1)) then
-                    print *, 'data_in(', y, ', ', x, ') = ', data_in(y, x)
-                    stop 2
-                 end if
-              end do
-           end do
-
-     C     Close the file, freeing all resources.
-           retval = nf_close(ncid)
-           if (retval .ne. nf_noerr) call handle_err(retval)
-
-           print *,'*** SUCCESS reading example file ', FILE_NAME, '!'
-           end
-
-           subroutine handle_err(errcode)
-           implicit none
-           include 'netcdf.inc'
-           integer errcode
-
-           print *, 'Error: ', nf_strerror(errcode)
-           stop 2
-           end
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4 in F90,  Prev: simple_xy_nc4 in F77,  Up: simple_xy_nc4
-
-5.2.3 simple_xy_nc4_wr.f90 and simple_xy_nc4_rd.f90
----------------------------------------------------
-
-This is just like the simple_xy example, but with chunking and variable
-compression.
-
-* Menu:
-
-* simple_xy_nc4_wr.f90::
-* simple_xy_nc4_rd.f90::
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4_wr.f90,  Next: simple_xy_nc4_rd.f90,  Prev: simple_xy_nc4 in F90,  Up: simple_xy_nc4 in F90
-
-5.2.3.1 simple_xy_nc4_wr.f90
-............................
-
-     !     This is part of the netCDF package.  Copyright 2006 University
-     !     Corporation for Atmospheric Research/Unidata.  See COPYRIGHT
-     !     file for conditions of use.
-
-     !     This is a very simple example which writes a 2D array of sample
-     !     data. To handle this in netCDF we create two shared dimensions,
-     !     "x" and "y", and a netCDF variable, called "data".
-
-     !     This example demonstrates the netCDF Fortran 90 API. This is
-     !     part of the netCDF tutorial, which can be found at:
-     !     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
-
-     !     Full documentation of the netCDF Fortran 90 API can be found at:
-     !     http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
-
-     !     $Id: simple_xy_nc4_wr.f90,v 1.6 2010/04/06 19:32:09 ed Exp $
-
-     program simple_xy_wr
-       use netcdf
-       implicit none
-
-       character (len = *), parameter :: FILE_NAME = "simple_xy_nc4.nc"
-       integer, parameter :: NDIMS = 2
-       integer, parameter :: NX = 6, NY = 12
-       integer :: ncid, varid, dimids(NDIMS)
-       integer :: x_dimid, y_dimid
-       integer :: data_out(NY, NX)
-       integer :: chunks(2)
-       integer :: deflate_level
-       integer :: x, y
-
-       ! Create some pretend data. If this wasn't an example program, we
-       ! would have some real data to write, for example, model output.
-       do x = 1, NX
-          do y = 1, NY
-             data_out(y, x) = (x - 1) * NY + (y - 1)
-          end do
-       end do
-
-       ! Always check the return code of every netCDF function call. In
-       ! this example program, wrapping netCDF calls with "call check()"
-       ! makes sure that any return which is not equal to nf90_noerr (0)
-       ! will print a netCDF error message and exit.
-
-       ! Create the netCDF file. The nf90_clobber parameter tells netCDF to
-       ! overwrite this file, if it already exists.
-       call check( nf90_create(FILE_NAME, nf90_hdf5, ncid) )
-
-       ! Define the dimensions. NetCDF will hand back an ID for each.
-       call check( nf90_def_dim(ncid, "x", NX, x_dimid) )
-       call check( nf90_def_dim(ncid, "y", NY, y_dimid) )
-
-       ! The dimids array is used to pass the IDs of the dimensions of
-       ! the variables. Note that in fortran arrays are stored in
-       ! column-major format.
-       dimids =  (/ y_dimid, x_dimid /)
-
-       ! Define the variable. The type of the variable in this case is
-       ! NF90_INT (4-byte integer). Optional parameters chunking, shuffle,
-       ! and deflate_level are used.
-       chunks(1) = NY
-       chunks(2) = NX
-       deflate_level = 1
-       call check( nf90_def_var(ncid, "data", NF90_INT, dimids, varid, &
-            chunksizes = chunks, shuffle = .TRUE., deflate_level = deflate_level) )
-
-       ! End define mode. This tells netCDF we are done defining metadata.
-       call check( nf90_enddef(ncid) )
-
-       ! Write the pretend data to the file. Although netCDF supports
-       ! reading and writing subsets of data, in this case we write all the
-       ! data in one operation.
-       call check( nf90_put_var(ncid, varid, data_out) )
-
-       ! Close the file. This frees up any internal netCDF resources
-       ! associated with the file, and flushes any buffers.
-       call check( nf90_close(ncid) )
-
-       print *, '*** SUCCESS writing example file ', FILE_NAME, '!'
-
-     contains
-       subroutine check(status)
-         integer, intent ( in) :: status
-
-         if(status /= nf90_noerr) then
-           print *, trim(nf90_strerror(status))
-           stop 2
-         end if
-       end subroutine check
-     end program simple_xy_wr
-
-
-File: netcdf-tutorial.info,  Node: simple_xy_nc4_rd.f90,  Prev: simple_xy_nc4_wr.f90,  Up: simple_xy_nc4 in F90
-
-5.2.3.2 simple_xy_nc4_rd.f90
-............................
-
-     ! This is part of the netCDF package.
-     ! Copyright 2006 University Corporation for Atmospheric Research/Unidata.
-     ! See COPYRIGHT file for conditions of use.
-
-     ! This is a simple example which reads a small dummy array, from a
-     ! netCDF data file created by the companion program simple_xy_wr.f90.
-
-     ! This is intended to illustrate the use of the netCDF fortran 77
-     ! API. This example program is part of the netCDF tutorial, which can
-     ! be found at:
-     ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-tutorial
-
-     ! Full documentation of the netCDF Fortran 90 API can be found at:
-     ! http://www.unidata.ucar.edu/software/netcdf/docs/netcdf-f90
-
-     ! $Id: simple_xy_nc4_rd.f90,v 1.3 2009/02/25 12:23:45 ed Exp $
-
-     program simple_xy_rd
-       use netcdf
-       implicit none
-
-       ! This is the name of the data file and variable.
-       character (len = *), parameter :: FILE_NAME = "simple_xy_nc4.nc"
-       character (len = *), parameter :: VAR_NAME = "data"
-
-       ! We are reading 2D data, a 12 x 6 grid.
-       integer, parameter :: NX = 6, NY = 12, MAX_DIMS = 2
-       integer :: data_in(NY, NX)
-
-       ! This will be the netCDF ID for the file and data variable.
-       integer :: ncid, varid
-
-       ! Information we will read about the variable.
-       character (len = nf90_max_name) :: name
-       integer :: xtype, ndims, dimids(MAX_DIMS), natts
-       integer :: chunksizes(MAX_DIMS), deflate_level, endianness
-       logical :: contiguous, shuffle, fletcher32
-
-       ! Loop indexes, and error handling.
-       integer :: x, y
-
-       ! Open the file. NF90_NOWRITE tells netCDF we want read-only access
-       ! to the file.
-       call check( nf90_open(FILE_NAME, NF90_NOWRITE, ncid) )
-
-       ! Get the varid of the data variable, based on its name.
-       call check( nf90_inq_varid(ncid, VAR_NAME, varid) )
-
-       ! Learn about the variable. This uses all optional parameters.
-       call check( nf90_inquire_variable(ncid, varid, name, xtype, ndims, &
-            dimids, natts, contiguous = contiguous, chunksizes = chunksizes, &
-            deflate_level = deflate_level, shuffle = shuffle, &
-            fletcher32 = fletcher32, endianness = endianness) )
-
-       ! Make sure we got the correct answers. These depend on what was set
-       ! when creating the file in simple_xy_nc4_wr.f90. Endianness will be
-       ! whatever is native for the machine that's building this example.
-       if (name .ne. VAR_NAME .or. xtype .ne. NF90_INT .or. ndims .ne. 2 .or. &
-            natts .ne. 0 .or. contiguous .or. .not. shuffle .or. &
-            deflate_level .ne. 1 .or. fletcher32) stop 3
-
-       ! Read the data.
-       call check( nf90_get_var(ncid, varid, data_in) )
-
-       ! Check the data.
-       do x = 1, NX
-          do y = 1, NY
-             if (data_in(y, x) /= (x - 1) * NY + (y - 1)) then
-                print *, "data_in(", y, ", ", x, ") = ", data_in(y, x)
-                stop "Stopped"
-             end if
-          end do
-       end do
-
-       ! Close the file, freeing all resources.
-       call check( nf90_close(ncid) )
-
-       print *,"*** SUCCESS reading example file ", FILE_NAME, "! "
-
-     contains
-       subroutine check(status)
-         integer, intent ( in) :: status
-
-         if(status /= nf90_noerr) then
-           print *, trim(nf90_strerror(status))
-           stop 2
-         end if
-       end subroutine check
-     end program simple_xy_rd
-
-
-File: netcdf-tutorial.info,  Node: Combined Index,  Prev: NetCDF-4 Examples,  Up: Top
+File: netcdf-tutorial.info,  Node: Combined Index,  Prev: Useful Functions,  Up: Top
 
 Index
 *****
@@ -7091,8 +5423,6 @@ Index
 * C++, netCDF API:                       APIs.                  (line 6)
 * C, netCDF API:                         APIs.                  (line 6)
 * classic format:                        Versions.              (line 6)
-* common data model:                     Common Data Model.     (line 6)
-* compound types:                        Common Data Model.     (line 6)
 * creating files in C:                   Creation in C.         (line 6)
 * creating files in C++:                 Creation in C++.       (line 6)
 * creating files in Fortran <1>:         Creation in F90.       (line 6)
@@ -7103,7 +5433,7 @@ Index
 * example programs:                      Examples.              (line 6)
 * Fortran 77, netCDF API:                APIs.                  (line 6)
 * Fortran 90, netCDF API:                APIs.                  (line 6)
-* groups:                                Common Data Model.     (line 6)
+* guillotine:                            Top.                   (line 6)
 * inquiry functions:                     Reading.               (line 6)
 * language APIs for netCDF:              APIs.                  (line 6)
 * nc_close:                              Creation in C.         (line 6)
@@ -7127,7 +5457,6 @@ Index
 * ncgen:                                 Tools.                 (line 6)
 * netCDF, definition:                    Intro.                 (line 6)
 * netCDF-4:                              Future.                (line 6)
-* netCDF-4 model extensions:             Common Data Model.     (line 6)
 * NF90_CLOSE:                            Creation in F90.       (line 6)
 * NF90_CREATE:                           Creation in F90.       (line 6)
 * NF90_DEF_DIM:                          Creation in F90.       (line 6)
@@ -7176,114 +5505,84 @@ Index
 * tools for manipulating netCDF:         APIs.                  (line 6)
 * UCAR:                                  Intro.                 (line 6)
 * Unidata:                               Intro.                 (line 6)
-* user-defined types:                    Common Data Model.     (line 6)
 * V2 API:                                APIs.                  (line 6)
 * variable:                              Data Model.            (line 6)
 
 
 
 Tag Table:
-Node: Top1384
-Node: Intro7379
-Node: Data Model8792
-Node: Common Data Model11985
-Node: Errors14146
-Node: Unlimited Dimensions15956
-Node: Fill Values17505
-Node: Tools18874
-Node: APIs21093
-Node: Documentation23737
-Node: Versions25347
-Node: Examples30096
-Node: simple_xy31593
-Node: simple_xy in C33634
-Node: simple_xy_wr.c34097
-Node: simple_xy_rd.c38074
-Node: simple_xy in F7740436
-Node: simple_xy_wr.f40908
-Node: simple_xy_rd.f45372
-Node: simple_xy in F9048195
-Node: simple_xy_wr.f9048685
-Node: simple_xy_rd.f9052694
-Node: simple_xy in C++55261
-Node: simple_xy_wr.cpp55726
-Node: simple_xy_rd.cpp58928
-Node: sfc_pres_temp61289
-Node: sfc_pres_temp in C64017
-Node: sfc_pres_temp_wr.c64532
-Node: sfc_pres_temp_rd.c71265
-Node: sfc_pres_temp in F7777610
-Node: sfc_pres_temp_wr.f78134
-Node: sfc_pres_temp_rd.f85875
-Node: sfc_pres_temp in F9094145
-Node: sfc_pres_temp_wr.f9094687
-Node: sfc_pres_temp_rd.f90100956
-Node: sfc_pres_temp in C++107811
-Node: sfc_pres_temp_wr.cpp108324
-Node: sfc_pres_temp_rd.cpp114117
-Node: pres_temp_4D120246
-Node: pres_temp_4D in C124850
-Node: pres_temp_4D_wr.c125352
-Node: pres_temp_4D_rd.c133432
-Node: pres_temp_4D in F77138868
-Node: pres_temp_4D_wr.f139379
-Node: pres_temp_4D_rd.f148866
-Node: pres_temp_4D in F90155859
-Node: pres_temp_4D_wr.f90156388
-Node: pres_temp_4D_rd.f90164177
-Node: pres_temp_4D in C++170087
-Node: pres_temp_4D_wr.cpp170588
-Node: pres_temp_4D_rd.cpp176441
-Node: Useful Functions181349
-Node: Creation182325
-Node: Creation in C183148
-Node: Creation in F77184619
-Node: Creation in F90186441
-Node: Creation in C++188209
-Node: Reading189348
-Node: Reading in C191572
-Node: Reading in F77192448
-Node: Reading in F90193123
-Node: Reading in C++193838
-Node: Inquiry Functions194636
-Node: Inquiry in C195437
-Node: Inquiry in F77199781
-Node: Inquiry in F90201540
-Node: Inquiry in C++203405
-Node: Subsets204475
-Node: Subsetting in C206134
-Node: Subsetting in F77208696
-Node: Subsetting in F90211304
-Node: Subsetting in C++214044
-Node: API-Extensions214811
-Node: Interoperability215846
-Node: Multiple-Unlimited-Dimensions218411
-Node: Groups218937
-Node: Compound-Types219915
-Node: Opaque-Types220712
-Node: VLEN-Type220990
-Node: Strings221328
-Node: New-inq-Functions221566
-Node: Parallel221923
-Node: simple_xy_par in C225858
-Node: simple_xy_par_wr.f90226692
-Node: simple_xy_par_rd.f90231257
-Node: Future234660
-Node: NetCDF-4 Examples235250
-Node: simple_nc4236092
-Node: simple_nc4 in C236970
-Node: simple_nc4_wr.c237333
-Node: simple_nc4_rd.c242566
-Node: simple_xy_nc4245973
-Node: simple_xy_nc4 in C246820
-Node: simple_xy_nc4_wr.c247187
-Node: simple_xy_nc4_rd.c250960
-Node: simple_xy_nc4 in F77253656
-Node: simple_xy_nc4_wr.f254030
-Node: simple_xy_nc4_rd.f257883
-Node: simple_xy_nc4 in F90260736
-Node: simple_xy_nc4_wr.f90261095
-Node: simple_xy_nc4_rd.f90264947
-Node: Combined Index268585
+Node: Top1359
+Node: Intro5412
+Node: Data Model6788
+Node: Errors9731
+Node: Unlimited Dimensions11534
+Node: Fill Values12883
+Node: Tools14252
+Node: APIs16473
+Node: Documentation18515
+Node: Versions20152
+Node: Future21921
+Node: Examples23114
+Node: simple_xy24438
+Node: simple_xy in C26479
+Node: simple_xy_wr.c26942
+Node: simple_xy_rd.c30919
+Node: simple_xy in F7733281
+Node: simple_xy_wr.f33753
+Node: simple_xy_rd.f38229
+Node: simple_xy in F9041052
+Node: simple_xy_wr.f9041542
+Node: simple_xy_rd.f9045473
+Node: simple_xy in C++47949
+Node: simple_xy_wr.cpp48414
+Node: simple_xy_rd.cpp51616
+Node: sfc_pres_temp53977
+Node: sfc_pres_temp in C56705
+Node: sfc_pres_temp_wr.c57220
+Node: sfc_pres_temp_rd.c63953
+Node: sfc_pres_temp in F7770298
+Node: sfc_pres_temp_wr.f70822
+Node: sfc_pres_temp_rd.f78563
+Node: sfc_pres_temp in F9086833
+Node: sfc_pres_temp_wr.f9087375
+Node: sfc_pres_temp_rd.f9093493
+Node: sfc_pres_temp in C++100269
+Node: sfc_pres_temp_wr.cpp100782
+Node: sfc_pres_temp_rd.cpp106575
+Node: pres_temp_4D112704
+Node: pres_temp_4D in C117308
+Node: pres_temp_4D_wr.c117810
+Node: pres_temp_4D_rd.c125890
+Node: pres_temp_4D in F77131326
+Node: pres_temp_4D_wr.f131837
+Node: pres_temp_4D_rd.f141324
+Node: pres_temp_4D in F90150783
+Node: pres_temp_4D_wr.f90151312
+Node: pres_temp_4D_rd.f90158959
+Node: pres_temp_4D in C++164925
+Node: pres_temp_4D_wr.cpp165426
+Node: pres_temp_4D_rd.cpp171279
+Node: Useful Functions176187
+Node: Creation177163
+Node: Creation in C177986
+Node: Creation in F77179457
+Node: Creation in F90181279
+Node: Creation in C++183047
+Node: Reading184186
+Node: Reading in C186410
+Node: Reading in F77187286
+Node: Reading in F90187961
+Node: Reading in C++188676
+Node: Inquiry Functions189474
+Node: Inquiry in C190275
+Node: Inquiry in F77194619
+Node: Inquiry in F90196378
+Node: Inquiry in C++198243
+Node: Subsets199313
+Node: Subsetting in C200972
+Node: Subsetting in F77203534
+Node: Subsetting in F90206142
+Node: Subsetting in C++208882
+Node: Combined Index209649
 
 End Tag Table

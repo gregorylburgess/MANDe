@@ -1,5 +1,5 @@
 /*
- * Copyright 1993-2009 University Corporation for Atmospheric Research/Unidata
+ * Copyright 1993-2005 University Corporation for Atmospheric Research/Unidata
  * 
  * Portions of this software were developed by the Unidata Program at the 
  * University Corporation for Atmospheric Research.
@@ -30,7 +30,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-/* "$Id: netcdf.h,v 2.130 2010/01/12 15:44:57 ed Exp $" */
+/* "$Id: netcdf.h,v 2.117 2008/03/28 20:50:28 dmh Exp $" */
 
 #ifndef _NETCDF_
 #define _NETCDF_
@@ -136,6 +136,21 @@ typedef enum {
  */
 #define NC_GLOBAL -1
 
+/* These are in support of the coordinate axis stuff. */
+#define NC_NOAXISTYPE 0
+#define NC_LATITUDE 1
+#define NC_LONGITUDE 2
+#define NC_GEOX 3
+#define NC_GEOY 4
+#define NC_GEOZ 5
+#define NC_HEIGHT_UP 6
+#define NC_HEIGHT_DOWN 7
+#define NC_PRESSURE 8
+#define NC_TIME 9
+#define NC_RADAZ 10
+#define NC_RADEL 11
+#define NC_RADDIST 12
+
 /*
  * These maximums are enforced by the interface, to facilitate writing
  * applications and utilities.  However, nothing is statically allocated to
@@ -194,19 +209,6 @@ typedef enum {
 				   format constraints */ 
 #define NC_EDIMSIZE     (-63)   /* Invalid dimension size */
 #define NC_ETRUNC       (-64)   /* File likely truncated or possibly corrupted */
-#define NC_EAXISTYPE    (-65)   /* Unknown axis type. */
-
-/* Following errors are added for DAP */
-#define NC_EDAP         (-66)   /* Generic DAP client error */
-#define NC_ECURL        (-67)   /* Generic libcurl error */
-#define NC_EIO          (-68)   /* Generic IO error */
-#define NC_ENODATA      (-69)   /* Attempt to access variable with no data */
-#define NC_EDAPSVC      (-70)   /* DAP Server side error */
-#define NC_EDAS		(-71)   /* Malformed or inaccessible DAS */
-#define NC_EDDS		(-72)   /* Malformed or inaccessible DDS */
-#define NC_EDATADDS	(-73)   /* Malformed or inaccessible DATADDS */
-#define NC_EDAPURL	(-74)   /* Malformed DAP URL */
-#define NC_EDAPCONSTRAINT (-75)   /* Malformed DAP Constraint*/
 
 /*
  * The Interface
@@ -221,10 +223,10 @@ typedef enum {
 #   define MSC_EXTRA __declspec(dllimport)
 #  endif
 #include <io.h>
-/*#define lseek _lseeki64
+#define lseek _lseeki64
 #define off_t __int64
 #define stat __stat64
-#define fstat _fstat64*/
+#define fstat _fstat64
 #else
 #define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
@@ -240,10 +242,6 @@ MSC_EXTRA int ncopts;
 
 EXTERNL const char *
 nc_inq_libvers(void);
-
-/* Find name and size of a type. */
-EXTERNL int
-nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size);
 
 EXTERNL const char *
 nc_strerror(int ncerr);
@@ -947,6 +945,14 @@ EXTERNL int ncerr;
 #define NC_ENTOOL       NC_EMAXNAME   /* Backward compatibility */
 #define	NC_EXDR		(-32)	/* */
 #define	NC_SYSERR	(-31)
+
+/*
+ * Avoid use of this meaningless macro
+ * Use sysconf(_SC_OPEN_MAX).
+ */
+#ifndef MAX_NC_OPEN
+#define MAX_NC_OPEN 32
+#endif
 
 /*
  * Global options variable.
