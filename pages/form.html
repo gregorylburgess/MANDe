@@ -18,7 +18,14 @@
 	$("#theForum").html(form);
 	
 	function submitForm() {
-		dic = "{"
+		var dic = new Array();
+		for(field in fields) {
+			name = fields[field].toLowerCase().replace(/\s/g,'_');
+			value = $("#" + name).val();
+			dic[name] = value;
+		}
+		dic = JSON.stringify(dic);
+		/*dic = "{"
 		var name = ""
 		var value = ""
 		for(field in fields) {
@@ -28,11 +35,38 @@
 			dic += "\"" + name + "\":" + "\"" + value + "\",";
 		}
 		dic = dic.substring(0,dic.length-1)
-		dic += "}";
+		dic += "}";*/
 		$.ajax({
 			url: '../../query', 
 			data: dic,
-			success: function(data) {$('#theForum').html(data);}
-		});
+			success: parseResponse,
+		})
+	}
+	
+	function parseResponse(data) {
+		data = $.parseJSON(data);
+		toRet = "<h1>Results:</h1>";
+		//Grab important keys
+		params = data["params"];
+		sensors = data['sensors'];
+		stats = data['stats'];
+		filenames = data['filenames'];
+		
+		//Re-Print params
+		toRet += "<h3>Parameters:</h4>";
+		for(key in params) {
+			toRet += key + ": " + params[key] + "</br>"
+		}
+		
+		toRet += "<h3>Stats:</h4>";
+		for(key in stats) {
+			toRet += key + ": " + stats[key] + "</br>";
+		}
+		
+		toRet += "<h3>Graphs:</h4>";
+		for(key in filenames) {
+			toRet += "<image src=\"../" + filenames[key] + "\"></image>";
+		}
+		$('#theForum').html(toRet);
 	}
 </script>

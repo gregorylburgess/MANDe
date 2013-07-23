@@ -1,11 +1,11 @@
 source("src/Main.R")
+library("rjson")
 
 query <- function(env) {
 	req <- Rook::Request$new(env)
 	res <- Rook::Response$new()
-	res$write(req$params())
 	results = test()
-	res$write(results)
+	res$write(toJSON(results, method="C"))
 	res$finish()
 }
 

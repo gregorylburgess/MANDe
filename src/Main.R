@@ -105,8 +105,10 @@ test <- function(debug=FALSE) {
 	## Print time stamp (to be able to check run time)
 	startTime = Sys.time()
 	result = run(params, debug)
-	## Print time stamp (to be able to check run time)
 	endTime = Sys.time()
+	result$runTime = endTime - startTime
+	result$params = params
+	result = graph(result,params)
 	return(result)
 }
 test()

@@ -448,17 +448,30 @@ offset<- function(point){
     return(list("r"=r,"c"=c))
 }
 
-graph <- function(results, params) {
+graph <- function(result, params) {
 	## Plotting
 	graphics.off()
+	filenames = {}
+	time = as.numeric(Sys.time()) %% 1
+	filenames$bGrid = sprintf("img/bGrid %g.png", time)
+	png(filenames$bGrid)
 	image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
 	contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
-	dev.new()
+	dev.off()
+	#dev.new()
+	filenames$fGrid = sprintf("img/fGrid %g.png", time)
+	png(filenames$fGrid)
 	image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
 	numSensors <- length(result$sensors)
 	for(i in 1:numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
-	dev.new()
+	dev.off()
+	#dev.new()
+	filenames$sumGrid = sprintf("img/sumGrid %g.png", time)
+	png(filenames$sumGrid)
 	image(1:params$XDist, 1:params$YDist ,result$sumGrid,main='sumGrid')
+	dev.off()
+	result$filenames = filenames
+	return(result)
 }
 # Provides Statistical data on detection, given a particular bGrid, fGrid, and sensor 
 # arrangement.
