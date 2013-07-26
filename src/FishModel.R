@@ -9,32 +9,31 @@ fish <- function(params, bGrid) {
     switch(params$fishmodel,
             rw={ ## Random walk case
                 print('rw')
-                if('mindepth' %in% names(params)){
+                fGrid <- matrix(1,rows,cols)
+                if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
                     print('RW: Using vertical habitat to calculate fGrid')
-                    fGrid <- bGrid$bGrid < params$mindepth & bGrid$bGrid > params$maxdepth
-                }else{
-                    fGrid <- matrix(1,rows,cols)
+                    fGrid[!verticalHabitat(params$mindepth,params$maxdepth,bGrid$bGrid)] <- 0
                 }
-                
             },
             ou={ ## Ornstein-Uhlenbeck case
                 print('ou')
                 sigma <- params$msd/sqrt(params$dt)
-                hrCov <- 0.5*sigma^2*solve(params$B)
+                B <- matrix(c(params$Bx,params$Bxy,params$Bxy,params$By),2,2)
+                hrCov <- 0.5*sigma^2*solve(B)
                 X <- matrix(rep(bGrid$x,rows),rows,cols,byrow=TRUE)
                 Y <- matrix(rep(bGrid$y,cols),rows,cols,byrow=FALSE)
                 XY <- cbind(as.vector(X),as.vector(Y))
-                hrVals <- dmvnorm(XY,params$mu,hrCov)
+                hrVals <- dmvnorm(XY,c(params$mux,params$muy),hrCov)
                 fGrid <- matrix(hrVals,rows,cols,byrow=FALSE)
-                if('dp' %in% names(params)){
+                if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
                     print('OU: Using vertical habitat to calculate fGrid')
-                    vhGrid <- bGrid$bGrid < params$mindepth & bGrid$bGrid > params$maxdepth
-                    fGrid <- fGrid * vhGrid
+                    fGrid[!verticalHabitat(params$mindepth,params$maxdepth,bGrid$bGrid)] <- 0
                 }
             }
     )
     fGrid[land] <- 0 ## Set land areas to zero
     fGrid <- fGrid/sum(fGrid) ## Make sure fGrid sums to one
-    
     return (fGrid)
 }
+
+verticalHabitat <- function(mindepth,maxdepth,bGrid) bGrid < mindepth & bGrid > maxdepth

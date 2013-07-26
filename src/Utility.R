@@ -534,7 +534,7 @@ stats <- function(params, bGrid, fGrid, sensors) {
 
 # Provides default parameter values if none are provided.
 checkParams <- function(params) {
-	
+
     names = names(params)
 	## Cast all possible strings to numbers (JSON makes everything strings)
 	for (name in names) {
@@ -553,14 +553,14 @@ checkParams <- function(params) {
 				For example, if the generated habitat grid contains no cells near
 				the depth specified, no fish will be generated.", stderr())
 	}
+
     # Supression Function Defaults
     if(!('supressionFcn' %in% names)) {
         params$supressionFcn = "supression.static"
         params$supressionRange = 2
         params$maxSupressionValue = 0
         params$minSupressionValue = 0
-    }
-	else {
+    }	else {
 		params$supressionFcn = as.character(params$supressionFcn)
 	}
     
@@ -569,13 +569,13 @@ checkParams <- function(params) {
         params$shapeFcn= "shape.gauss"
         params$sd=.3334
         params$peak=.75 
-    }
-	else {
+    }	else {
 		params$shapeFcn = as.character(params$shapeFcn)
 	}
 	if(!('range' %in% names)) {
 		params$range = 3*params$sd
 	}
+    
     # Bathymetry defaults
 	if(('inputfile' %in% names)) {
 		params$inputfile = as.character(params$inputfile)
@@ -597,18 +597,18 @@ checkParams <- function(params) {
     }
     if(!('seriesName' %in% names)) {
         params$seriesName = 'z'
-    }
-	else {
+    }	else {
 		params$seriesName = as.character(params$seriesName)
 	}
+    
     # Fish Modeling
     if(!('fishmodel' %in% names)) {
         params$fishmodel <- 'rw'
-    }
-	else {
+    }	else {
 		params$fishmodel = as.character(params$fishmodel)
 	}
+    
     return(params)
 }
 
-checkParams({})
+##checkParams({})

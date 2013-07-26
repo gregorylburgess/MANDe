@@ -79,8 +79,8 @@ test <- function(debug=FALSE) {
 	params$inputFileType = "netcdf"
 	params$startX = 9000
 	params$startY = 8000 
-	params$XDist = 25
-	params$YDist = 25
+	params$XDist = 200
+	params$YDist = 200
 	params$seriesName = 'z'
 	
 	## Supression variables
@@ -95,31 +95,39 @@ test <- function(debug=FALSE) {
 	## Choose random walk type movement model
 	params$fishmodel <- 'rw'
 	## Set to TRUE if vertical habitat range is applied
-	if(FALSE){
-	    ## Minimum depth
-	    params$mindepth <- -58
-	    ## Maximum depth
-	    params$maxdepth <- -60
+	if(TRUE){
+	    ## Minimum depth (shallowest depth)
+	    params$mindepth <- -1
+	    ## Maximum depth (deepest depth)
+	    params$maxdepth <- -10
 	}
 	## Set to TRUE if depth preference should be applied
 	if(FALSE){
 	    ## Depth preference of fish relative to bottom (in meters off the bottom)
-	    params$dp <- 10
+	    params$dp <- 2
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
 	    params$dpsd <- 2
 	}
 	## Set to TRUE of Ornstein-Uhlenbeck (OU) movement should be applied
-	if(FALSE){
+	if(TRUE){
 	    ## Choose Ornstein-Uhlenbeck type movement model
 	    params$fishmodel <- 'ou'
 	    ## OU parameter: center of home range
-	    params$mu <- c(0.4,0.2)
+	    params$mux <- 0.4
+	    params$muy <- 0.2
 	    ## OU: Attraction parameter, determines strength of attraction toward home range center
-	    params$B <- 0.1*diag(2)
+	    params$Bx <- 0.1
+	    params$By <- 0.1
+	    params$Bxy <- 0
 	}
 	
 	## Print time stamp (to be able to check run time)
 	result = run(params, debug)
 	return(result)
 }
-test()
+
+Rprof(tmp <- tempfile())
+asd <- test()
+Rprof()
+summaryRprof(tmp)
+
