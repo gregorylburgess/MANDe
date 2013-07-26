@@ -2,7 +2,7 @@ require('Rook')
 source('Apps.R')
 
 rook <- Rhttpd$new()
-Heroku = TRUE
+Heroku = FALSE
 
 rook$add(name="base", Redirect$new("/../static/pages/index.html"))
 rook$add(query, name="query")

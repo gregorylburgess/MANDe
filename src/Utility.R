@@ -29,8 +29,6 @@ sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE) 
     # calculate the sumGrid
     grids = sumGrid(grids, range, bias, params, debug)
     sumGrid = grids$sumGrid
-	print(fGrid)
-	print(sumGrid)
     # for each sensor, find a good placement
     for (i in 1:numSensors) {
         # find the max location 
@@ -313,9 +311,12 @@ checkLOS<- function(bGrid, startingCell, targetCell, params, debug=FALSE) {
         # compute % fish visible from sensor to target cell
         mean = bGrid[targetCell$r,targetCell$c] + params$depth_off_bottom
         sd = depth_off_bottom_sd
+		
         # pnorm gives the percent below the given point, so subtract from 1
         # to get the percent above the given point
+		areaToCorrectFor = 1 - (pnorm(bGrid[targetCell$r,targetCell$c]))
         percentVisibility = 1 - (pnorm(targetCellsVisibleDepth,mean=mean,sd=sd))
+		percentVisibility = percentVisibility/areaToCorrectFor
     }
     # if we don't have normal distribution data, assume equal distribution
     else {
@@ -453,25 +454,36 @@ graph <- function(result, params) {
 	graphics.off()
 	filenames = {}
 	time = as.numeric(Sys.time()) %% 1
-	filenames$bGrid = sprintf("img/bGrid %g.png", time)
+	
+	## BGrid
+	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	png(filenames$bGrid)
 	image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
+	for(i in 1:params$numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
 	contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
 	dev.off()
-	#dev.new()
-	filenames$fGrid = sprintf("img/fGrid %g.png", time)
+	
+	## FGrid
+	filenames$fGrid = sprintf("img/fGrid-%g.png", time)
 	png(filenames$fGrid)
 	image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
-	numSensors <- length(result$sensors)
-	for(i in 1:numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
+	for(i in 1:params$numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
 	dev.off()
-	#dev.new()
-	filenames$sumGrid = sprintf("img/sumGrid %g.png", time)
+	
+	## SumGrid
+	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
 	png(filenames$sumGrid)
 	image(1:params$XDist, 1:params$YDist ,result$sumGrid,main='sumGrid')
+	for(i in 1:params$numSensors) points(result$sensors[[i]]$r,result$sensors[[i]]$c)
 	dev.off()
-	result$filenames = filenames
-	return(result)
+	
+	## acoustic coverage
+	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
+	png(filenames$acousticCoverage)
+	image(1:params$XDist, 1:params$YDist ,result$stats$acousticCoverage,main='acousticCoverage')
+	for(i in 1:params$numSensors) points(result$sensors[[i]]$r,result$sensors[[i]]$c)
+	dev.off()
+	return(filenames)
 }
 # Provides Statistical data on detection, given a particular bGrid, fGrid, and sensor 
 # arrangement.
@@ -522,8 +534,14 @@ stats <- function(params, bGrid, fGrid, sensors) {
 
 # Provides default parameter values if none are provided.
 checkParams <- function(params) {
+	
     names = names(params)
-	print(names)
+	## Cast all possible strings to numbers (JSON makes everything strings)
+	for (name in names) {
+		if(!is.na((as.numeric(params[name])))) {
+			params[name] = as.numeric(params[name])
+		}
+	}
     if(!('numSensors' %in% names)) {
         write("Error: 'numSensors' is required", stderr())
     }
@@ -534,26 +552,34 @@ checkParams <- function(params) {
 		write("Error: Using dp option without a known input file may be bad!.
 				For example, if the generated habitat grid contains no cells near
 				the depth specified, no fish will be generated.", stderr())
-		
 	}
-    if(!('range' %in% names)) {
-        params$range = 1
-    }
     # Supression Function Defaults
     if(!('supressionFcn' %in% names)) {
         params$supressionFcn = "supression.static"
-        params$supressionRange = 1
+        params$supressionRange = 2
         params$maxSupressionValue = 0
         params$minSupressionValue = 0
     }
+	else {
+		params$supressionFcn = as.character(params$supressionFcn)
+	}
     
     # Shape Function Defaults
     if(!('shapeFcn' %in% names)) {
-        params$shapeFcn= "shape.t"
-        params$sd=1
+        params$shapeFcn= "shape.gauss"
+        params$sd=.3334
         params$peak=.75 
     }
+	else {
+		params$shapeFcn = as.character(params$shapeFcn)
+	}
+	if(!('range' %in% names)) {
+		params$range = 3*params$sd
+	}
     # Bathymetry defaults
+	if(('inputfile' %in% names)) {
+		params$inputfile = as.character(params$inputfile)
+	}
     if(!('cellRatio' %in% names)) {
         params$cellRatio = 1
     }
@@ -572,20 +598,17 @@ checkParams <- function(params) {
     if(!('seriesName' %in% names)) {
         params$seriesName = 'z'
     }
+	else {
+		params$seriesName = as.character(params$seriesName)
+	}
     # Fish Modeling
     if(!('fishmodel' %in% names)) {
         params$fishmodel <- 'rw'
     }
+	else {
+		params$fishmodel = as.character(params$fishmodel)
+	}
     return(params)
 }
 
-
-
-dist = 0
-supressionRange = 100
-minSupressionValue = .25
-maxSupressionValue = .75
-params = {}
-print(supression.scale(dist, supressionRange, minSupressionValue, 
-        maxSupressionValue, params))
-
+checkParams({})

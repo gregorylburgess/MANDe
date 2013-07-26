@@ -10,8 +10,10 @@ rm(list=ls()) ## Clear all variables
 source('src/Bathy.R')
 source('src/FishModel.R')
 source('src/Utility.R')
+library(sendmailR)
 
 run <- function(params, debug=FALSE){
+	startTime = Sys.time()
     if(debug) {
         cat("\n[run]\n")
     }
@@ -36,23 +38,41 @@ run <- function(params, debug=FALSE){
     
     ## Stat analysis of proposed setup.
     statDict = stats(params, bGrid, fGrid, sensors$sensorList)
-    
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
-            "stats" = statDict)
+            "stats" = statDict, "params"=params)
+	## Graph results
+	results$filenames = graph(results,params)
+	endTime = Sys.time()
+	results$runTime = endTime - startTime
+	## Email results
+	if("userEmail" %in% names(params)) {
+		from = "acousticwebapp@gmail.com"
+		to = params$userEmail
+		subject <- "Acoustic webapp results"
+		body <- results                    
+		mailControl=list(smtpServer="smtp.gmail.com")
+		#sendmail(from=from,to=to,subject=subject,msg=body,control=mailControl)
+	}
     return(results)
 }
 
 test <- function(debug=FALSE) {
-	print("Recieved Request")
-	print(Sys.time())
 	#### TEST RUN
 	params = list()
+	#notification option
+	params$userEmail = "epy00n@hotmail.com"
+	
 	## Array variables
 	params$numSensors = 10 
-	params$range = 4 
 	params$cellRatio = 1
 	params$bias = 1
+	
+	## Receiver variables
+	params$sd=.33333
+	params$peak=.75 
+	params$shapeFcn= "shape.gauss"
+	params$range = 3*params$sd
 	
 	# BGrid Variables
 	#params$inputFile = "himbsyn.bathytopo.v19.grd\\bathy.grd"
@@ -62,14 +82,10 @@ test <- function(debug=FALSE) {
 	params$XDist = 25
 	params$YDist = 25
 	params$seriesName = 'z'
-	## Receiver variables
-	params$sd=1
-	params$peak=.75 
-	params$shapeFcn= "shape.t"
 	
 	## Supression variables
 	params$supressionFcn = "supression.scale"
-	params$supressionRange = 4
+	params$supressionRange = 2
 	params$maxSupressionValue = 1
 	params$minSupressionValue = .5
 	## Mean squared displacement of fish (a proxy for movement capacity)
@@ -93,7 +109,7 @@ test <- function(debug=FALSE) {
 	    params$dpsd <- 2
 	}
 	## Set to TRUE of Ornstein-Uhlenbeck (OU) movement should be applied
-	if(TRUE){
+	if(FALSE){
 	    ## Choose Ornstein-Uhlenbeck type movement model
 	    params$fishmodel <- 'ou'
 	    ## OU parameter: center of home range
@@ -103,12 +119,7 @@ test <- function(debug=FALSE) {
 	}
 	
 	## Print time stamp (to be able to check run time)
-	startTime = Sys.time()
 	result = run(params, debug)
-	endTime = Sys.time()
-	result$runTime = endTime - startTime
-	result$params = params
-	result = graph(result,params)
 	return(result)
 }
 test()

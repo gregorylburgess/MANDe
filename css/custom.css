@@ -20,3 +20,8 @@ body {
     margin-left: 180px;
     width: 222px;
 }
+
+#theForum {
+	max-width: 100%;
+	word-wrap: break-word;
+}

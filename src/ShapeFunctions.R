@@ -11,10 +11,10 @@ shape.t <- function(dist,par){
 }
 
 shape.gauss <- function(dist,par){
-    sd <- par[1]
-    peak <- par[2]
+	sd <- par$sd
+	peak <- par$peak
     ## Shape based on normal distribution
-    return(peak*dnorm(x/sd,0,1)/dnorm(0,0,1))
+    return (peak*dnorm(dist/sd,0,1)/dnorm(0,0,1))
 }
 
 shape.sigmoidal <- function(dist,par){
