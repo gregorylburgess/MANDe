@@ -66,26 +66,26 @@ test <- function(debug=FALSE, opt=FALSE) {
 	## Array variables
 	params$numSensors = 10 
 	params$cellRatio = 1
-	params$bias = 1
+	params$bias = 3
 	
 	## Receiver variables
-	params$sd=1
-	params$peak=.75 
+	params$sd=10
+	params$peak=.98 
 	params$shapeFcn= "shape.gauss"
 	params$range = 3*params$sd
 	
 	# BGrid Variables
-	#params$inputFile = "himbsyn.bathytopo.v19.grd\\bathy.grd"
-	params$inputFileType = "netcdf"
-	params$startX = 9000
-	params$startY = 8000 
-	params$XDist = 500
-	params$YDist = 500
+	params$inputFile = "Pal_IKONOS\\pal_dball.asc"
+	params$inputFileType = "custom"
+	params$startX = 370
+	params$startY = 1200
+	params$XDist = 80
+	params$YDist = 80
 	params$seriesName = 'z'
 	
 	## Supression variables
 	params$supressionFcn = "supression.scale"
-	params$supressionRange = 2
+	params$supressionRange = 20
 	params$maxSupressionValue = 1
 	params$minSupressionValue = .5
 	## Mean squared displacement of fish (a proxy for movement capacity)
@@ -126,14 +126,14 @@ test <- function(debug=FALSE, opt=FALSE) {
 	return(result)
 }
 
-Rprof(tmp <- tempfile())
-asd <- test()
-Rprof()
-summaryRprof(tmp)
+##Rprof(tmp <- tempfile())
+##asd <- test(opt=TRUE)
+##Rprof()
+##summaryRprof(tmp)
 
-
-Rprof(tmp <- tempfile())
-asd <- test(opt=TRUE)
-Rprof()
-summaryRprof(tmp)
+#Rprof(tmp <- tempfile())
+#asd <- test()
+#Rprof()
+#summaryRprof(tmp)
+test()
 
