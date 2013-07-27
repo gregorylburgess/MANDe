@@ -105,11 +105,15 @@ TestUtility.supress.scale <- function() {
     }
 }
 
-TestUtility.getCells <- function() {
-    reset()
+TestUtility.getCells <- function(opt=FALSE) {
+    ##reset()
     startCell = list(r=1,c=1)
     endCell = list(r=5,c=2)
-    cells = (getCells(startCell, endCell))
+    if(opt){
+        cells = (getCells.opt(startCell, endCell))
+    }else{
+        cells = (getCells(startCell, endCell))
+    }
     points = list(  list(x=1,y=2),
                     list(x=1,y=3),
                     list(x=2,y=3),
@@ -131,8 +135,38 @@ TestUtility.detect <- function () {
     reset()
     detect(bGrid, sensorPos, tagPos, fcn, params, debug=FALSE)
 }
+
+Test.sumGrid.sumSimple <- function() {
+    print('Old fun:')
+    ng <- 1000
+    grid <- list(fGrid=matrix(1:ng^2,ng,ng))
+    at <- system.time(a <- sumGrid.sumSimple(grid, 'fGrid', params$range, debug=FALSE)$sumGrid)
+    print(at)
+    print('Optimized fun:')
+    bt <- system.time(b <- sumGrid.sumSimple.opt(grid, 'fGrid', params$range, debug=FALSE)$sumGrid)
+    print(bt)
+    if(sum(a-b)==0){
+        print('[sumGrid.sumSimple]: Pass')
+    }else{
+        print('[sumGrid.sumSimple]: Fail')
+    }
+}
+
+TestUtility.getCells.opt <- function(){
+    startingCell <- list(r=3,c=3)
+    targetCell <- list(r=7,c=7)
+    print('Old fun:')
+    print(system.time(for(i in 1:10000) getCells(startingCell, targetCell)))
+    print('Optimized fun:')
+    print(system.time(for(i in 1:10000) getCells.opt(startingCell, targetCell)))
+}
+
+
+Test.sumGrid.sumSimple()
 TestUtility.sumGrid()
 #TestUtility.zeroOut()
 TestUtility.getCells()
+TestUtility.getCells(opt=TRUE)
+TestUtility.getCells.opt()
 TestUtility.supress.scale()
 print("Success! All tests passed!")

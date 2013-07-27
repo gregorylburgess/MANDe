@@ -12,7 +12,7 @@ source('src/FishModel.R')
 source('src/Utility.R')
 library(sendmailR)
 
-run <- function(params, debug=FALSE){
+run <- function(params, debug=FALSE, opt=FALSE){
 	startTime = Sys.time()
     if(debug) {
         cat("\n[run]\n")
@@ -34,7 +34,7 @@ run <- function(params, debug=FALSE){
     
     fGrid = fish(params, bGrid)
     ## Find good sensor placements
-    sensors = sensors(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug)
+    sensors = sensors(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt)
     
     ## Stat analysis of proposed setup.
     statDict = stats(params, bGrid, fGrid, sensors$sensorList)
@@ -57,7 +57,7 @@ run <- function(params, debug=FALSE){
     return(results)
 }
 
-test <- function(debug=FALSE) {
+test <- function(debug=FALSE, opt=FALSE) {
 	#### TEST RUN
 	params = list()
 	#notification option
@@ -69,7 +69,7 @@ test <- function(debug=FALSE) {
 	params$bias = 1
 	
 	## Receiver variables
-	params$sd=.33333
+	params$sd=1
 	params$peak=.75 
 	params$shapeFcn= "shape.gauss"
 	params$range = 3*params$sd
@@ -79,8 +79,8 @@ test <- function(debug=FALSE) {
 	params$inputFileType = "netcdf"
 	params$startX = 9000
 	params$startY = 8000 
-	params$XDist = 200
-	params$YDist = 200
+	params$XDist = 500
+	params$YDist = 500
 	params$seriesName = 'z'
 	
 	## Supression variables
@@ -95,7 +95,7 @@ test <- function(debug=FALSE) {
 	## Choose random walk type movement model
 	params$fishmodel <- 'rw'
 	## Set to TRUE if vertical habitat range is applied
-	if(TRUE){
+	if(FALSE){
 	    ## Minimum depth (shallowest depth)
 	    params$mindepth <- -1
 	    ## Maximum depth (deepest depth)
@@ -109,7 +109,7 @@ test <- function(debug=FALSE) {
 	    params$dpsd <- 2
 	}
 	## Set to TRUE of Ornstein-Uhlenbeck (OU) movement should be applied
-	if(TRUE){
+	if(FALSE){
 	    ## Choose Ornstein-Uhlenbeck type movement model
 	    params$fishmodel <- 'ou'
 	    ## OU parameter: center of home range
@@ -122,12 +122,18 @@ test <- function(debug=FALSE) {
 	}
 	
 	## Print time stamp (to be able to check run time)
-	result = run(params, debug)
+	result = run(params, debug, opt)
 	return(result)
 }
 
 Rprof(tmp <- tempfile())
 asd <- test()
+Rprof()
+summaryRprof(tmp)
+
+
+Rprof(tmp <- tempfile())
+asd <- test(opt=TRUE)
 Rprof()
 summaryRprof(tmp)
 

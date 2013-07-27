@@ -8,7 +8,7 @@ source("src/ShapeFunctions.R")
 # 1. fish only
 # 2. bathy only
 # 3. detectable fish due to bathy
-sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE) {
+sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, opt=FALSE) {
     if (debug) {
         cat("\n[sensors]\n")
         print("bGrid")
@@ -27,7 +27,7 @@ sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE) 
     grids = list("bGrid" = bGrid, "fGrid"=fGrid)
     
     # calculate the sumGrid
-    grids = sumGrid(grids, range, bias, params, debug)
+    grids = sumGrid(grids, range, bias, params, debug, opt)
     sumGrid = grids$sumGrid
     # for each sensor, find a good placement
     for (i in 1:numSensors) {
@@ -52,7 +52,7 @@ sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE) 
 
 
 # Calculates the composite "goodness" grid for a particular bias.
-sumGrid<- function (grid, range, bias, params, debug=FALSE) {
+sumGrid<- function (grid, range, bias, params, debug=FALSE, opt=FALSE) {
     if (debug) {
         cat("\n[sumGrid]\n")
         print("bGrid")
@@ -65,7 +65,11 @@ sumGrid<- function (grid, range, bias, params, debug=FALSE) {
     }
     #Fish
     if (bias == 1) {
-        return(sumGrid.sumSimple(grid, "fGrid", range, debug))
+        if(opt){
+            return(sumGrid.sumSimple.opt(grid, "fGrid", range, debug))
+        }else{
+            return(sumGrid.sumSimple(grid, "fGrid", range, debug))
+        }
     }
     #Bathy
     else if (bias == 2) {
@@ -97,6 +101,22 @@ sumGrid.sumSimple <- function (grid, key, range, debug=FALSE) {
     }
     
     grid$sumGrid = tempGrid
+    if(debug){
+        cat("\n[sumGrid.sumSimple]\n")
+        print("grid")
+        print(grid)
+    }
+    return(grid)
+}
+
+# Simply sums the values within range of a cell for each cell in the given grid.
+# [optimized, but gives different results than non-opt version, why???, see
+# TestUtility.R for speed comparison]
+sumGrid.sumSimple.opt <- function (grid, key, range, debug=FALSE) {
+    kernel <- rep(1,2*range+1) ## Assume that range is an integer
+    tempGrid = get(key, grid)
+    grid$sumGrid <- conv.2D(tempGrid,kernel,kernel)
+
     if(debug){
         cat("\n[sumGrid.sumSimple]\n")
         print("grid")
@@ -429,6 +449,38 @@ getCells<-function(startingCell, targetCell, debug=FALSE) {
     return(grid)
 }
 
+# Returns the cells crossed by a beam from the starting cell to
+# the target cell.
+# [Optimized version, see TestUtility.R to evaluate speed gain]
+getCells.opt <- function(startingCell, targetCell, debug=FALSE) {
+  sC <- offset(startingCell)
+  tC <- offset(targetCell)
+  e <- 1e-6
+  a <- (tC$r-sC$r)/(tC$c-sC$c)
+  if(abs(a)<=1){
+      b <- sC$r - a*sC$c
+      cPoints <- sort((startingCell$c):targetCell$c)-1
+      cols <- ceiling(cPoints+e)
+      rows <- ceiling(a*(cPoints+e) + b)
+      if(a!=1){
+          inds <- which(abs(diff(rows))>0)
+          cols <- c(cols,cols[inds])
+          rows <- c(rows,rows[inds+1])
+      }
+  }else{
+      a <- 1/a
+      b <- sC$c - a*sC$r
+      rPoints <- sort((startingCell$r):targetCell$r)-1
+      rows <- ceiling(rPoints+e)
+      cols <- ceiling(a*(rPoints+e) + b)
+      inds <- which(abs(diff(cols))>0)
+      rows <- c(rows,rows[inds])
+      cols <- c(cols,cols[inds+1])
+  }
+  crds <- data.frame("x"=cols,"y"=rows)
+  crds[!(crds$x == startingCell$c & crds$y == startingCell$r),]
+}
+
 # Offsets a cartesian point towards the center of the gridcell it represents.
 # ex: the cartesian point (3,2) would be converted to (2.5, 1.5), which puts it in the
 # cell located at the third column, second row (aka the cell at (3,2) on a 1-based grid
@@ -609,6 +661,25 @@ checkParams <- function(params) {
 	}
     
     return(params)
+}
+
+## Performs the convolution operation in 1D
+conv.1D <- function(fun,kern){
+  lk <- length(kern)
+  kern <- kern[lk:1]
+  lk2 <- 0.5*(lk-1)
+  lf <- length(fun)
+  test <- convolve(fun,kern,type='o')
+  test[(lk2+1):(lf+lk-lk2-1)]
+}
+
+## Performs the convolution operation in 2D (using two 1D kernels though)
+conv.2D <- function(mat,kx,ky){
+  dimmat <- dim(mat)
+  matout <- matrix(0,dimmat[1],dimmat[2])
+  for(i in 1:dimmat[1]) matout[i,] <- conv.1D(mat[i,],kx)
+  for(i in 1:dimmat[2]) matout[,i] <- conv.1D(matout[,i],ky)
+  matout
 }
 
 ##checkParams({})
