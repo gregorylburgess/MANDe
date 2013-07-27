@@ -10,7 +10,7 @@ rm(list=ls()) ## Clear all variables
 source('src/Bathy.R')
 source('src/FishModel.R')
 source('src/Utility.R')
-library(sendmailR)
+##library(sendmailR)
 
 run <- function(params, debug=FALSE, opt=FALSE){
 	startTime = Sys.time()
@@ -26,11 +26,11 @@ run <- function(params, debug=FALSE, opt=FALSE){
             params$XDist, params$YDist,
             params$seriesName,
             debug)
-
+        
     bGrid = list("bGrid"=bGrid, "cellRatio"=params$cellRatio)
     ## Specify a standard scale of x and y axes if previously undefined
-    if(!('x' %in% names(bGrid))) bGrid$x <- seq(0,1,length=dim(bGrid$bGrid)[2])
-    if(!('y' %in% names(bGrid))) bGrid$y <- seq(0,1,length=dim(bGrid$bGrid)[1])
+    if(!('x' %in% names(bGrid))) bGrid$x <- seq(0,1,length=dim(bGrid$bGrid)[1])
+    if(!('y' %in% names(bGrid))) bGrid$y <- seq(0,1,length=dim(bGrid$bGrid)[2])
     
     fGrid = fish(params, bGrid)
     ## Find good sensor placements
@@ -66,21 +66,26 @@ test <- function(debug=FALSE, opt=FALSE) {
 	## Array variables
 	params$numSensors = 10 
 	params$cellRatio = 1
-	params$bias = 3
+	params$bias = 2
 	
 	## Receiver variables
-	params$sd=10
+	#params$sd=10 ## Palmyra
+	params$sd = 2
 	params$peak=.98 
 	params$shapeFcn= "shape.gauss"
 	params$range = 3*params$sd
 	
 	# BGrid Variables
 	params$inputFile = "Pal_IKONOS\\pal_dball.asc"
-	params$inputFileType = "custom"
-	params$startX = 370
-	params$startY = 1200
-	params$XDist = 80
-	params$YDist = 80
+	params$inputFileType = "arcgis"
+	#params$startX = 370
+	#params$startY = 1200
+	#params$XDist = 80
+	#params$YDist = 80
+	params$startX = 1
+	params$startY = 1
+	params$XDist = 23
+	params$YDist = 21
 	params$seriesName = 'z'
 	
 	## Supression variables
@@ -131,9 +136,23 @@ test <- function(debug=FALSE, opt=FALSE) {
 ##Rprof()
 ##summaryRprof(tmp)
 
-#Rprof(tmp <- tempfile())
-#asd <- test()
-#Rprof()
-#summaryRprof(tmp)
-test()
+Rprof(tmp <- tempfile())
+asd <- test(opt=TRUE)
+Rprof()
+summaryRprof(tmp)
+ 
 
+system.time(asd <- test(opt=TRUE))
+system.time(asd <- test(opt=FALSE))
+
+result <- asd
+ns <- length(result$sensors)
+
+graphics.off()
+image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='sumGrid')
+##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
+for(i in 1:ns){
+  ##points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
+  text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i)
+}
+contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)

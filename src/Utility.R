@@ -73,7 +73,11 @@ sumGrid<- function (grid, range, bias, params, debug=FALSE, opt=FALSE) {
     }
     #Bathy
     else if (bias == 2) {
-        return(sumGrid.sumBathy(grid, range, params$shapeFcn, params, debug))
+        if(opt){
+            return(sumGrid.sumBathy.opt(grid, params, debug, opt))
+        }else{
+            return(sumGrid.sumBathy(grid, range, params$shapeFcn, params, debug))
+        }
     }
     #Combo
     else if (bias == 3) {
@@ -165,6 +169,133 @@ sumGrid.sumBathy <- function (grid, range, shapeFcn="shape.t",
     }
     return(grid)
 }
+
+# Sums the result of calling the detect() function on each cell within range of 
+# a target cell for each cell in the given grid.
+# [optimized version]
+sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
+    
+    nr <- dim(grid$bGrid$bGrid)[1]
+    nc <- dim(grid$bGrid$bGrid)[2]
+    ng <- nr*nc
+    bG <- grid$bGrid$bGrid
+        
+    sumGrid <- matrix(0,nr,nc) ## Allocate memory
+    rng <- params$range
+    params$sensorElevation <- 1
+    sensorDepth <- bG + params$sensorElevation
+    belowSurf <- sensorDepth < 0
+    land <- bG >= 0
+    dpflag <- "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+    for(c in 1:nc){
+      cind <- max(c(1,c-rng)):min(c(nc,c+rng))
+      for(r in 1:nr){
+        if(belowSurf[r,c]){ ## Only calculate if sensor is below surface
+          ## Find rows and columns for relevant cells
+          rind <- max(c(1,r-rng)):min(c(nr,r+rng))
+          rvec <- rep(rind,length(cind))
+          cvec <- sort(rep(cind,length(rind)))
+          tmp <- which(!(rvec==r & cvec==c)) ## Remove self cell
+          rvec <- rvec[tmp]
+          cvec <- cvec[tmp]
+          inds <- sub2ind(rvec,cvec,nr) ## Translate to single index
+          inds2 <- which(!land[inds]) ## Indices that are not on land
+          ninds2 <- length(inds2)
+          ## Get depths, dists and slopes
+          disttmp <- sort(sqrt((r-rvec[inds2])^2 + (c-cvec[inds2])^2),decreasing=TRUE,index=TRUE) ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
+          dists <- disttmp$x
+          depths <- bG[inds[inds2[disttmp$ix]]]
+          slopes <- (depths-sensorDepth[r,c])/dists
+          ibig2ismall <- rep(0,ng)
+          ibig2ismall[inds[inds2[disttmp$ix]]] <- 1:ninds2
+          vizDepths <- rep(0,ninds2)
+          remaining <- 1:ninds2
+
+          while(length(remaining)>0){ ## Calculate visible depths
+            ii <- remaining[1]
+            losinds <- getCells.new(list(r=r,c=c),list(r=rvec[inds2[disttmp$ix[ii]]],c=cvec[inds2[disttmp$ix[ii]]]), debug=FALSE, nr)
+            ##losinds <- sub2ind(losmat[,2],cellmat[,1],nr)
+            is <- ibig2ismall[intersect(losinds,inds[inds2])] ## Get indices in small vectors (not whole grid, also exlude cells on land using inds2)
+            ## ISSUE: this exclude cells on land, but does not exclude cells behind land areas which cannot be heard, this is because slopes are not calculated for land areas
+            d2 <- sort(dists[is],index=TRUE)
+            ##L1 <- length(cummax(slopes[is[d2$ix]])*d2$x + sensorDepth[r,c])
+            ##L2 <- length(is[d2$ix])
+            ##if(L1!=L2) stop()
+            ## Here cummax ensures that the steepest slopes is used for calculating visible depth, it is important that the slopes are sorted in order of increasing distance from current cell to target cells, this is handled by d2$ix
+            vizDepths[is[d2$ix]] <- cummax(slopes[is[d2$ix]])*d2$x + sensorDepth[r,c]
+            remaining <- setdiff(remaining,is)
+          }
+          vizDepths[vizDepths>0] <- -1e-4 ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])
+          
+          ## if we have normal distribution data (depth preference), use it
+          if(dpflag) {
+            ## compute % fish visible from sensor to target cell
+            mean = depths + params$depth_off_bottom
+            mean[mean>0] <- 0
+            sd = params$depth_off_bottom_sd
+            
+            ## Get cum probability for "available" water (between depth pref and surf)
+            psurf <- pnorm(0,mean=mean,sd=sd)
+            areaToCorrectFor <- psurf - pnorm(depths,mean=mean,sd=sd)
+            percentVisibility <- psurf - pnorm(vizDepths,mean=mean,sd=sd)
+            percentVisibility <- percentVisibility/areaToCorrectFor
+          }else{
+            ## if we don't have normal distribution data, assume equal distribution
+            ## compute % visibility (of water column height) from sensor to target cell
+            percentVisibility = vizDepths / depths
+          }
+          probOfRangeDetection = do.call(params$shapeFcn, list(dists, params))
+          sumGrid[r,c] = sum(probOfRangeDetection * percentVisibility)
+        }
+      }
+    }
+    
+    grid$sumGrid = sumGrid
+    if(debug){
+        cat("\n[sumGrid.sumBathy]\n")
+        print("grid")
+        print(grid)
+    }
+    return(grid)
+}
+
+
+# Determines the likelihood of a tag at a given position is detectable by a sensor at a 
+# given position, using a specific shapeFunction.  This function considers Bathymetry and
+# sensor range.
+# Returns the percent chance of detection as a double between 0 [no chance of detection] 
+# and 1 [guaranteed detection].
+# [usable only in optimized version]
+detect.new <- function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE,opt=FALSE) {
+    rvec = tagPos$rs:tagPos$re
+    nr <- length(rvec)
+    cvec = tagPos$cs:tagPos$ce
+    nc <- length(cvec)
+    rmat <- matrix(rep(rvec,nc),nr,nc)
+    cmat <- matrix(rep(cvec,nr),nr,nc,byrow=TRUE)
+
+    dist = sqrt((sensorPos$c - cmat)^2 + (sensorPos$r - rmat)^2)
+    probOfRangeDetection = do.call(shapeFcn, list(dist, params))
+
+    probOfLOSDetection = matrix(0,nr,nc) ## Allocate memory
+    for (r in 1:nr) {
+        for (c in 1:nc) {
+            probOfLOSDetection[r,c] = checkLOS(bGrid, sensorPos, list(r=rvec[r],c=cvec[c]), params, debug)
+        }
+    }
+    
+    ##probOfLOSDetection = checkLOS(bGrid, sensorPos, tagPos, params, debug)
+    probOfDetection = probOfRangeDetection * probOfLOSDetection
+    if(debug) {
+        cat("\n[detect]\n")
+        print(sprintf("probOfLOSDetection=%g",probOfLOSDetection))
+        print(sprintf("probOfRangeDetection=%g",probOfRangeDetection))
+        print(sprintf("TotalProbOfDetection=%g",probOfDetection))
+    }
+    ##return(probOfRangeDetection * probOfLOSDetection)
+    return(probOfDetection)
+}
+
 
 # For each cell in a given grid, the function sums (the number of fish
 # times the probability of detection) for all cells within range
@@ -454,32 +585,86 @@ getCells<-function(startingCell, targetCell, debug=FALSE) {
 # the target cell.
 # [Optimized version, see TestUtility.R to evaluate speed gain]
 getCells.opt <- function(startingCell, targetCell, debug=FALSE) {
-  sC <- offset(startingCell)
-  tC <- offset(targetCell)
-  e <- 1e-6
-  a <- (tC$r-sC$r)/(tC$c-sC$c)
-  if(abs(a)<=1){
-      b <- sC$r - a*sC$c
-      cPoints <- sort((startingCell$c):targetCell$c)-1
-      cols <- ceiling(cPoints+e)
-      rows <- ceiling(a*(cPoints+e) + b)
-      if(a!=1){
-          inds <- which(abs(diff(rows))>0)
-          cols <- c(cols,cols[inds])
-          rows <- c(rows,rows[inds+1])
-      }
-  }else{
-      a <- 1/a
-      b <- sC$c - a*sC$r
-      rPoints <- sort((startingCell$r):targetCell$r)-1
-      rows <- ceiling(rPoints+e)
-      cols <- ceiling(a*(rPoints+e) + b)
-      inds <- which(abs(diff(cols))>0)
-      rows <- c(rows,rows[inds])
-      cols <- c(cols,cols[inds+1])
-  }
-  crds <- data.frame("x"=cols,"y"=rows)
-  crds[!(crds$x == startingCell$c & crds$y == startingCell$r),]
+  if(!(startingCell$r==targetCell$r & startingCell$c==targetCell$c)){
+        sC <- offset(startingCell)
+        tC <- offset(targetCell)
+        e <- 1e-6
+        a <- (tC$r-sC$r)/(tC$c-sC$c)
+        if(abs(a)<=1){
+            b <- sC$r - a*sC$c
+            cPoints <- sort((startingCell$c):targetCell$c)-1
+            cols <- ceiling(cPoints+e)
+            rows <- ceiling(a*(cPoints+e) + b)
+            if(a!=1){
+                inds <- which(abs(diff(rows))>0)
+                cols <- c(cols,cols[inds])
+                rows <- c(rows,rows[inds+1])
+            }
+        }else{
+            a <- 1/a
+            b <- sC$c - a*sC$r
+            rPoints <- sort((startingCell$r):targetCell$r)-1
+            rows <- ceiling(rPoints+e)
+            cols <- ceiling(a*(rPoints+e) + b)
+            inds <- which(abs(diff(cols))>0)
+            rows <- c(rows,rows[inds])
+            cols <- c(cols,cols[inds+1])
+        }
+        ##crds <- data.frame("x"=cols,"y"=rows)
+        useinds <- !(cols == startingCell$c & rows == startingCell$r)
+        cellmat <- cbind(cols[useinds],rows[useinds])
+        colnames(cellmat) <- c('x','y')
+        return(as.data.frame(cellmat))
+        ##return( crds[!(crds$x == startingCell$c & crds$y == startingCell$r),] )
+        ##return(ret)
+    }else{
+        return(NULL)
+    }
+}
+
+
+# Returns the cells crossed by a beam from the starting cell to
+# the target cell.
+# [Does not produce same output as getCells]
+getCells.new <- function(startingCell, targetCell, debug=FALSE, nr=NULL) {
+    if(!(startingCell$r==targetCell$r & startingCell$c==targetCell$c)){
+        sC <- offset(startingCell)
+        tC <- offset(targetCell)
+        e <- 1e-6
+        a <- (tC$r-sC$r)/(tC$c-sC$c)
+        if(abs(a)<=1){
+            b <- sC$r - a*sC$c
+            cPoints <- sort((startingCell$c):targetCell$c)-1
+            cols <- ceiling(cPoints+e)
+            rows <- ceiling(a*(cPoints+e) + b)
+            if(a!=1){
+                inds <- which(abs(diff(rows))>0)
+                cols <- c(cols,cols[inds])
+                rows <- c(rows,rows[inds+1])
+            }
+            if(!is.null(nr)) biginds <- sub2ind(rows,cols,nr)
+        }else{
+            a <- 1/a
+            b <- sC$c - a*sC$r
+            rPoints <- sort((startingCell$r):targetCell$r)-1
+            rows <- ceiling(rPoints+e)
+            cols <- ceiling(a*(rPoints+e) + b)
+            inds <- which(abs(diff(cols))>0)
+            rows <- c(rows,rows[inds])
+            cols <- c(cols,cols[inds+1])
+            if(!is.null(nr)) biginds <- sub2ind(rows,cols,nr)
+        }
+        useinds <- !(cols == startingCell$c & rows == startingCell$r)
+        if(is.null(nr)){
+          ##crds <- data.frame("x"=cols,"y"=rows)
+          return( cbind(cols[useinds],rows[useinds]) )
+          ##return( crds[!(crds$x == startingCell$c & crds$y == startingCell$r),] )
+        }else{
+          return( biginds[useinds] )
+        }
+    }else{
+        return(NULL)
+    }
 }
 
 # Offsets a cartesian point towards the center of the gridcell it represents.
@@ -685,5 +870,11 @@ conv.2D <- function(mat,kx,ky){
   for(i in 1:dimmat[2]) matout[,i] <- conv.1D(matout[,i],ky)
   matout
 }
+
+## Convert from row col to linear index
+sub2ind <- function(row,col,dim){
+    (col-1)*dim[1] + row
+}
+
 
 ##checkParams({})
