@@ -21,17 +21,24 @@ bathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, se
 			}
 		},
 	    "arcgis" = {
+			print(file.exists(as.character(inputFile)))
 			if(file.exists(as.character(inputFile)) && require(sp) && require(rgdal) 
 					&& require(raster)){
 				library(sp)
 				library(raster)
 				library(rgdal)
+				print("Arcgis")
 		        #For an arc/grid inputFile is the folder!:
 		        bGrid = raster(inputFile)
 	    	}
 			else {
 				bGrid = simulate(XDist, YDist)
 			}
+		},
+		"custom" = {
+			print("Loading file")
+			load("src//palmyrabath.RData")
+			bGrid = bath[startY:(startY+YDist),startX:(startX+XDist)]
 		})
     return(bGrid)
 }

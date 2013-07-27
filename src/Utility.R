@@ -178,7 +178,7 @@ sumGrid.sumProduct <- function (grids, range, shapeFcn="shape.t",
     }
     
     grids$sumGrid = sumGrid0
-    if(TRUE){
+    if(debug){
         cat("\n[sumGrid.sumProduct]\n")
         print("visibilities")
         print(visibilities)
@@ -293,7 +293,8 @@ checkLOS<- function(bGrid, startingCell, targetCell, params, debug=FALSE) {
     sensorDepth = bGrid[startingCell$r, startingCell$c] + sensorElevation
     # retrieve list of intervening cells
     table = getCells(startingCell, targetCell, debug) ######getCells returns nothing because the cells are adjacent...
-    # annotate each cell's z value from the bGrid
+
+	# annotate each cell's z value from the bGrid
     table$z <-apply(table, 1, function(rows){ table$z = bGrid[rows[2],rows[1]]})
     # annotate each cell's percieved slope form our sensor to the cell
     table$m <-apply(table, 1, function(row) { 
@@ -473,14 +474,17 @@ graph <- function(result, params) {
 	## SumGrid
 	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
 	png(filenames$sumGrid)
-	image(1:params$XDist, 1:params$YDist ,result$sumGrid,main='sumGrid')
+	image(params$startY:(params$startY+params$YDist),params$startX:(params$startX+params$XDist),result$sumGrid,main='sumGrid')
+	#image(1:params$XDist, 1:params$YDist ,result$sumGrid,main='sumGrid')
 	for(i in 1:params$numSensors) points(result$sensors[[i]]$r,result$sensors[[i]]$c)
 	dev.off()
 	
 	## acoustic coverage
 	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
 	png(filenames$acousticCoverage)
-	image(1:params$XDist, 1:params$YDist ,result$stats$acousticCoverage,main='acousticCoverage')
+	image(params$startY:(params$startY+params$YDist),params$startX:(params$startX+params$XDist),result$stats$acousticCoverage,main='acousticCoverage')
+	
+	#image(1:params$XDist, 1:params$YDist ,result$stats$acousticCoverage,main='acousticCoverage')
 	for(i in 1:params$numSensors) points(result$sensors[[i]]$r,result$sensors[[i]]$c)
 	dev.off()
 	return(filenames)

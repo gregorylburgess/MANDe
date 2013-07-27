@@ -1,5 +1,4 @@
 source("src/Utility.R")
-library("data.table")
 # Use a non-square grid to ensure that columns and rows
 # are being correctly referenced
 r=5
@@ -12,7 +11,7 @@ fGrid = bGrid
 bGrid = list(bGrid=bGrid, cellRatio=cellRatio)
 grids = list(bGrid=bGrid, fGrid=fGrid)
 range = 1
-params = checkParams(list(numSensors=0))
+params = checkParams(list(numSensors=0, shapeFcn="shape.t", range=1, sd=1, peak=.75))
 
 # Resets the test values
 reset <- function () {
@@ -54,6 +53,7 @@ TestUtility.sumGrid <- function () {
             print(solGrid[[i]])
             print("result:")
             print(sumGrid[[i]])
+			return()
         }
     }
 
@@ -97,11 +97,14 @@ TestUtility.supress.scale <- function() {
     params = {}
     
     for( test in tests) {
-        val = supression.scale(test$d, supressionRange, test$min, 
-                        test$max, params)
+        val = supression.scale(test$d, supressionRange, test$min, test$max, params)
         if (val != test$ans) {
             print(sprintf("Error: [supress.scale] incorect value.  Expected %g, recieved %g",test$ans, val ))
-        }
+			return()
+		}
+		else {
+			print("[supress.scale: %s]: Pass")
+		}
     }
 }
 
@@ -132,7 +135,5 @@ TestUtility.detect <- function () {
     detect(bGrid, sensorPos, tagPos, fcn, params, debug=FALSE)
 }
 TestUtility.sumGrid()
-#TestUtility.zeroOut()
 TestUtility.getCells()
 TestUtility.supress.scale()
-print("Success! All tests passed!")
