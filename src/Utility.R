@@ -174,19 +174,22 @@ sumGrid.sumBathy <- function (grid, range, shapeFcn="shape.t",
 # a target cell for each cell in the given grid.
 # [optimized version]
 sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
-    
+
+    ##grid <- list(bGrid=bGrid)
     nr <- dim(grid$bGrid$bGrid)[1]
     nc <- dim(grid$bGrid$bGrid)[2]
     ng <- nr*nc
     bG <- grid$bGrid$bGrid
         
     sumGrid <- matrix(0,nr,nc) ## Allocate memory
-    rng <- params$range
+    rng <- round(params$range)
     params$sensorElevation <- 1
     sensorDepth <- bG + params$sensorElevation
     belowSurf <- sensorDepth < 0
     land <- bG >= 0
     dpflag <- "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+    ##r <- 6
+    ##c <- 7
     for(c in 1:nc){
       cind <- max(c(1,c-rng)):min(c(nc,c+rng))
       for(r in 1:nr){
@@ -199,34 +202,49 @@ sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
           rvec <- rvec[tmp]
           cvec <- cvec[tmp]
           inds <- sub2ind(rvec,cvec,nr) ## Translate to single index
-          inds2 <- which(!land[inds]) ## Indices that are not on land
-          ninds2 <- length(inds2)
+          ninds <- length(inds)
+          ##inds2 <- which(!land[inds]) ## Indices that are not on land
+          ##ninds2 <- length(inds2)
           ## Get depths, dists and slopes
-          disttmp <- sort(sqrt((r-rvec[inds2])^2 + (c-cvec[inds2])^2),decreasing=TRUE,index=TRUE) ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
+          disttmp <- sort(sqrt((r-rvec)^2 + (c-cvec)^2),decreasing=TRUE,index=TRUE) ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
           dists <- disttmp$x
-          depths <- bG[inds[inds2[disttmp$ix]]]
+          depths <- bG[inds[disttmp$ix]]
           slopes <- (depths-sensorDepth[r,c])/dists
           ibig2ismall <- rep(0,ng)
-          ibig2ismall[inds[inds2[disttmp$ix]]] <- 1:ninds2
-          vizDepths <- rep(0,ninds2)
-          remaining <- 1:ninds2
+          ibig2ismall[inds[disttmp$ix]] <- 1:ninds
+          vizDepths <- rep(-1e-4,ninds) ## Assign small negative number to avoid problem with being exactly at the surface in pnorm
+          remaining <- 1:ninds
 
+          ##cc <- 1
           while(length(remaining)>0){ ## Calculate visible depths
             ii <- remaining[1]
-            losinds <- getCells.new(list(r=r,c=c),list(r=rvec[inds2[disttmp$ix[ii]]],c=cvec[inds2[disttmp$ix[ii]]]), debug=FALSE, nr)
-            ##losinds <- sub2ind(losmat[,2],cellmat[,1],nr)
-            is <- ibig2ismall[intersect(losinds,inds[inds2])] ## Get indices in small vectors (not whole grid, also exlude cells on land using inds2)
-            ## ISSUE: this exclude cells on land, but does not exclude cells behind land areas which cannot be heard, this is because slopes are not calculated for land areas
+            ##losinds <- getCells.new(list(r=r,c=c),list(r=rvec[inds2[disttmp$ix[ii]]],c=cvec[inds2[disttmp$ix[ii]]]), debug=FALSE, nr)
+            losinds <- getCells.new(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
+            ##is <- ibig2ismall[intersect(losinds,inds2)] ## Get indices in small vectors (not whole grid, also exlude cells on land using inds2)
+            is <- ibig2ismall[losinds] 
             d2 <- sort(dists[is],index=TRUE)
-            ##L1 <- length(cummax(slopes[is[d2$ix]])*d2$x + sensorDepth[r,c])
-            ##L2 <- length(is[d2$ix])
-            ##if(L1!=L2) stop()
+            blocks <- land[losinds[d2$ix]] ## If LOS is blocked by land don't calculate for cells behind
+            if(any(blocks)){
+              if(!all(blocks)){
+                indsNoBlock <- 1:(min(which(blocks))-1)
+              }else{
+                indsNoBlock <- NULL
+              }
+            }else{
+              indsNoBlock <- 1:length(losinds)
+            }
+            
             ## Here cummax ensures that the steepest slopes is used for calculating visible depth, it is important that the slopes are sorted in order of increasing distance from current cell to target cells, this is handled by d2$ix
-            vizDepths[is[d2$ix]] <- cummax(slopes[is[d2$ix]])*d2$x + sensorDepth[r,c]
+            vizDepths[is[d2$ix[indsNoBlock]]] <- cummax(slopes[is[d2$ix[indsNoBlock]]])*d2$x[indsNoBlock] + sensorDepth[r,c]
             remaining <- setdiff(remaining,is)
+            ##plot(c(c,cvec[disttmp$ix[ii]]),c(r,rvec[disttmp$ix[ii]]),typ='l',xlim=range(cvec),ylim=range(rvec),main=cc)
+            ##points(cvec[disttmp$ix[remaining]],rvec[disttmp$ix[remaining]])
+            ##Sys.sleep(0.3)
+            ##cc <- cc+1
           }
-          vizDepths[vizDepths>0] <- -1e-4 ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])
           
+          vizDepths[vizDepths>0] <- -1e-4 ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])
+          indsNotLand <- depths<0
           ## if we have normal distribution data (depth preference), use it
           if(dpflag) {
             ## compute % fish visible from sensor to target cell
@@ -242,7 +260,7 @@ sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
           }else{
             ## if we don't have normal distribution data, assume equal distribution
             ## compute % visibility (of water column height) from sensor to target cell
-            percentVisibility = vizDepths / depths
+            percentVisibility = vizDepths[indsNotLand] / depths[indsNotLand]
           }
           probOfRangeDetection = do.call(params$shapeFcn, list(dists, params))
           sumGrid[r,c] = sum(probOfRangeDetection * percentVisibility)

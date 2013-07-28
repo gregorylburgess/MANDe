@@ -64,13 +64,13 @@ test <- function(debug=FALSE, opt=FALSE) {
 	params$userEmail = "epy00n@hotmail.com"
 	
 	## Array variables
-	params$numSensors = 10 
+	params$numSensors = 5
 	params$cellRatio = 1
 	params$bias = 2
 	
 	## Receiver variables
 	#params$sd=10 ## Palmyra
-	params$sd = 2
+	params$sd = 8/3
 	params$peak=.98 
 	params$shapeFcn= "shape.gauss"
 	params$range = 3*params$sd
@@ -84,13 +84,13 @@ test <- function(debug=FALSE, opt=FALSE) {
 	#params$YDist = 80
 	params$startX = 1
 	params$startY = 1
-	params$XDist = 23
-	params$YDist = 21
+	params$XDist = 51
+	params$YDist = 51
 	params$seriesName = 'z'
 	
 	## Supression variables
 	params$supressionFcn = "supression.scale"
-	params$supressionRange = 20
+	params$supressionRange = 3
 	params$maxSupressionValue = 1
 	params$minSupressionValue = .5
 	## Mean squared displacement of fish (a proxy for movement capacity)
@@ -151,6 +151,14 @@ ns <- length(result$sensors)
 graphics.off()
 image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='sumGrid')
 ##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
+for(i in 1:ns){
+  ##points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
+  text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i)
+}
+contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
+
+dev.new()
+image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
 for(i in 1:ns){
   ##points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
   text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i)
