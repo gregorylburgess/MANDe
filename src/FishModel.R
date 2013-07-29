@@ -18,12 +18,12 @@ fish <- function(params, bGrid) {
             ou={ ## Ornstein-Uhlenbeck case
                 print('ou')
                 sigma <- params$msd/sqrt(params$dt)
-                B <- matrix(c(params$Bx,params$Bxy,params$Bxy,params$By),2,2)
+                B <- matrix(c(params$By,params$Bxy,params$Bxy,params$Bx),2,2)
                 hrCov <- 0.5*sigma^2*solve(B)
                 X <- matrix(rep(bGrid$x,rows),rows,cols,byrow=TRUE)
                 Y <- matrix(rep(bGrid$y,cols),rows,cols,byrow=FALSE)
                 XY <- cbind(as.vector(X),as.vector(Y))
-                hrVals <- dmvnorm(XY,c(params$mux,params$muy),hrCov)
+                hrVals <- dmvnorm(XY,c(params$muy,params$mux),hrCov)
                 fGrid <- matrix(hrVals,rows,cols,byrow=FALSE)
                 if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
                     print('OU: Using vertical habitat to calculate fGrid')

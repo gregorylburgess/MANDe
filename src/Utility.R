@@ -81,7 +81,12 @@ sumGrid<- function (grid, range, bias, params, debug=FALSE, opt=FALSE) {
     }
     #Combo
     else if (bias == 3) {
-        return(sumGrid.sumProduct(grid, range, params$shapeFcn, params, debug))
+        if(opt){
+            ## Note sumGrid.sumBathy.opt also handles bias 3
+            return(sumGrid.sumBathy.opt(grid, params, debug,opt))
+        }else{
+            return(sumGrid.sumProduct(grid, range, params$shapeFcn, params, debug))
+        }
     }
     else {
         write("ERROR: Invalid Bias", stderr())
@@ -114,7 +119,7 @@ sumGrid.sumSimple <- function (grid, key, range, debug=FALSE) {
 }
 
 # Simply sums the values within range of a cell for each cell in the given grid.
-# [optimized, but gives different results than non-opt version, why???, see
+# [optimized, but gives different results than non-opt version, why?, see
 # TestUtility.R for speed comparison]
 sumGrid.sumSimple.opt <- function (grid, key, range, debug=FALSE) {
     kernel <- rep(1,2*range+1) ## Assume that range is an integer
@@ -172,7 +177,7 @@ sumGrid.sumBathy <- function (grid, range, shapeFcn="shape.t",
 
 # Sums the result of calling the detect() function on each cell within range of 
 # a target cell for each cell in the given grid.
-# [optimized version]
+# [optimized version, which also supports bias 3]
 sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
 
     ##grid <- list(bGrid=bGrid)
@@ -182,90 +187,24 @@ sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
     bG <- grid$bGrid$bGrid
         
     sumGrid <- matrix(0,nr,nc) ## Allocate memory
-    rng <- round(params$range)
+    rng <- round(params$range) ## Round to integer range
     params$sensorElevation <- 1
     sensorDepth <- bG + params$sensorElevation
     belowSurf <- sensorDepth < 0
     land <- bG >= 0
     dpflag <- "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
-    ##r <- 6
-    ##c <- 7
+    usefGrid <- params$bias==3
     for(c in 1:nc){
-      cind <- max(c(1,c-rng)):min(c(nc,c+rng))
-      for(r in 1:nr){
-        if(belowSurf[r,c]){ ## Only calculate if sensor is below surface
-          ## Find rows and columns for relevant cells
-          rind <- max(c(1,r-rng)):min(c(nr,r+rng))
-          rvec <- rep(rind,length(cind))
-          cvec <- sort(rep(cind,length(rind)))
-          tmp <- which(!(rvec==r & cvec==c)) ## Remove self cell
-          rvec <- rvec[tmp]
-          cvec <- cvec[tmp]
-          inds <- sub2ind(rvec,cvec,nr) ## Translate to single index
-          ninds <- length(inds)
-          ##inds2 <- which(!land[inds]) ## Indices that are not on land
-          ##ninds2 <- length(inds2)
-          ## Get depths, dists and slopes
-          disttmp <- sort(sqrt((r-rvec)^2 + (c-cvec)^2),decreasing=TRUE,index=TRUE) ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
-          dists <- disttmp$x
-          depths <- bG[inds[disttmp$ix]]
-          slopes <- (depths-sensorDepth[r,c])/dists
-          ibig2ismall <- rep(0,ng)
-          ibig2ismall[inds[disttmp$ix]] <- 1:ninds
-          vizDepths <- rep(-1e-4,ninds) ## Assign small negative number to avoid problem with being exactly at the surface in pnorm
-          remaining <- 1:ninds
-
-          ##cc <- 1
-          while(length(remaining)>0){ ## Calculate visible depths
-            ii <- remaining[1]
-            ##losinds <- getCells.new(list(r=r,c=c),list(r=rvec[inds2[disttmp$ix[ii]]],c=cvec[inds2[disttmp$ix[ii]]]), debug=FALSE, nr)
-            losinds <- getCells.new(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
-            ##is <- ibig2ismall[intersect(losinds,inds2)] ## Get indices in small vectors (not whole grid, also exlude cells on land using inds2)
-            is <- ibig2ismall[losinds] 
-            d2 <- sort(dists[is],index=TRUE)
-            blocks <- land[losinds[d2$ix]] ## If LOS is blocked by land don't calculate for cells behind
-            if(any(blocks)){
-              if(!all(blocks)){
-                indsNoBlock <- 1:(min(which(blocks))-1)
-              }else{
-                indsNoBlock <- NULL
-              }
-            }else{
-              indsNoBlock <- 1:length(losinds)
+        cind <- max(c(1,c-rng)):min(c(nc,c+rng))
+        for(r in 1:nr){
+            if(belowSurf[r,c]){ ## Only calculate if sensor is below surface
+                rind <- max(c(1,r-rng)):min(c(nr,r+rng))
+                pV <- calc.percent.viz(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params)
+                probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
+                if(usefGrid) probOfRangeDetection <- probOfRangeDetection * grid$fGrid[pV$inds]
+                sumGrid[r,c] = sum(probOfRangeDetection * pV$percentVisibility)
             }
-            
-            ## Here cummax ensures that the steepest slopes is used for calculating visible depth, it is important that the slopes are sorted in order of increasing distance from current cell to target cells, this is handled by d2$ix
-            vizDepths[is[d2$ix[indsNoBlock]]] <- cummax(slopes[is[d2$ix[indsNoBlock]]])*d2$x[indsNoBlock] + sensorDepth[r,c]
-            remaining <- setdiff(remaining,is)
-            ##plot(c(c,cvec[disttmp$ix[ii]]),c(r,rvec[disttmp$ix[ii]]),typ='l',xlim=range(cvec),ylim=range(rvec),main=cc)
-            ##points(cvec[disttmp$ix[remaining]],rvec[disttmp$ix[remaining]])
-            ##Sys.sleep(0.3)
-            ##cc <- cc+1
-          }
-          
-          vizDepths[vizDepths>0] <- -1e-4 ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])
-          indsNotLand <- depths<0
-          ## if we have normal distribution data (depth preference), use it
-          if(dpflag) {
-            ## compute % fish visible from sensor to target cell
-            mean = depths + params$depth_off_bottom
-            mean[mean>0] <- 0
-            sd = params$depth_off_bottom_sd
-            
-            ## Get cum probability for "available" water (between depth pref and surf)
-            psurf <- pnorm(0,mean=mean,sd=sd)
-            areaToCorrectFor <- psurf - pnorm(depths,mean=mean,sd=sd)
-            percentVisibility <- psurf - pnorm(vizDepths,mean=mean,sd=sd)
-            percentVisibility <- percentVisibility/areaToCorrectFor
-          }else{
-            ## if we don't have normal distribution data, assume equal distribution
-            ## compute % visibility (of water column height) from sensor to target cell
-            percentVisibility = vizDepths[indsNotLand] / depths[indsNotLand]
-          }
-          probOfRangeDetection = do.call(params$shapeFcn, list(dists, params))
-          sumGrid[r,c] = sum(probOfRangeDetection * percentVisibility)
         }
-      }
     }
     
     grid$sumGrid = sumGrid
@@ -277,6 +216,71 @@ sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
     return(grid)
 }
 
+
+calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params){
+    ## Find rows and columns for relevant cells
+    rvec <- rep(rind,length(cind))
+    cvec <- sort(rep(cind,length(rind)))
+    tmp <- which(!(rvec==r & cvec==c)) ## Remove self cell
+    rvec <- rvec[tmp]
+    cvec <- cvec[tmp]
+    inds <- sub2ind(rvec,cvec,nr) ## Translate to single index
+    ninds <- length(inds)
+    ## Get depths, dists and slopes
+    disttmp <- sort(sqrt((r-rvec)^2 + (c-cvec)^2),decreasing=TRUE,index=TRUE) ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
+    dists <- disttmp$x
+    depths <- bG[inds[disttmp$ix]]
+    slopes <- (depths-sensorDepth[r,c])/dists
+    ibig2ismall <- rep(0,ng)
+    ibig2ismall[inds[disttmp$ix]] <- 1:ninds
+    vizDepths <- rep(-1e-4,ninds) ## Assign small negative number to avoid problem with being exactly at the surface in pnorm
+    remaining <- 1:ninds
+
+    while(length(remaining)>0){ ## Calculate visible depths
+        ii <- remaining[1]
+        losinds <- getCells.new(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
+        is <- ibig2ismall[losinds] ## Get indices in small vectors (not whole grid)
+        d2 <- sort(dists[is],index=TRUE)
+        blocks <- land[losinds[d2$ix]] ## If LOS is blocked by land don't calculate for cells behind
+        if(any(blocks)){
+            if(!all(blocks)){
+                indsNoBlock <- 1:(min(which(blocks))-1)
+            }else{
+                indsNoBlock <- NULL
+            }
+        }else{
+            indsNoBlock <- 1:length(losinds)
+        }
+            
+        ## Here cummax ensures that the steepest slopes is used for calculating visible depth, it is important that the slopes are sorted in order of increasing distance from current cell to target cells, this is handled by d2$ix
+        vizDepths[is[d2$ix[indsNoBlock]]] <- cummax(slopes[is[d2$ix[indsNoBlock]]])*d2$x[indsNoBlock] + sensorDepth[r,c]
+        remaining <- setdiff(remaining,is)
+        ##plot(c(c,cvec[disttmp$ix[ii]]),c(r,rvec[disttmp$ix[ii]]),typ='l',xlim=range(cvec),ylim=range(rvec),main=cc)
+        ##points(cvec[disttmp$ix[remaining]],rvec[disttmp$ix[remaining]])
+        ##Sys.sleep(0.3)
+    }
+          
+    vizDepths[vizDepths>0] <- -1e-4 ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])
+    indsNotLand <- depths<0
+    ## if we have normal distribution data (depth preference), use it
+    if(dpflag) {
+        ## compute % fish visible from sensor to target cell
+        mean = depths[indsNotLand] + params$depth_off_bottom
+        mean[mean>0] <- 0
+        sd = params$depth_off_bottom_sd
+            
+        ## Get cum probability for "available" water (between depth pref and surf)
+        psurf <- pnorm(0,mean=mean,sd=sd)
+        areaToCorrectFor <- psurf - pnorm(depths[indsNotLand],mean=mean,sd=sd)
+        percentVisibility <- psurf - pnorm(vizDepths[indsNotLand],mean=mean,sd=sd)
+        percentVisibility <- percentVisibility/areaToCorrectFor
+    }else{
+        ## if we don't have normal distribution data, assume equal distribution
+        ## compute % visibility (of water column height) from sensor to target cell
+        percentVisibility = vizDepths[indsNotLand] / depths[indsNotLand]
+    }
+    return(list(percentVisibility=percentVisibility,dists=dists[indsNotLand],inds=inds[disttmp$ix[indsNotLand]]))
+}
 
 # Determines the likelihood of a tag at a given position is detectable by a sensor at a 
 # given position, using a specific shapeFunction.  This function considers Bathymetry and
