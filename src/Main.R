@@ -20,13 +20,8 @@ run <- function(params, debug=FALSE, opt=FALSE){
     params = checkParams(params)
 
     ## Create/Load the Bathy grid for the area of interest
-    bGrid <- bathy(params$inputFile,
-			params$inputFileType,
-            params$startX, params$startY, 
-            params$XDist, params$YDist,
-            params$seriesName,
-            debug)
-        
+    bGrid <- bathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
+            params$XDist, params$YDist, params$seriesName, debug)
     bGrid = list("bGrid"=bGrid, "cellRatio"=params$cellRatio)
     ## Specify a standard scale of x and y axes if previously undefined
     if(!('x' %in% names(bGrid))) bGrid$x <- seq(0,1,length=dim(bGrid$bGrid)[1])
@@ -66,7 +61,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 	## Array variables
 	params$numSensors = 5
 	params$cellRatio = 1
-	params$bias = 3
+	params$bias = 1
 	
 	## Receiver variables
 	#params$sd=10 ## Palmyra
@@ -84,15 +79,15 @@ test <- function(debug=FALSE, opt=FALSE) {
 	#params$YDist = 80
 	params$startX = 1
 	params$startY = 1
-	params$XDist = 31
-	params$YDist = 31
+	params$XDist = 5
+	params$YDist = 5
 	params$seriesName = 'z'
 	
-	## Supression variables
-	params$supressionFcn = "supression.scale"
-	params$supressionRange = 6
-	params$maxSupressionValue = 1
-	params$minSupressionValue = .5
+	## suppression variables
+	params$suppressionFcn = "suppression.scale"
+	params$suppressionRange = 6
+	params$maxsuppressionValue = 1
+	params$minsuppressionValue = .5
 	## Mean squared displacement of fish (a proxy for movement capacity)
 	params$msd <- 0.1
 	## Sampling time step
@@ -138,7 +133,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 
 system.time(result <- test(opt=FALSE))
 
-if(TRUE){
+if(FALSE){
   ns <- length(result$sensors)
   graphics.off()
   image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='sumGrid')

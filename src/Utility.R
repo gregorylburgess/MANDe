@@ -43,9 +43,9 @@ sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, 
         # append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
         # down-weigh all near-by cells to discourage them from being chosen by the program
-        grids$sumGrid = supress(grids$sumGrid, dim(fGrid), maxLoc, params$supressionFcn, 
-                                params$supressionRange, params$minSupressionValue, 
-                                params$maxSupressionValue, params, debug)
+        grids$sumGrid = supress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
+                                params$suppressionRange, params$minsuppressionValue, 
+                                params$maxsuppressionValue, params, debug)
     }
     return(list(sensorList=sensorList, sumGrid=sumGrid))
 }
@@ -361,19 +361,19 @@ sumGrid.sumProduct <- function (grids, range, shapeFcn="shape.t",
     return(grids)
 }
 
-# Supresses the values of cells around a sensor using various supressionFunctions.
-# minSupression: The minimum value to return
-# maxSupression: The maximum value to return (also the return value for supression.static())
-supress <- function(grid, dims, loc, supressionFcn, supressionRange,
-                    minSupressionValue, maxSupressionValue, params, debug=FALSE) {
+# Supresses the values of cells around a sensor using various suppressionFunctions.
+# minsuppression: The minimum value to return
+# maxsuppression: The maximum value to return (also the return value for suppression.static())
+supress <- function(grid, dims, loc, suppressionFcn, suppressionRange,
+                    minsuppressionValue, maxsuppressionValue, params, debug=FALSE) {
     if(debug) {
         cat("\n[supress]\n")
-        print(sprintf("supressionFcn: %s", supressionFcn))
+        print(sprintf("suppressionFcn: %s", suppressionFcn))
         print(sprintf("loc: (%g,%g)",loc$c,loc$r))
         print("grid")
         print(grid)
     }
-    vals = getArea(loc, dims, supressionRange)
+    vals = getArea(loc, dims, suppressionRange)
     mini = vals$rs
     maxi = vals$re
     minj = vals$cs
@@ -381,33 +381,33 @@ supress <- function(grid, dims, loc, supressionFcn, supressionRange,
     for (i in mini:maxi) {
         for (j in minj:maxj) {
                     dist = sqrt((loc$c - j)^2 + (loc$r - i)^2)
-                    grid[i,j] = grid[i,j] * do.call(supressionFcn, list(dist, supressionRange, 
-                                        minSupressionValue, maxSupressionValue, params, debug))
+                    grid[i,j] = grid[i,j] * do.call(suppressionFcn, list(dist, suppressionRange, 
+                                        minsuppressionValue, maxsuppressionValue, params, debug))
             }
     }
     return(grid)
 }
 
-# Returns a static value defined by 'maxSupressionValue'
-supression.static <- function (dist, supressionRange, minSupressionValue, 
-                               maxSupressionValue, params, debug=FALSE) {
-    return (maxSupressionValue)
+# Returns a static value defined by 'maxsuppressionValue'
+suppression.static <- function (dist, suppressionRange, minsuppressionValue, 
+                               maxsuppressionValue, params, debug=FALSE) {
+    return (maxsuppressionValue)
 }
 
 # Returns a dynamic value based on distance from a point.
 # Returned value should be multiplied by the value to be scaled.
-supression.scale <- function (dist, supressionRange, minSupressionValue, 
-        maxSupressionValue, params, debug=FALSE) {
+suppression.scale <- function (dist, suppressionRange, minsuppressionValue, 
+        maxsuppressionValue, params, debug=FALSE) {
     
-    sRange = minSupressionValue - maxSupressionValue
-    value = 1 - (sRange * (dist/supressionRange) + maxSupressionValue)
+    sRange = minsuppressionValue - maxsuppressionValue
+    value = 1 - (sRange * (dist/suppressionRange) + maxsuppressionValue)
     value = max(0, value)
     value = min(1, value)
     if (debug) {
         print(sprintf("dist=%g", dist))
-        print(sprintf("supressionRange=%g", supressionRange))
-        print(sprintf("minSupressionValue=%g", minSupressionValue))
-        print(sprintf("maxSupressionValue=%g", maxSupressionValue))
+        print(sprintf("suppressionRange=%g", suppressionRange))
+        print(sprintf("minsuppressionValue=%g", minsuppressionValue))
+        print(sprintf("maxsuppressionValue=%g", maxsuppressionValue))
         print(sprintf("value=%g", value))
     }
     return (value)
@@ -817,14 +817,14 @@ checkParams <- function(params) {
 				the depth specified, no fish will be generated.", stderr())
 	}
 
-    # Supression Function Defaults
-    if(!('supressionFcn' %in% names)) {
-        params$supressionFcn = "supression.static"
-        params$supressionRange = 2
-        params$maxSupressionValue = 0
-        params$minSupressionValue = 0
+    # suppression Function Defaults
+    if(!('suppressionFcn' %in% names)) {
+        params$suppressionFcn = "suppression.static"
+        params$suppressionRange = 2
+        params$maxsuppressionValue = 0
+        params$minsuppressionValue = 0
     }	else {
-		params$supressionFcn = as.character(params$supressionFcn)
+		params$suppressionFcn = as.character(params$suppressionFcn)
 	}
     
     # Shape Function Defaults

@@ -25,3 +25,8 @@ body {
 	max-width: 100%;
 	word-wrap: break-word;
 }
+
+.control-group {
+	max-width: 222px;
+}
+}

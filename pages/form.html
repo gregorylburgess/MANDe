@@ -5,26 +5,84 @@
 </div>
 
 <script>
-	var form = "<legend id=\"legend\">" + indexProps.Legend + "</legend>";
-	delete formProps.Legend;
-	fields = Object.keys(formProps);
-	for(field in fields) {
-		var name = fields[field];
-		var value = formProps[name];
-		var defaultVal = value.split(';')[0];
-		var hoverText = value.split(';')[1];
-		var fieldName = name;
-		form += "<div id=\"" + fieldName + "-cg\" class=\"control-group\">" 
-					+"<a class=\"link\" data-original-title=\"" + hoverText + "\"><label class=\"control-label\" for=\"" + fieldName + "\">" + name + "</label>"
-					+"<div class=\"controls\">"
-							+"<input id=\"" + fieldName + "\" type=\"text\" value=\""+ defaultVal + "\">"
-					+"</div>"
-				+"</div></a>";
-	}
+	var form = "";
+	$.get("form.xml", function(data) {
+		var xml = $($.parseXML(data));
+		xml.find('Group').each(function() {
+			//Traverse the xml tree
+			var groupID = "";
+			var id = $(this).attr("id");
+			form += "<h3>" + id + "</h3>";
+			
+			//Access field tags
+			$(this).find('Fields').find('Field').each(function() {
+				id = $(this).attr("id");
+				var label = $(this).attr("label");
+				var type = $(this).attr("type");
+				var toolTip = $(this).attr("toolTip");
+				var value = $(this).text().replace(/\s/g, "");
+				
+				if (type == 'text') {
+					form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
+						+ "<a class=\"link\" data-original-title=\"" + toolTip + "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
+						+ "<div class=\"controls\">"
+						+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
+						+ "</div>"
+						+ "</div></a>";
+				}
+				else if (type == "select" || type == "toggle") {
+					if (type == "toggle") {
+						groupID = id;
+					}
+					form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
+					+ "<a class=\"link\" data-original-title=\"" + toolTip + "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
+					+ "<div class=\"controls\">";
+					form += "<select id=\"" + id + "\">";
+					$(this).find("Options").find("Option").each(function() {
+						label = $(this).attr("label");
+						value = $(this).text().replace(/\s/g, "");
+						form += "<option value=\"" + value + "\">" + label + "</option>";
+					})
+					form += "</select>"
+						 + "</div>"
+						 + "</div></a>";
+
+					if (type=="toggle") {
+						form += "<div id=\"" + groupID + "-toggle\">";
+						$(this).find('Hidable').find('HField').each(function() {
+							id = $(this).attr("id");
+							var label = $(this).attr("label");
+							var type = $(this).attr("type");
+							var toolTip = $(this).attr("toolTip");
+							var value = $(this).text().replace(/\s/g, "");
+							
+							form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
+								+ "<a class=\"link\" data-original-title=\"" + toolTip + "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
+								+ "<div class=\"controls\">"
+								+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
+								+ "</div>"
+								+ "</div></a>";
+						});
+						form += "</div> </br>"
+							  + "<script>"
+							  + "$(\"#" + groupID + "\").change(function() {"
+							  + "$('#" + groupID + "-toggle').toggle(this.value == 'True');"
+						 	  + "});"
+						 	  + "$('#" + groupID + "-toggle').toggle();"
+						 	  + "<\/script>";
+						 	  
+						 	  
+					}
+				}
+				
+			});
+		});
+		form += "</br><button type=\"submit\" class=\"btn\" onClick=\"submitForm()\">Submit</button>";
+		$("#theForum").html(form);
+		$(".link").tooltip();
+	}, 'text');
 	
-	form += "</br><button type=\"submit\" class=\"btn\" onClick=\"submitForm()\">Submit</button>";
-	$("#theForum").html(form);
-	$(".link").tooltip();
+	
 	
 	function submitForm() {
 		var dic = "";
@@ -42,11 +100,7 @@
 			success: parseResponse,
 		});
 	}
-	
-	function echoData(data) {
-		$('#theForum').html(data);
-	}
-	
+
 	function parseResponse(data) {
 		data = $.parseJSON(data);
 		toRet = "<h1>Results:</h1>";
