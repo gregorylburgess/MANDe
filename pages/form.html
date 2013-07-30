@@ -1,6 +1,5 @@
 <div class="span12">
 	<div id="theForum" class="form-horizontal">
-
 	</div>
 </div>
 
@@ -77,8 +76,8 @@
 				
 			});
 		});
-		form += "</br><button type=\"submit\" class=\"btn\" onClick=\"submitForm()\">Submit</button>";
-		$("#theForum").html(form);
+		form += "</br><center><button type=\"submit\" class=\"btn btn-success\" onClick=\"submitForm()\">Submit</button></center>";
+		$("#theForum").append(form);
 		$(".link").tooltip();
 	}, 'text');
 	
@@ -86,19 +85,51 @@
 	
 	function submitForm() {
 		var dic = "";
-		for(field in fields) {
-			name = fields[field];
-			value = $("#" + name).val();
-			dic += "\"" + name + "\":\"" + value + "\",";
-		}
-		// cutoff the last comma
-		dic = dic.substring(0, dic.length - 1);
+		//pull names from the xml form,
+		//if not toggle, add actual value to dic
+		//else check value
+			//if enabled add sub fields
+			//else ignore
+		$.get("form.xml", function(data) {
+			var xml = $($.parseXML(data));
+			xml.find('Group').each(function() {
+				//Traverse the xml tree
+				//Access field tags
+				$(this).find('Fields').find('Field').each(function() {
 
-		$.ajax({
-			url: '../../query', 
-			data: dic,
-			success: parseResponse,
-		});
+					var id = $(this).attr("id");
+					var type = $(this).attr("type");
+					if( type != "toggle") {
+						if(type == "select") {
+							var value = $("#" + id).val().replace(/\s/g, "");
+						}
+						else {
+							var value = $(this).text().replace(/\s/g, "");
+						}
+						dic += "\"" + id + "\":\"" + value + "\",";
+					}
+					else {
+						var value = $(this).text().replace(/\s/g, "");
+						if(value == 'True') {
+							$(this).find('Hidable').find('HField').each(function() {
+								id = $(this).attr("id");
+								value = $(this).text().replace(/\s/g, "");
+								dic += "\"" + id + "\":\"" + value + "\",";
+							});
+						}
+					}
+				});
+			});
+			alert("final" + dic);
+			// cutoff the last comma
+			dic = dic.substring(0, dic.length - 1);
+			
+			$.ajax({
+				url: '../../query', 
+				data: dic,
+				success: parseResponse,
+			});
+		}, "text");
 	}
 
 	function parseResponse(data) {
@@ -118,7 +149,9 @@
 		
 		toRet += "<h3>Stats:</h4>";
 		for(key in stats) {
-			toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
+			if(key != "acousticCoverage") {
+				toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
+			}
 		}
 		
 		toRet += "<h3>Graphs:</h4>";
