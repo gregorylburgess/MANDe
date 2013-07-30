@@ -9,9 +9,8 @@
 					<a id="brand" class="brand"></a>
 					<div class="nav-collapse collapse">
 						<ul class="nav">
-							<li class="active"><a href="#">Home</a></li>
-							<li><a href="#about">About</a></li>
-							<li><a href="#contact">Contact</a></li>
+							<li class="active"><a href="" onClick="home()">Home</a></li>
+							<li><a href="#about" onClick="about()">About</a></li>
 						</ul>
 					</div>
 					<!--/.nav-collapse -->
@@ -20,4 +19,10 @@
 		</div>
 <script>
 $("#brand").html(indexProps.Title);
+function about() {
+	$("#content").load("about.html");
+}
+function home() {
+	$("#content").load("form.html");
+}
 </script>
