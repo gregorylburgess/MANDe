@@ -11,6 +11,6 @@ if (length(args) > 0 && tolower(args[1]) == "uninstall") {
     uninstall.packages(dependencies)
 }else {
     print("Installing R packages.")
-    install.packages(dependencies)
+    install.packages(dependencies, repos='http://cran.cnr.Berkeley.edu')
 }
 print("Done")
