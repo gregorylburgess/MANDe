@@ -9,8 +9,7 @@ dependencies = c("rjson",
 if (length(args) > 0 && tolower(args[1]) == "uninstall") {
     print("Uninstalling R packages")
     uninstall.packages(dependencies)
-}
-else {
+}else {
     print("Installing R packages.")
     install.packages(dependencies)
 }
