@@ -2,7 +2,6 @@ args <- commandArgs(trailingOnly = TRUE)
 dependencies = c("rjson", 
                   "Rook", 
                    "mvtnorm", 
-                   "ncdf", 
                    "sp", 
                    "rgdal", 
                    "raster")

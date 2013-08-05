@@ -1,6 +1,13 @@
+echo "deb http://cran.rstudio.com/bin/linux/ubuntu precise/" | sudo tee -a /etc/apt/sources.list
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+sudo add-apt-repository ppa:marutter/rdev
 sudo apt-get update
+sudo apt-get upgrade
 sudo apt-get install r-base-dev
+sudo apt-get update
 sudo apt-get install git
+sudo apt-get install libgdal-dev
+sudo apt-get install libprojectm-qt-dev
 sudo apt-get install libnetcdf-dev
 git clone https://github.com/gregorylburgess/acoustic-deploy.git
 cd acoustic-deploy
