@@ -1,10 +1,24 @@
 body {
 	padding-top: 60px;
 	padding-bottom: 40px;
+	background: #000;
+	color: #fff;
 }
 
 #hero {
 	margin-top: 35px;
+	background-image: -moz-linear-gradient(100% 95% 90deg, #000, #333);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 95%, from(#333), to(#000));
+}
+
+.btn {
+	width: 15%;
+	min-width: 100px;
+	background-image: linear-gradient(to bottom, #00AD1A, #008C15);
+}
+.navbar-inverse .navbar-inner {
+	background-image: -moz-linear-gradient(100% 95% 90deg, #000, #333);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 95%, from(#333), to(#000));
 }
 
 .sidebar-nav {
@@ -33,4 +47,25 @@ body {
 .control-group {
 	max-width: 222px;
 }
+
+.pic {
+	 height: 250px;
+	 display: block;
+	 margin-left: auto;
+     margin-right: auto;
+}
+
+.pic-m {
+	 height: 250px;
+	 width: 100%;
+	 display: block;
+	 margin-left: auto;
+     margin-right: auto;
+}
+
+.picdiv-g {
+	background: #a2a2a2;
+}
+
+
 }
