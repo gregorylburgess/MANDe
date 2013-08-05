@@ -1,3 +1,0 @@
-PKG_CPPFLAGS=-I$(NETCDF)/libsrc
-PKG_LIBS=-L$(NETCDF)/libsrc -lnetcdf
-
