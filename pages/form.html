@@ -5,7 +5,7 @@
 
 <script>
 	var form = "";
-	$.get("form.xml", function(data) {
+	$.get("Form.xml", function(data) {
 		var xml = $($.parseXML(data));
 		xml.find('Group').each(function() {
 			//Traverse the xml tree
@@ -90,7 +90,7 @@
 		//else check value
 			//if enabled add sub fields
 			//else ignore
-		$.get("form.xml", function(data) {
+		$.get("Form.xml", function(data) {
 			var xml = $($.parseXML(data));
 			xml.find('Group').each(function() {
 				//Traverse the xml tree
@@ -104,7 +104,7 @@
 							var value = $("#" + id).val().replace(/\s/g, "");
 						}
 						else {
-							var value = $(this).text().replace(/\s/g, "");
+							var value = $("#" + id).val().replace(/\s/g, "");
 						}
 						dic += "\"" + id + "\":\"" + value + "\",";
 					}
@@ -113,7 +113,7 @@
 						if(value == 'True') {
 							$(this).find('Hidable').find('HField').each(function() {
 								id = $(this).attr("id");
-								value = $(this).text().replace(/\s/g, "");
+								value = $("#" + id).val().replace(/\s/g, "");
 								dic += "\"" + id + "\":\"" + value + "\",";
 							});
 						}
