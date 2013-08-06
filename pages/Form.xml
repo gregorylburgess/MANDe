@@ -4,6 +4,14 @@
 		<Fields>
 			<Field id="userEmail" label="User Email" type="text" toolTip="If you provide an email address, we will notify you when your job has finished processing.  This is useful for long requests.">example@mailservice.com</Field>			
 		</Fields>
+		<Fields>
+			<Field id="opt" label="Use C Code?" type="select" toolTip="Directive to use C/R code.">		
+				<Options>
+					<Option label="Use R">FALSE</Option>
+					<Option label="Use C">TRUE</Option>
+				</Options>
+			</Field>	
+		</Fields>
 	</Group>
 	<Group id="Fish Model Variables">
 		<Fields>
@@ -35,9 +43,6 @@
 			</Field>
 			<Field id="dt"  label="Sampling Time Step"  type="text"  toolTip="Time interval for the simulation.">
 				1
-			</Field>
-			<Field id="minsuppressionValue"  label="Min suppression Value"  type="text"  toolTip="Specifies the minimum suppression penalty to apply.">
-				.5
 			</Field>
 			<Field id="vhabitat"  label="Restrict Vertical Habitat Range"  type="toggle"  toolTip="Restricts fish to habitat cells within a given depth range.">
 				<Options>
@@ -130,19 +135,19 @@
 
 	<Group id="Suppression Variables">
 		<Fields>
-			<Field id="suppressionFcn"  label="suppression Function"  type="select"  toolTip="The suppression function to use.">
+			<Field id="suppressionFcn"  label="Suppression Function"  type="select"  toolTip="The suppression function to use.">
 				<Options>
 					<Option label="suppression.scale">suppression.scale</Option>
 					<Option label="suppression.static">suppression.static</Option>
 				</Options>
 			</Field>
-			<Field id="suppressionRange"  label="suppression Range"  type="text"  toolTip="Specifies the radius of suppression in grid cells.  To deter sensor overlap, a good value to use is six times the sensor sd specified above.">
+			<Field id="suppressionRange"  label="Suppression Range"  type="text"  toolTip="Specifies the radius of suppression in grid cells.  To deter sensor overlap, a good value to use is six times the sensor sd specified above.">
 				2
 			</Field>
-			<Field id="maxsuppressionValue"  label="Max suppression Value"  type="text"  toolTip="Specifies the maximum suppression penalty to apply.">
+			<Field id="maxsuppressionValue"  label="Max Suppression Value"  type="text"  toolTip="Specifies the maximum suppression penalty to apply.">
 				1
 			</Field>
-			<Field id="minsuppressionValue"  label="Min suppression Value"  type="text"  toolTip="Specifies the minimum suppression penalty to apply.">
+			<Field id="minsuppressionValue"  label="Min Suppression Value"  type="text"  toolTip="Specifies the minimum suppression penalty to apply.">
 				.5
 			</Field>
 		</Fields>

@@ -157,6 +157,7 @@
 		for(key in filenames) {
 			toRet += "<image src=\"../" + filenames[key] + "\"></image>";
 		}
-		$('#theForum').append(toRet);
+		toRet += "</br><center><button type=\"submit\" class=\"btn btn-danger\" onClick=\"location.reload()\"> < Back</button></center>";
+		$('#theForum').html(toRet);
 	}
 </script>

@@ -11,7 +11,7 @@ body {
     background-image: -webkit-gradient(linear, 0% 0%, 0% 95%, from(#333), to(#000));
 }
 
-.btn {
+.btn-success {
 	width: 15%;
 	min-width: 100px;
 	background-image: linear-gradient(to bottom, #00AD1A, #008C15);

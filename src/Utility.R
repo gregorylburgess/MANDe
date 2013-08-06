@@ -868,6 +868,12 @@ checkParams <- function(params) {
     if(!('fishmodel' %in% names)) {
         params$fishmodel <- 'rw'
     }	else {
+		if(params$fishmodel == "True") {
+			params$fishmodel = 'ou'
+		}
+		if(params$fishmodel == "False") {
+			params$fishmodel = 'rw'
+		}
 		params$fishmodel = as.character(params$fishmodel)
 	}
     
