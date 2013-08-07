@@ -59,13 +59,13 @@ test <- function(debug=FALSE, opt=FALSE) {
 	params$userEmail = "epy00n@hotmail.com"
 	
 	## Array variables
-	params$numSensors = 5
+	params$numSensors = 4
 	params$cellRatio = 1
 	params$bias = 1
 	
 	## Receiver variables
 	#params$sd=10 ## Palmyra
-	params$sd = 1
+	params$sd = 5
 	params$peak=.98 
 	params$shapeFcn= "shape.gauss"
 	params$range = 3*params$sd
@@ -79,13 +79,19 @@ test <- function(debug=FALSE, opt=FALSE) {
 	#params$YDist = 80
 	params$startX = 1
 	params$startY = 1
-	params$XDist = 5
-	params$YDist = 5
+	params$XDist = 100
+	params$YDist = 100
 	params$seriesName = 'z'
 	
 	## suppression variables
+        params$sparsity <- 0.5 ## This is a lower bound for sparsity
 	params$suppressionFcn = "suppression.scale"
-	params$suppressionRange = 6
+	##params$suppressionFcn = "detection.function"
+        ## suppression range
+        dists <- 1:max(c(params$XDist,params$YDist))
+        dfvals <- do.call(params$shapeFcn, list(dists, params))
+        params$detectionRange <- dists[min(which(dfvals<0.05))] ##This is different from range above as range is mostly used to cut out areas of grid, whereas detectionRange is closer to what we understand as the actual physical detection range, which is used in sparsity calculations
+	params$suppressionRange = params$sparsity*2*params$detectionRange ## Using equation 8 in Pedersen & Weng 2013
 	params$maxsuppressionValue = 1
 	params$minsuppressionValue = .5
 	## Mean squared displacement of fish (a proxy for movement capacity)
@@ -99,7 +105,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 	    ## Minimum depth (shallowest depth)
 	    params$mindepth <- -2
 	    ## Maximum depth (deepest depth)
-	    params$maxdepth <- -10
+	    params$maxdepth <- -8
 	}
 	## Set to TRUE if depth preference should be applied
 	if(FALSE){
@@ -109,7 +115,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 	    params$dpsd <- 2
 	}
 	## Set to TRUE of Ornstein-Uhlenbeck (OU) movement should be applied
-	if(TRUE){
+	if(FALSE){
 	    ## Choose Ornstein-Uhlenbeck type movement model
 	    params$fishmodel <- 'ou'
 	    ## OU parameter: center of home range
@@ -131,25 +137,35 @@ test <- function(debug=FALSE, opt=FALSE) {
 ##Rprof()
 ##summaryRprof(tmp)
 
-system.time(result <- test(opt=FALSE))
+system.time(result <- test(opt=TRUE))
 
 if(FALSE){
+  print(result$stats$absRecoveryRate)
+  print(result$stats$uniqRecoveryRate)
   ns <- length(result$sensors)
   graphics.off()
-  image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='sumGrid')
+  ##image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='sumGrid')
+  image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
+  contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
   ##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
   for(i in 1:ns){
-    ##points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
-    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i)
+    points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],pch=21,bg='blue',cex=4)
+    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i,col='white')
   }
-  contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
   dev.new()
   ##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
+  image(result$bGrid$x,result$bGrid$y,result$stats$acousticCoverage,main='Acoustic coverage')
   ##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid>=0,main='Land')
-  image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
-  for(i in 1:ns){
-    ##points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
-    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i)
-  }
   contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
+  for(i in 1:ns){
+    points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],pch=21,bg='blue',cex=3)
+    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i,col='white')
+    y <- result$sensors[[i]]$r - 0.5
+    x <- result$sensors[[i]]$c - 0.5
+    r <- 2*result$params$sd
+    a <- seq(0,2*pi,length.out=100)
+    X <- r*cos(a)+x
+    Y <- r*sin(a)+y
+    lines(Y/result$params$YDist,X/result$params$XDist,lty=3)
+  }
 }

@@ -43,9 +43,15 @@ sensors <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, 
         # append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
         # down-weigh all near-by cells to discourage them from being chosen by the program
-        grids$sumGrid = supress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
+        if(opt){
+          grids$sumGrid = supress.opt(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
+                                    params$suppressionRange, params$minsuppressionValue, 
+                                    params$maxsuppressionValue, params, debug)
+        }else{
+          grids$sumGrid = supress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
                                 params$suppressionRange, params$minsuppressionValue, 
                                 params$maxsuppressionValue, params, debug)
+        }
     }
     return(list(sensorList=sensorList, sumGrid=sumGrid))
 }
@@ -216,7 +222,10 @@ sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
     return(grid)
 }
 
-
+## Calculates a matrix of proportion of water column visibile of the cells surrounding the current cell
+## The current cell looks at the surrounding cells within the detection range
+## and assigns a value to each of those cells, which is the proportion of the visible water column in that cell
+## Feel free to change this poor explanation
 calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params){
     ## Find rows and columns for relevant cells
     rvec <- rep(rind,length(cind))
@@ -385,6 +394,46 @@ supress <- function(grid, dims, loc, suppressionFcn, suppressionRange,
                                         minsuppressionValue, maxsuppressionValue, params, debug))
             }
     }
+    return(grid)
+}
+
+
+# Supresses the values of cells around a sensor using various suppressionFunctions.
+# minsuppression: The minimum value to return
+# maxsuppression: The maximum value to return (also the return value for suppression.static())
+supress.opt <- function(grid, dims, loc, suppressionFcn, suppressionRange,
+                    minsuppressionValue, maxsuppressionValue, params, debug=FALSE) {
+    if(debug) {
+        cat("\n[supress]\n")
+        print(sprintf("suppressionFcn: %s", suppressionFcn))
+        print(sprintf("loc: (%g,%g)",loc$c,loc$r))
+        print("grid")
+        print(grid)
+    }
+    vals = getArea(loc, dims, suppressionRange)
+    rows <- vals$rs:vals$re
+    cols <- vals$cs:vals$ce
+    nrows <- length(rows)
+    ncols <- length(cols)
+    Rows <- matrix(rep(rows,ncols),nrows,ncols)
+    Cols <- matrix(rep(cols,nrows),nrows,ncols,byrow=TRUE)
+    dist <- sqrt( (loc$c-Cols)^2 + (loc$r-Rows)^2 )
+
+    if(suppressionFcn=='suppression.static'){
+      supgrid <- matrix(maxsuppressionValue,nrows,ncols)
+    }
+    if(suppressionFcn=='suppression.scale'){
+      sRange = minsuppressionValue - maxsuppressionValue
+      supgrid = 1 - (sRange * (dist/suppressionRange) + maxsuppressionValue)
+      supgrid[supgrid<0] <- 0
+      supgrid[supgrid>1] <- 1
+    }
+    if(suppressionFcn=='detection.function'){
+      supgrid <- 1-do.call(params$shapeFcn, list(dist, params))
+    }
+    
+    grid[rows,cols] <- grid[rows,cols] * supgrid ## Do suppression
+
     return(grid)
 }
 
@@ -647,7 +696,7 @@ getCells.opt <- function(startingCell, targetCell, debug=FALSE) {
 
 # Returns the cells crossed by a beam from the starting cell to
 # the target cell.
-# [Does not produce same output as getCells]
+# [Does not produce same output as getCells, same reported cells but order is different]
 getCells.new <- function(startingCell, targetCell, debug=FALSE, nr=NULL) {
     if(!(startingCell$r==targetCell$r & startingCell$c==targetCell$c)){
         sC <- offset(startingCell)
@@ -719,7 +768,7 @@ graph <- function(result, params) {
 	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	png(filenames$bGrid)
 	image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
-	for(i in 1:params$numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
+        plotSensors(result)
 	contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
 	dev.off()
 	
@@ -727,27 +776,47 @@ graph <- function(result, params) {
 	filenames$fGrid = sprintf("img/fGrid-%g.png", time)
 	png(filenames$fGrid)
 	image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
-	for(i in 1:params$numSensors) points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c])
+        plotSensors(result)
 	dev.off()
 	
 	## SumGrid
 	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
 	png(filenames$sumGrid)
-	image(params$startY:(params$startY+params$YDist),params$startX:(params$startX+params$XDist),result$sumGrid,main='sumGrid')
+	##image(params$startY:(params$startY+params$YDist),params$startX:(params$startX+params$XDist),result$sumGrid,main='sumGrid')
+	image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='sumGrid')
 	#image(1:params$XDist, 1:params$YDist ,result$sumGrid,main='sumGrid')
-	for(i in 1:params$numSensors) points(result$sensors[[i]]$r,result$sensors[[i]]$c)
+        plotSensors(result)
 	dev.off()
 	
 	## acoustic coverage
 	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
 	png(filenames$acousticCoverage)
-	image(params$startY:(params$startY+params$YDist),params$startX:(params$startX+params$XDist),result$stats$acousticCoverage,main='acousticCoverage')
-	
+	##image(params$startY:(params$startY+params$YDist),params$startX:(params$startX+params$XDist),result$stats$acousticCoverage,main='acousticCoverage')
+	image(result$bGrid$x,result$bGrid$y,result$stats$acousticCoverage,main='acousticCoverage')
 	#image(1:params$XDist, 1:params$YDist ,result$stats$acousticCoverage,main='acousticCoverage')
-	for(i in 1:params$numSensors) points(result$sensors[[i]]$r,result$sensors[[i]]$c)
+        plotSensors(result)
 	dev.off()
 	return(filenames)
 }
+
+## Adds sensors to current plot (an existing plot is required)
+plotSensors <- function(result,circles=TRUE,circlty=3){
+  ns <- length(result$sensors)
+  r <- result$params$detectionRange ## Radius of circle
+  a <- seq(0,2*pi,length.out=100)
+  for(i in 1:ns){
+    points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],pch=21,bg='blue',cex=3)
+    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i,col='white')
+    if(circles){
+      y <- result$sensors[[i]]$r - 0.5
+      x <- result$sensors[[i]]$c - 0.5
+      X <- r*cos(a)+x
+      Y <- r*sin(a)+y
+      lines(Y/result$params$YDist,X/result$params$XDist,lty=circlty)
+    }
+  }
+}
+
 # Provides Statistical data on detection, given a particular bGrid, fGrid, and sensor 
 # arrangement.
 # Returns a dictionary of staistical values.
@@ -757,32 +826,61 @@ stats <- function(params, bGrid, fGrid, sensors) {
     xSens <- rep(0,numSensors)
     ySens <- rep(0,numSensors)
     for(i in 1:numSensors){
-        xSens[i] <- bGrid$x[sensors[[i]]$c]
-        ySens[i] <- bGrid$y[sensors[[i]]$r]
+        xSens[i] <- sensors[[i]]$c
+        ySens[i] <- sensors[[i]]$r
     }
     distMat <- matrix(0,numSensors,numSensors)
     for(i in 1:numSensors){
         distMat[i,] <- sqrt((xSens[i]-xSens)^2 + (ySens[i]-ySens)^2)
     }
+    
     ## a is the median of the distances between the receivers
-    a <- median(distMat[upper.tri(distMat)])
+    print(a <- median(distMat[upper.tri(distMat)]))
     ## delta is a sparsity measure (see Pedersen & Weng 2013)
-    statDict$delta <- a/(2*params$range) 
+    statDict$delta <- a/(2*params$detectionRange) 
     ## phi is a dimensionless indicator of movement capacity relative to detection range, it can also be viewed as a signal to noise ratio
-    statDict$phi <- params$msd/params$range
+    statDict$phi <- params$msd/params$detectionRange
     ## Distance maps (the distance from any grid cell to a receiver)
     rows <- dim(fGrid)[1]
     cols <- dim(fGrid)[2]
-    X <- matrix(rep(bGrid$x,rows),rows,cols,byrow=TRUE)
-    Y <- matrix(rep(bGrid$y,cols),rows,cols,byrow=FALSE)
+    ##X <- matrix(rep(bGrid$x,rows),rows,cols,byrow=TRUE)
+    ##Y <- matrix(rep(bGrid$y,cols),rows,cols,byrow=FALSE)
+    X <- matrix(rep(1:cols,rows),rows,cols,byrow=TRUE)
+    Y <- matrix(rep(1:rows,cols),rows,cols,byrow=FALSE)
     dimap <- array(0,dim=c(rows,cols,numSensors))
     for(i in 1:numSensors) dimap[,,i] <- sqrt( (X-xSens[i])^2 + (Y-ySens[i])^2 ) ## Distance to receiver
+    ##for(i in 1:numSensors) dimap[,,i] <- sqrt( (X-sensors[[i]]$c)^2 + (Y-sensors[[i]]$r)^2 ) ## Distance to receiver
     ##filled.contour(gy,gx,dimap[,,2],color.palette=rainbow,main=c('Distance map'),xlab='x',ylab='y',plot.axes = {axis(1); axis(2); points(r$x,r$y)})
     
-    ## Detection maps
+    ## Horizontal detection maps using detection function
     demap <- array(0,dim=c(rows,cols,numSensors))
     for(i in 1:numSensors) demap[,,i] <- do.call(params$shapeFcn, list(dimap[,,i], params))
     ##filled.contour(gy,gx,demap[,,2],color.palette=rainbow,main=c('Detection map'),xlab='x',ylab='y',plot.axes = {axis(1); axis(2); points(r$x,r$y)})
+
+    ## Incorporate vertical detection probability using line of sight
+    ng <- rows*cols
+    bG <- bGrid$bGrid
+    nr <- dim(bG)[1]
+    land <- bG >= 0
+    params$sensorElevation <- 1
+    sensorDepth <- bG + params$sensorElevation
+    rng <- params$range
+    dpflag <- FALSE ## If false then proportion of water column is calculated, if true depth preference is used
+    for(i in 1:numSensors){
+      r <- ySens[i]
+      c <- xSens[i]
+      cind <- max(c(1,c-rng)):min(c(cols,c+rng))
+      rind <- max(c(1,r-rng)):min(c(rows,r+rng))
+      pctviz <- calc.percent.viz(ySens[i],xSens[i],rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params)
+      testmap <- matrix(0,rows,cols)
+      testmap[pctviz$inds] <- pctviz$percentVisibility
+      testmap[r,c] <- 1
+      demap[,,i] <- demap[,,i] * testmap
+    }
+
+    ## Calculate recovery rate of unique detections
+    demapmat <- apply(demap,c(1,2),sum)
+    statDict$absRecoveryRate <- sum(demapmat*fGrid)    
     
     ## Coverage map
     cover <- matrix(1,rows,cols)
@@ -790,7 +888,10 @@ stats <- function(params, bGrid, fGrid, sensors) {
         cover <- cover * (1 - demap[,,i]) ## Probability of no detection
     }
     cover <- 1 - cover ## Detection probability at location
-    statDict$acousticCoverage <- cover
+    statDict$acousticCoverage <- cover ## Coverage map
+
+    ## Absolute recovery rate (here we don't care about getting the same ping multiple times)
+    statDict$uniqRecoveryRate <- sum(cover * fGrid)
     
     return(statDict)
 }
@@ -902,6 +1003,13 @@ conv.2D <- function(mat,kx,ky){
 ## Convert from row col to linear index
 sub2ind <- function(row,col,dim){
     (col-1)*dim[1] + row
+}
+
+## Plots a circle with radius r and center x,y
+plot.circle <- function(x,y,r,lty=1,col=1){
+  a <- seq(0,2*pi,length.out=100)
+  X <- r*cos(a)+x; Y <- r*sin(a)+y
+  lines(X,Y,lty=lty,col=col)
 }
 
 
