@@ -29,10 +29,10 @@ run <- function(params, debug=FALSE, opt=FALSE){
     
     fGrid = fish(params, bGrid)
     ## Find good sensor placements
-    sensors = sensors(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt)
-    
+    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt)
+
     ## Stat analysis of proposed setup.
-    statDict = stats(params, bGrid, fGrid, sensors$sensorList)
+    statDict = stats(params, bGrid, fGrid, sensors, debug, opt)
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params)
@@ -59,16 +59,17 @@ test <- function(debug=FALSE, opt=FALSE) {
 	params$userEmail = "epy00n@hotmail.com"
 	
 	## Array variables
-	params$numSensors = 4
+	params$numSensors = 11
 	params$cellRatio = 1
-	params$bias = 1
+	params$bias = 3
 	
 	## Receiver variables
 	#params$sd=10 ## Palmyra
-	params$sd = 5
+	params$sd = 3
 	params$peak=.98 
 	params$shapeFcn= "shape.gauss"
 	params$range = 3*params$sd
+        params$sensorElevation <- 1
 	
 	# BGrid Variables
 	params$inputFile = "Pal_IKONOS\\pal_dball.asc"
@@ -79,14 +80,15 @@ test <- function(debug=FALSE, opt=FALSE) {
 	#params$YDist = 80
 	params$startX = 1
 	params$startY = 1
-	params$XDist = 100
-	params$YDist = 100
+	params$XDist = 41
+	params$YDist = 41
 	params$seriesName = 'z'
 	
 	## suppression variables
         params$sparsity <- 0.5 ## This is a lower bound for sparsity
 	params$suppressionFcn = "suppression.scale"
-	##params$suppressionFcn = "detection.function"
+	params$suppressionFcn = "detection.function"
+	params$suppressionFcn = "detection.function.shadow"
         ## suppression range
         dists <- 1:max(c(params$XDist,params$YDist))
         dfvals <- do.call(params$shapeFcn, list(dists, params))
@@ -101,7 +103,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 	## Choose random walk type movement model
 	params$fishmodel <- 'rw'
 	## Set to TRUE if vertical habitat range is applied
-	if(TRUE){
+	if(FALSE){
 	    ## Minimum depth (shallowest depth)
 	    params$mindepth <- -2
 	    ## Maximum depth (deepest depth)
@@ -139,33 +141,20 @@ test <- function(debug=FALSE, opt=FALSE) {
 
 system.time(result <- test(opt=TRUE))
 
-if(FALSE){
+if(TRUE){
   print(result$stats$absRecoveryRate)
   print(result$stats$uniqRecoveryRate)
   ns <- length(result$sensors)
+  sens <- matrix(unlist(result$sensors),ns,2,byrow=TRUE)
+  xlab <- 'x dir'
+  ylab <- 'y dir'
+  plot.bathy <- TRUE
   graphics.off()
-  ##image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='sumGrid')
-  image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid')
-  contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
-  ##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
-  for(i in 1:ns){
-    points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],pch=21,bg='blue',cex=4)
-    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i,col='white')
-  }
+  plotFGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+  plotSumGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)  
   dev.new()
-  ##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid')
-  image(result$bGrid$x,result$bGrid$y,result$stats$acousticCoverage,main='Acoustic coverage')
-  ##image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid>=0,main='Land')
-  contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,xlab='x',ylab='y',add=TRUE,nlevels=5)
-  for(i in 1:ns){
-    points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],pch=21,bg='blue',cex=3)
-    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i,col='white')
-    y <- result$sensors[[i]]$r - 0.5
-    x <- result$sensors[[i]]$c - 0.5
-    r <- 2*result$params$sd
-    a <- seq(0,2*pi,length.out=100)
-    X <- r*cos(a)+x
-    Y <- r*sin(a)+y
-    lines(Y/result$params$YDist,X/result$params$XDist,lty=3)
-  }
+  plotAcousticCoverage(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+  dev.new()
+  plotUniqueRR(result)
 }
+
