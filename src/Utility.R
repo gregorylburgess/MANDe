@@ -30,7 +30,9 @@ sensorFun <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE
     grids = sumGridFun(grids, range, bias, params, debug, opt)
     sumGrid = grids$sumGrid
     # for each sensor, find a good placement
+    print(paste('Suppression fcn:',params$suppressionFcn))
     for (i in 1:numSensors) {
+        ##print(paste('Placing sensor',i))
         # find the max location 
         maxLoc = which.max(grids$sumGrid)
         # Switch the row/col vals since R references Grid coords differently
@@ -43,17 +45,57 @@ sensorFun <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE
         # append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
         # down-weigh all near-by cells to discourage them from being chosen by the program
-        if(opt){
-          grids$sumGrid = suppress.opt(grids$sumGrid, dim(fGrid), maxLoc, params, bGrid$bGrid, debug)
-        }else{
-          grids$sumGrid = supress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
-                                params$suppressionRange, params$minsuppressionValue, 
-                                params$maxsuppressionValue, params, debug)
-        }
+        if(params$suppressionFcn != 'detection.function.exact'){
+          ##print('NOT using detection.function.exact')
+          if(opt){
+            grids$sumGrid = suppress.opt(grids$sumGrid, dim(fGrid), maxLoc, params, bGrid$bGrid, debug)
+          }else{
+            grids$sumGrid = supress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
+                                    params$suppressionRange, params$minsuppressionValue, 
+                                    params$maxsuppressionValue, params, debug)
+          }
+      }else{
+          grids <- updateFGrid(maxLoc,grids,params,debug,opt)
+          grids <- sumGridFun(grids, range, bias, params, debug, opt)
+      }
     }
     return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid))
 }
 
+## Update the fGrid after each sensor is placed to reflect which areas that are already covered by sensors
+updateFGrid <- function(loc,grids,params,debug=FALSE,opt=FALSE){
+  grid <- grids$fGrid
+  bG <- grids$bGrid$bGrid
+  dims <- dim(grid)
+  rows <- dim(grid)[1]
+  cols <- dim(grid)[2]
+  vals = getArea(loc, dims, params$range) ## Use range as in sumGrid calculation
+
+  rind <- vals$rs:vals$re
+  cind <- vals$cs:vals$ce
+  nrows <- length(rind)
+  ncols <- length(cind)
+  Rind <- matrix(rep(rind,ncols),nrows,ncols)
+  Cind <- matrix(rep(cind,nrows),nrows,ncols,byrow=TRUE)
+  dist <- sqrt( (loc$c-Cind)^2 + (loc$r-Rind)^2 )
+
+  dgrid2 <- do.call(params$shapeFcn, list(dist, params)) ## Detection fun supp
+
+  land <- bG >= 0
+  sensorDepth <- bG + params$sensorElevation
+  ng <- rows*cols
+  nr <- rows
+  dpflag <- FALSE ## If false then proportion of water column is calculated, if true depth preference is used
+  pctviz <- calc.percent.viz(loc$r,loc$c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params)
+  testmap <- matrix(0,rows,cols)
+  testmap[pctviz$inds] <- pctviz$percentVisibility
+  testmap[loc$r,loc$c] <- 1
+  dgrid1 <- testmap[rind,cind] ## Line of sight supp
+  dgrid <- 1 - (dgrid1 * dgrid2)
+  grid[rind,cind] <- grid[rind,cind] * dgrid ## Downweigh observed region
+  grids$fGrid <- grid
+  return(grids)
+}
 
 # Calculates the composite "goodness" grid for a particular bias.
 sumGridFun <- function (grid, range, bias, params, debug=FALSE, opt=FALSE) {
@@ -413,7 +455,7 @@ suppress.opt <- function(grid, dims, loc, params, bG, debug=FALSE) {
     minsuppressionValue <- params$minsuppressionValue
     maxsuppressionValue <- params$maxsuppressionValue
     ## dfflag indicates wheter detection function should be used for suppression
-    dfflag <- suppressionFcn=='detection.function' | suppressionFcn=='detection.function.shadow'
+    dfflag <- suppressionFcn=='detection.function' | suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'
     rows <- dim(grid)[1]
     cols <- dim(grid)[2]
     ##vals = getArea(loc, dims, suppressionRange)
@@ -441,7 +483,7 @@ suppress.opt <- function(grid, dims, loc, params, bG, debug=FALSE) {
     }
     if(dfflag){
       supgrid2 <- do.call(params$shapeFcn, list(dist, params)) ## Detection fun supp
-      if(suppressionFcn=='detection.function.shadow'){
+      if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
         land <- bG >= 0
         sensorDepth <- bG + params$sensorElevation
         ng <- rows*cols
@@ -858,15 +900,20 @@ plotBGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
 ## Plot unique recovery rate as a function of number of sensors
 plotUniqueRR <- function(result){
     ns <- length(result$sensors)
+    nsmax <- length(result$stats$uniqRRs)
     par(mfrow=c(2,1),las=1)
-    plot(0:length(result$stats$uniqRRs),c(0,result$stats$uniqRRs),typ='l',xlab='Number of sensors',ylab='Unique recovery rate',ylim=c(0,1.02))
-    plot.intersect(ns,result$stats$uniqRecoveryRate,col=4,lty=1)
+    plot(0:ns,c(0,result$stats$uniqRRs[1:ns]),typ='l',xlab='Number of sensors',ylab='Unique recovery rate',ylim=c(0,1.02),xlim=c(0,nsmax))
+    points(0:ns,c(0,result$stats$uniqRRs[1:ns]),pch=46,cex=3)
+    lines(ns:length(result$stats$uniqRRs),result$stats$uniqRRs[ns:nsmax],lty=2)
+
+    plot.intersect(ns,result$stats$uniqRecoveryRate,col='orange',lty=1)
     grid()
-    text(0.05*length(result$stats$uniqRRs),result$stats$uniqRecoveryRate,round(result$stats$uniqRecoveryRate,digits=3),pos=3)
-    ##plot.intersect(round(ns*0.5),result$stats$uniqRRs[round(ns*0.5)],col=1,lty=3)
-    ##plot.intersect(round(ns*1.5),result$stats$uniqRRs[round(ns*1.5)],col=1,lty=3)
-    ##plot.intersect(round(ns*3),result$stats$uniqRRs[round(ns*3)],col=1,lty=3)
-    plot(diff(c(0,result$stats$uniqRRs)),typ='l',xlab='Number of sensors',ylab='Increase in unique RR',ylim=c(0,max(diff(c(0,result$stats$uniqRRs)))),xlim=c(0,length(result$stats$uniqRRs)))
+    text(0.05*length(result$stats$uniqRRs),result$stats$uniqRecoveryRate,round(result$stats$uniqRecoveryRate,digits=4),pos=3)
+    legend('bottomright',c('Calculated','Projected','Requested'),lty=c(1,2,1),col=c(1,1,'orange'),bg='white')
+    duRR <- diff(c(0,result$stats$uniqRRs))
+    plot(1:ns,duRR[1:ns],typ='l',xlab='Number of sensors',ylab='Increase in unique RR',ylim=c(0,max(duRR)),xlim=c(0,nsmax))
+    points(1:ns,duRR[1:ns],pch=46,cex=3)
+    lines(ns:nsmax,duRR[ns:nsmax],lty=2)
     grid()
 }
 
@@ -875,9 +922,12 @@ plotSensors <- function(result,circles=TRUE,circlty=3){
   ns <- length(result$sensors)
   r <- result$params$detectionRange ## Radius of circle
   a <- seq(0,2*pi,length.out=100)
+  sensx <- result$bGrid$x[result$stats$sensorMat[1:ns,2]] ## Cols
+  sensy <- result$bGrid$x[result$stats$sensorMat[1:ns,1]] ## Rows
+  points(sensx,sensy,pch=21,bg='blue',cex=3)
+  text(sensx,sensy,1:ns,col='white')
   for(i in 1:ns){
-    points(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],pch=21,bg='blue',cex=3)
-    text(result$bGrid$x[result$sensors[[i]]$r],result$bGrid$y[result$sensors[[i]]$c],i,col='white')
+    ##text(sensx[i],sensy[i],i,col='white')
     if(circles){
       y <- result$sensors[[i]]$r - 0.5
       x <- result$sensors[[i]]$c - 0.5
@@ -903,8 +953,7 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     sumGridSupp <- sensors$sumGridSupp ## sumGrid suppressed by numSensors
     ##sumGridSupp <- sensors$sumGrid
     sensorList <- sensors$sensorList
-
-    ## Calculate locations of uncalculated sensors
+    ## Calculate locations of projected sensors
     for (i in 1:(numProj-numSensors)) { 
       ## find the max location 
       maxLoc = which.max(sumGridSupp)
@@ -979,20 +1028,29 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
       demap[,,i] <- demap[,,i] * testmap
     }
 
-    ## --- Absolute recovery rate (here we don't care about getting the same ping multiple times)
-    demapmat <- apply(demap[,,1:numSensors],c(1,2),sum)
-    statDict$absRecoveryRate <- sum(demapmat*fGrid)    
-    
     ## --- Coverage map
     cover <- matrix(1,rows,cols)
+    covertmp <- array(0,dim=c(rows,cols,numProj))
     uniqRRs <- rep(0,numProj)
     for(i in 1:numProj){
         cover <- cover * (1 - demap[,,i]) ## Probability of no detection
-        covertmp <- 1-cover
-        uniqRRs[i] <- sum(covertmp * fGrid)
-        if(i==numSensors)  statDict$acousticCoverage <- covertmp ## Save coverage map for numSensors
+        covertmp[,,i] <- 1-cover
+        uniqRRs[i] <- sum(covertmp[,,i] * fGrid)
+        ##if(i==numSensors)  statDict$acousticCoverage <- covertmp ## Save coverage map for numSensors
     }
-    statDict$uniqRRs <- uniqRRs
+    duniqRRs <- diff(c(0,uniqRRs))
+    print(duniqRRs)
+    srt <- sort(duniqRRs,index=TRUE,decreasing=TRUE) ## Sort list so best sensors come first
+    sensorMat <- matrix(unlist(sensorList),numProj,2,byrow=TRUE)
+    
+    statDict$sensorMat <- sensorMat[srt$ix,]
+    statDict$uniqRRs <- cumsum(srt$x)
+    statDict$acousticCoverage <- 1-apply(1-demap[,,srt$ix[1:numSensors]],c(1,2),prod) ## Acoustic coverage for best sensors
+    
+    ## --- Absolute recovery rate (here we don't care about getting the same ping multiple times)
+    demapmat <- apply(demap[,,srt$ix[1:numSensors]],c(1,2),sum)
+    statDict$absRecoveryRate <- sum(demapmat*fGrid)    
+
     ##cover <- covertmp ## Detection probability at location
     ##statDict$acousticCoverage <- cover ## Coverage map
 

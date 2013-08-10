@@ -59,7 +59,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 	params$userEmail = "epy00n@hotmail.com"
 	
 	## Array variables
-	params$numSensors = 11
+	params$numSensors = 10
 	params$cellRatio = 1
 	params$bias = 3
 	
@@ -80,15 +80,16 @@ test <- function(debug=FALSE, opt=FALSE) {
 	#params$YDist = 80
 	params$startX = 1
 	params$startY = 1
-	params$XDist = 41
-	params$YDist = 41
+	params$XDist = 21
+	params$YDist = 21
 	params$seriesName = 'z'
 	
 	## suppression variables
         params$sparsity <- 0.5 ## This is a lower bound for sparsity
 	params$suppressionFcn = "suppression.scale"
 	params$suppressionFcn = "detection.function"
-	params$suppressionFcn = "detection.function.shadow"
+	##params$suppressionFcn = "detection.function.shadow"
+	##params$suppressionFcn = "detection.function.exact"
         ## suppression range
         dists <- 1:max(c(params$XDist,params$YDist))
         dfvals <- do.call(params$shapeFcn, list(dists, params))
@@ -141,7 +142,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 
 system.time(result <- test(opt=TRUE))
 
-if(TRUE){
+if(FALSE){
   print(result$stats$absRecoveryRate)
   print(result$stats$uniqRecoveryRate)
   ns <- length(result$sensors)
