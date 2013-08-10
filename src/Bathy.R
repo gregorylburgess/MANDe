@@ -2,7 +2,19 @@
 # Returns a grid of depths for the area of interest.
 # Dependency: Have the ncdf module installed.
 
-
+#' Generates a Bathymetric Grid (BGrid) for the program to use.  Able to ingest NetCDF, ArcGIS, and ASC file formats.
+#'
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param inputFile The relative path to the file to open.
+#' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "custom" (asc)
+#' @param startX Starting index of the BGrid to take from the bathy file.
+#' @param startY Starting index of the BGrid to take from the bathy file.
+#' @param XDist The width of your desired BGrid.
+#' @param YDist the height of your desired BGrid.
+#' @param seriesName If you specified netcdf or arcgis, this is the name of the data series to use.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return A BGrid based on the parameters given.  If an error occurs, a default grid is provided.
+#' @export
 bathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, seriesName, debug=FALSE) {
 	switch(inputFileType, 
 		"netcdf" = {
@@ -43,8 +55,14 @@ bathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, se
     return(bGrid)
 }
 
+#' Creates a default BGrid to use if real data couldn't be loaded.
+#'
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param XDist The width of your desired BGrid.
+#' @param YDist the height of your desired BGrid.
+#' @return A default BGrid of dimensions XDist by YDist.
+#' @export
 simulate <- function(XDist, YDist) {
-	## Create test bGrid to use if real data unavailable
 	nx = XDist
 	ny = YDist
 	x <- seq(-2*pi,2*pi,length=nx)

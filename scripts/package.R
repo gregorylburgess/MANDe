@@ -1,0 +1,8 @@
+source("src/Bathy.R")
+source("src/FishModel.R")
+source("src/Utility.R")
+source("src/ShapeFunctions.R")
+source("src/Main.R")
+package.skeleton("Acoustic")
+library(roxygen2)
+roxygenize("Acoustic")

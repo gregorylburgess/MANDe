@@ -2,6 +2,13 @@
 # containing the percentage of transmissions sent per cell.
 library(mvtnorm)
 
+#' Generates a Fish Location Grid (FGrid) for the program to use.  Values in the cells of this grid 
+#' are expressed as a percentage of the total number of fish on the grid.
+#' 
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.  
+#' @param bGrid A valid BGrid.
+#' @return An FGrid of the same dimensions as the provided BGrid.
+#' @export
 fish <- function(params, bGrid) {
     rows <- dim(bGrid$bGrid)[1]
     cols <- dim(bGrid$bGrid)[2]
@@ -36,4 +43,11 @@ fish <- function(params, bGrid) {
     return (fGrid)
 }
 
+#' A helper function that indicates if a cell has a depth between mindepth and maxdepth.  
+#' 
+#' @param mindepth The shallowest depth a fish will visit.
+#' @param maxdepth The deepest depth a fish will visit.
+#' @param bGrid A valid BGrid.
+#' @return TRUE if the cell is between the depth restrictions, FALSE otherwise.
+#' @export
 verticalHabitat <- function(mindepth,maxdepth,bGrid) bGrid < mindepth & bGrid > maxdepth
