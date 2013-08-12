@@ -12,12 +12,12 @@ source('src/FishModel.R')
 source('src/Utility.R')
 ##library(sendmailR)
 
-#' Runs the program.
+#' Runs the simulation with the provided parameters.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
-#' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
+#' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
 run <- function(params, debug=FALSE, opt=FALSE){
 	startTime = Sys.time()

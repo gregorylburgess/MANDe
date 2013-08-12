@@ -42,18 +42,17 @@ TestUtility.sumGrid <- function () {
     sumGrid = {}
     
     for( i in 1:length(solGrid)) {
-        sumGrid[[i]] = sumGrid(grids, range, i, params)$sumGrid
+        sumGrid[[i]] = sumGridFun(grids, range, i, params)$sumGrid
         
         if (isTRUE(all.equal(solGrid[[i]], sumGrid[[i]]))) {
             print(sprintf("[SumGrid:bias %g]: Pass",i))
         }
         else {
-            print(sprintf("[SumGrid%g]: FAIL",i))
+            warning(sprintf("[SumGrid%g]: FAIL",i))
             print("solGrid:")
             print(solGrid[[i]])
             print("result:")
             print(sumGrid[[i]])
-			return()
         }
     }
 
@@ -76,7 +75,7 @@ TestUtility.zeroOut <- function () {
         print("[zeroOut: %s]: Pass")
     }
     else {
-        print(sprintf("[zeroOut: %s]: FAIL",i))
+		warning(sprintf("[zeroOut: %s]: FAIL",i))
         print("solGrid:")
         print(solGrid)
         print("result:")
@@ -84,7 +83,7 @@ TestUtility.zeroOut <- function () {
     }
 }
 
-TestUtility.supress.scale <- function() {
+TestUtility.suppress.scale <- function() {
     tests = list(
         list(d=0, min=.25, max=.75, ans=.25),
         list(d=100, min=.25, max=.75, ans=.75),
@@ -93,19 +92,21 @@ TestUtility.supress.scale <- function() {
         list(d=100, min=0, max=1, ans=1),
         list(d=25, min=0, max=1, ans=.25)
     )
-    supressionRange = 100
+    suppressionRange = 100
     params = {}
-    
+    error = FALSE
+	
     for( test in tests) {
-        val = supression.scale(test$d, supressionRange, test$min, test$max, params)
+        val = suppression.scale(test$d, suppressionRange, test$min, test$max, params)
         if (val != test$ans) {
-            print(sprintf("Error: [supress.scale] incorect value.  Expected %g, recieved %g",test$ans, val ))
+			warning(sprintf("Error: [suppress.scale] incorect value.  Expected %g, recieved %g",test$ans, val ))
+			error = TRUE
 			return()
 		}
-		else {
-			print("[supress.scale: %s]: Pass")
-		}
     }
+	if (!error) {
+		print("[suppress.scale: %s]: Pass")
+	}
 }
 
 TestUtility.getCells <- function(opt=FALSE) {
@@ -123,11 +124,11 @@ TestUtility.getCells <- function(opt=FALSE) {
                     list(x=2,y=4),
                     list(x=2,y=5))
     if (dim(cells)[1] > 5) {
-        print("[getCells]: FAIL: too many results, duplicates exist!")
+		warning("[getCells]: FAIL: too many results, duplicates exist!")
     }
     for (point in points) {
         if(dim(subset(cells, x==point$x & y==point$y))[1] != 1) {
-            print(sprintf("[getCells]: FAIL: (%g,%g) missing or duplicate",point$x,point$y))
+			warning(sprintf("[getCells]: FAIL: (%g,%g) missing or duplicate! ",point$x,point$y))
         }
     }
     print("[getCells]: Pass")
@@ -151,27 +152,12 @@ Test.sumGrid.sumSimple <- function() {
     if(mean((a-b)/b)<1e-12){
         print('[sumGrid.sumSimple]: Pass')
     }else{
-        print('[sumGrid.sumSimple]: Fail')
+		warning('[sumGrid.sumSimple]: Fail')
     }
 }
-
-TestUtility.getCells.opt <- function(){
-    startingCell <- list(r=3,c=3)
-    targetCell <- list(r=7,c=7)
-    print('Old fun:')
-    print(system.time(for(i in 1:10000) getCells(startingCell, targetCell)))
-    print('Optimized fun:')
-    print(system.time(for(i in 1:10000) getCells.opt(startingCell, targetCell)))
-}
-
-
 
 Test.sumGrid.sumSimple()
 TestUtility.sumGrid()
 TestUtility.getCells()
 TestUtility.getCells(opt=TRUE)
-TestUtility.getCells.opt()
-TestUtility.supress.scale()
-print("Success! All tests passed!")
-TestUtility.supress.scale()
-
+TestUtility.suppress.scale()
