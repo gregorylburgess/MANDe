@@ -30,7 +30,7 @@ sensorFun <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE
     grids = sumGridFun(grids, range, bias, params, debug, opt)
     sumGrid = grids$sumGrid
     # for each sensor, find a good placement
-    print(paste('Suppression fcn:',params$suppressionFcn))
+    ##print(paste('Suppression fcn:',params$suppressionFcn))
     for (i in 1:numSensors) {
         ##print(paste('Placing sensor',i))
         # find the max location 
@@ -446,7 +446,7 @@ supress <- function(grid, dims, loc, suppressionFcn, suppressionRange,
 suppress.opt <- function(grid, dims, loc, params, bG, debug=FALSE) {
     if(debug) {
         cat("\n[suppress.opt]\n")
-        print(sprintf("suppressionFcn: %s", suppressionFcn))
+        print(sprintf("suppressionFcn: %s", params$suppressionFcn))
         print(sprintf("loc: (%g,%g)",loc$c,loc$r))
         print("grid")
         print(grid)
@@ -473,7 +473,7 @@ suppress.opt <- function(grid, dims, loc, params, bG, debug=FALSE) {
     dist <- sqrt( (loc$c-Cind)^2 + (loc$r-Rind)^2 )
 
     if(suppressionFcn=='suppression.static'){
-      supgrid <- matrix(maxsuppressionValue,nrows,ncols)
+      supgrid <- 1-matrix(maxsuppressionValue,nrows,ncols)
     }
     if(suppressionFcn=='suppression.scale'){
       sRange = minsuppressionValue - maxsuppressionValue
@@ -482,7 +482,9 @@ suppress.opt <- function(grid, dims, loc, params, bG, debug=FALSE) {
       supgrid[supgrid>1] <- 1
     }
     if(dfflag){
-      supgrid2 <- do.call(params$shapeFcn, list(dist, params)) ## Detection fun supp
+      partmp <- params
+      partmp$sd <- partmp$suppsd
+      supgrid2 <- do.call(params$shapeFcn, list(dist, partmp)) ## Detection fun supp
       if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
         land <- bG >= 0
         sensorDepth <- bG + params$sensorElevation
@@ -901,8 +903,9 @@ plotBGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
 plotUniqueRR <- function(result){
     ns <- length(result$sensors)
     nsmax <- length(result$stats$uniqRRs)
+    ymax <- ifelse(max(result$stats$uniqRRs)>0.7,1.02,max(result$stats$uniqRRs))
     par(mfrow=c(2,1),las=1)
-    plot(0:ns,c(0,result$stats$uniqRRs[1:ns]),typ='l',xlab='Number of sensors',ylab='Unique recovery rate',ylim=c(0,1.02),xlim=c(0,nsmax))
+    plot(0:ns,c(0,result$stats$uniqRRs[1:ns]),typ='l',xlab='Number of sensors',ylab='Unique recovery rate',ylim=c(0,ymax),xlim=c(0,nsmax))
     points(0:ns,c(0,result$stats$uniqRRs[1:ns]),pch=46,cex=3)
     lines(ns:length(result$stats$uniqRRs),result$stats$uniqRRs[ns:nsmax],lty=2)
 
@@ -923,17 +926,14 @@ plotSensors <- function(result,circles=TRUE,circlty=3){
   r <- result$params$detectionRange ## Radius of circle
   a <- seq(0,2*pi,length.out=100)
   sensx <- result$bGrid$x[result$stats$sensorMat[1:ns,2]] ## Cols
-  sensy <- result$bGrid$x[result$stats$sensorMat[1:ns,1]] ## Rows
+  sensy <- result$bGrid$y[result$stats$sensorMat[1:ns,1]] ## Rows
   points(sensx,sensy,pch=21,bg='blue',cex=3)
   text(sensx,sensy,1:ns,col='white')
-  for(i in 1:ns){
-    ##text(sensx[i],sensy[i],i,col='white')
-    if(circles){
-      y <- result$sensors[[i]]$r - 0.5
-      x <- result$sensors[[i]]$c - 0.5
-      X <- r*cos(a)+x
-      Y <- r*sin(a)+y
-      lines(Y/result$params$YDist,X/result$params$XDist,lty=circlty)
+  if(circles){
+    for(i in 1:ns){
+      X <- r*cos(a) + sensx[i]
+      Y <- r*sin(a) + sensy[i]
+      lines(X,Y,lty=circlty)
     }
   }
 }
@@ -983,13 +983,15 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
         ySens[i] <- sensorList[[i]]$r
     }
     ## Calculate distance matrix needed to calculate sparsity
-    distMat <- matrix(0,numSensors,numSensors)
+    distVec <- rep(0,numSensors)
     for(i in 1:numSensors){
-        distMat[i,] <- sqrt((xSens[i]-xSens[1:numSensors])^2 + (ySens[i]-ySens[1:numSensors])^2)
+        dists <- sqrt((bGrid$x[xSens[i]]-bGrid$x[xSens[1:numSensors]])^2 + (bGrid$y[ySens[i]]-bGrid$y[ySens[1:numSensors]])^2)
+        distVec[i] <- min(dists[dists>0])
     }
     
     ## a is the median of the distances between the receivers
-    print(a <- median(distMat[upper.tri(distMat)]))
+    a <- median(distVec)
+
     ## delta is a sparsity measure (see Pedersen & Weng 2013)
     statDict$delta <- a/(2*params$detectionRange) 
     ## phi is a dimensionless indicator of movement capacity relative to detection range, it can also be viewed as a signal to noise ratio
@@ -1039,7 +1041,6 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
         ##if(i==numSensors)  statDict$acousticCoverage <- covertmp ## Save coverage map for numSensors
     }
     duniqRRs <- diff(c(0,uniqRRs))
-    print(duniqRRs)
     srt <- sort(duniqRRs,index=TRUE,decreasing=TRUE) ## Sort list so best sensors come first
     sensorMat <- matrix(unlist(sensorList),numProj,2,byrow=TRUE)
     
@@ -1084,25 +1085,25 @@ checkParams <- function(params) {
 
     # suppression Function Defaults
     if(!('suppressionFcn' %in% names)) {
-        params$suppressionFcn = "suppression.static"
-        params$suppressionRange = 2
-        params$maxsuppressionValue = 0
-        params$minsuppressionValue = 0
+        params$suppressionFcn = "detection.function"
+        params$sparsity = 0.5
+        ##params$maxsuppressionValue = 0
+        ##params$minsuppressionValue = 0
     }	else {
 		params$suppressionFcn = as.character(params$suppressionFcn)
 	}
     
     # Shape Function Defaults
     if(!('shapeFcn' %in% names)) {
-        params$shapeFcn= "shape.gauss"
-        params$sd=.3334
-        params$peak=.75 
+        params$shapeFcn = "shape.gauss"
+        params$detectionRange = 2
+        params$peak = 0.98
     }	else {
-		params$shapeFcn = as.character(params$shapeFcn)
+		params$shapeFcn = "shape.gauss" ##as.character(params$shapeFcn) ## Always use Gauss for simplicity
 	}
-	if(!('range' %in% names)) {
-		params$range = 3*params$sd
-	}
+	##if(!('range' %in% names)) {
+	##	params$range = 3*params$sd
+	##}
     if(!('sensorElevation' %in% names)){
         params$sensorElevation <- 1
     }   else {
@@ -1110,11 +1111,11 @@ checkParams <- function(params) {
         }
     
     # Bathymetry defaults
-	if(('inputfile' %in% names)) {
+        if(('inputfile' %in% names)) {
 		params$inputfile = as.character(params$inputfile)
 	}
-    if(!('cellRatio' %in% names)) {
-        params$cellRatio = 1
+    if(!('cellSize' %in% names)) {
+        params$cellSize = 1
     }
     if(!('startX' %in% names)) {
         params$startX = 9000
@@ -1148,6 +1149,20 @@ checkParams <- function(params) {
 	}
     
     return(params)
+}
+
+## Converts input parameters from meters to grid cells
+convertMetersToGrid <- function(params,bGrid){
+  dx <- params$cellSize ## Cell size in meters
+  
+  dr1 <- abs(qnorm(0.05/2/params$peak)) ## Detection range with SD=1, dx=1
+  params$sd <- params$detectionRange/dr1/dx ## SD in grid cells
+  params$suppsd <- params$suppressionRangeFactor * params$sd
+  params$range = round(3*params$sd) ## Range in grid cells, used to cut out sub grids from large grid
+
+  params$suppressionRange = round(params$suppressionRangeFactor*params$detectionRange/dx) ## Using equation 8 in Pedersen & Weng 2013
+
+  return(params)
 }
 
 ## Performs the convolution operation in 1D
