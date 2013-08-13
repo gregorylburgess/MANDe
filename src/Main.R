@@ -5,20 +5,20 @@
 #				placement and stats.
 #		3. User provides area of interest, fish behaviors, and number of sensors, 
 #				asks for optimal placement and stats.
-
-rm(list=ls()) ## Clear all variables
+## Clear all variables
+rm(list=ls()) 
 source('src/Bathy.R')
 source('src/FishModel.R')
 source('src/Utility.R')
-##library(sendmailR)
 
+#' @title m
+#' @name base
 #' Runs the simulation with the provided parameters.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-#' @export
 run <- function(params, debug=FALSE, opt=FALSE){
 	startTime = Sys.time()
     if(debug) {
@@ -27,7 +27,7 @@ run <- function(params, debug=FALSE, opt=FALSE){
     params = checkParams(params)
 
     ## Create/Load the Bathy grid for the area of interest
-    bGrid <- bathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
+    bGrid <- getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
             params$XDist, params$YDist, params$seriesName, debug)
     bGrid = list("bGrid"=bGrid, "cellRatio"=params$cellRatio)
     ## Specify a standard scale of x and y axes if previously undefined
@@ -66,7 +66,6 @@ run <- function(params, debug=FALSE, opt=FALSE){
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
-#' @export
 test <- function(debug=FALSE, opt=FALSE) {
 	#### TEST RUN
 	params = list()
@@ -155,7 +154,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 ##Rprof()
 ##summaryRprof(tmp)
 
-system.time(result <- test(opt=TRUE))
+#system.time(result <- test(opt=TRUE))
 
 if(FALSE){
   print(result$stats$absRecoveryRate)

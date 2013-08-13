@@ -13,7 +13,11 @@ grids = list(bGrid=bGrid, fGrid=fGrid)
 range = 1
 params = checkParams(list(numSensors=0, shapeFcn="shape.t", range=1, sd=1, peak=.75))
 
-# Resets the test values
+
+#' Resets the test values to a default state.
+#' 
+#' @return Silently resets test values and explicitly returns a dictionary of reset parameters.
+#' @export
 reset <- function () {
     bGrid = matrix(c(1,2,3,4,5,6,7,8,9,10), 
             nrow=r, 
@@ -26,7 +30,11 @@ reset <- function () {
     params = checkParams(list(numSensors=0))
 }
 
-#Tests the sumGrid function and all of its bias options
+
+#' Tests the sumGrid function and all of its bias options.
+#' 
+#' @return N/A
+#' @export
 TestUtility.sumGrid <- function () {
     reset()
     s1 = matrix(c(16,27,33,39,28,16,27,33,39,28),
@@ -40,25 +48,30 @@ TestUtility.sumGrid <- function () {
             ncol=c)
     solGrid = list(s1=s1, s2=s2, s3=s3)
     sumGrid = {}
-    
-    for( i in 1:length(solGrid)) {
-        sumGrid[[i]] = sumGridFun(grids, range, i, params)$sumGrid
-        
-        if (isTRUE(all.equal(solGrid[[i]], sumGrid[[i]]))) {
-            print(sprintf("[SumGrid:bias %g]: Pass",i))
-        }
-        else {
-            warning(sprintf("[SumGrid%g]: FAIL",i))
-            print("solGrid:")
-            print(solGrid[[i]])
-            print("result:")
-            print(sumGrid[[i]])
-        }
-    }
+    for (b in c(TRUE, FALSE)) {
+	    for( i in 1:length(solGrid)) {
+	        sumGrid[[i]] = sumGridFun(grids, range, i, params, debug=FALSE, opt=b)$sumGrid
+	        
+	        if (isTRUE(all.equal(solGrid[[i]], sumGrid[[i]]))) {
+	            print(sprintf("[SumGrid:bias %g]: Pass",i))
+	        }
+	        else {
+	            warning(sprintf("[SumGrid%g]: FAIL",i))
+	            print("solGrid:")
+	            print(solGrid[[i]])
+	            print("result:")
+	            print(sumGrid[[i]])
+	        }
+	    }
+	}
 
 }
 
-# Tests the zeroOut function and the getArea function
+
+#' Tests the zeroOut function and the getArea function.
+#' 
+#' @return N/A
+#' @export
 TestUtility.zeroOut <- function () {
     reset()
     dims = dim(fGrid)
@@ -83,6 +96,11 @@ TestUtility.zeroOut <- function () {
     }
 }
 
+
+#' Tests the zeroOut function and the getArea function.
+#' 
+#' @return N/A
+#' @export
 TestUtility.suppress.scale <- function() {
     tests = list(
         list(d=0, min=.25, max=.75, ans=.25),
@@ -109,10 +127,18 @@ TestUtility.suppress.scale <- function() {
 	}
 }
 
+
+#' Tests the getCells functions.
+#' 
+#' @param opt If TRUE, tests the vectorized version, else tests the unvectorized version.
+#' @return N/A
+#' @export
 TestUtility.getCells <- function(opt=FALSE) {
-    ##reset()
+    reset()
     startCell = list(r=1,c=1)
     endCell = list(r=5,c=2)
+	optLabel = ""
+
     if(opt){
         cells = (getCells.opt(startCell, endCell))
     }else{
@@ -131,30 +157,12 @@ TestUtility.getCells <- function(opt=FALSE) {
 			warning(sprintf("[getCells]: FAIL: (%g,%g) missing or duplicate! ",point$x,point$y))
         }
     }
-    print("[getCells]: Pass")
+	if(opt) {
+		optLabel = ":opt"
+	}
+    print(sprintf("[getCells%s]: Pass", optLabel))
 }
 
-
-TestUtility.detect <- function () {
-    reset()
-    detect(bGrid, sensorPos, tagPos, fcn, params, debug=FALSE)
-}
-
-Test.sumGrid.sumSimple <- function() {
-    print('Old fun:')
-    ng <- 500
-    grid <- list(fGrid=matrix(1:ng^2,ng,ng))
-    at <- system.time(a <- sumGrid.sumSimple(grid, 'fGrid', params$range, debug=FALSE)$sumGrid)
-    print(at)
-    print('Optimized fun:')
-    bt <- system.time(b <- sumGrid.sumSimple.opt(grid, 'fGrid', params$range, debug=FALSE)$sumGrid)
-    print(bt)
-    if(mean((a-b)/b)<1e-12){
-        print('[sumGrid.sumSimple]: Pass')
-    }else{
-		warning('[sumGrid.sumSimple]: Fail')
-    }
-}
 
 Test.sumGrid.sumSimple()
 TestUtility.sumGrid()
