@@ -328,10 +328,9 @@ sumGrid.sumBathy.opt <- function (grids, params, debug=FALSE,opt=FALSE) {
 }
 
 #' {{Martin}}
-#' Calculates a matrix ()of proportion of water column visibile of the cells surrounding the current cell
-#' The current cell looks at the surrounding cells within the detection range
-#' and assigns a value to each of those cells, which is the proportion of the visible water column in that cell
-#' Feel free to change this poor explanation 
+#' Calculates a matrix centered around the current cell (r,c) and containing the percentage
+#' of the water column in the surrounding cells that is visible to a sensor placed in the
+#' current cell.
 #' 
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
@@ -366,7 +365,7 @@ calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,para
 	## Calculate visible depths
     while(length(remaining)>0){
         ii <- remaining[1]
-        losinds <- getCells.new(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
+        losinds <- getCells.opt(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
 		## Get indices in small vectors (not whole grid)
 		is <- ibig2ismall[losinds]
         d2 <- sort(dists[is],index=TRUE)
@@ -414,7 +413,7 @@ calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,para
 }
 
 
-#' Determines the likelihood of a tag at a given position is detectable by a sensor at a 
+#' Determines the likelihood that a tag at a given position is detectable by a sensor at a 
 #' given position, using a specific shapeFunction.  This function considers Bathymetry and
 #' sensor range.
 #' Returns the percent chance of detection as a double between 0 [no chance of detection] 
@@ -609,7 +608,7 @@ suppress.opt <- function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
         ng <- rows*cols
         nr <- rows
 		## If false then proportion of water column is calculated, if true depth preference is used
-		## {{Martin}} should this be a parameter?
+		## {{Martin}} should this be a parameter? mwp: no it is only used internally and only so I could switch off depth preference when using the calc.percent.viz function for suppression purposes
         dpflag <- FALSE 
         pctviz <- calc.percent.viz(loc$r, loc$c, rind, cind, ng, nr, bGrid, land,
 								   sensorDepth, dpflag, params)
@@ -900,54 +899,6 @@ getCells<-function(startingCell, targetCell, debug=FALSE) {
 
 
 #' Returns the cells crossed by a beam from the starting cell to
-#' the target cell. [Optimized version, see TestUtility.R to evaluate speed gain].
-#' 
-#' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
-#' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
-#' @param debug If enabled, turns on debug printing (console only).
-#' @return A data.frame containing x and y indicies of cells crossed by a beam from the starting cell to the target cell.
-#' @export
-getCells.opt <- function(startingCell, targetCell, debug=FALSE) {
-  if(!(startingCell$r==targetCell$r & startingCell$c==targetCell$c)){
-        sC <- offset(startingCell)
-        tC <- offset(targetCell)
-        e <- 1e-6
-        a <- (tC$r-sC$r)/(tC$c-sC$c)
-        if(abs(a)<=1){
-            b <- sC$r - a*sC$c
-            cPoints <- sort((startingCell$c):targetCell$c)-1
-            cols <- ceiling(cPoints+e)
-            rows <- ceiling(a*(cPoints+e) + b)
-            if(a!=1){
-                inds <- which(abs(diff(rows))>0)
-                cols <- c(cols,cols[inds])
-                rows <- c(rows,rows[inds+1])
-            }
-        }else{
-            a <- 1/a
-            b <- sC$c - a*sC$r
-            rPoints <- sort((startingCell$r):targetCell$r)-1
-            rows <- ceiling(rPoints+e)
-            cols <- ceiling(a*(rPoints+e) + b)
-            inds <- which(abs(diff(cols))>0)
-            rows <- c(rows,rows[inds])
-            cols <- c(cols,cols[inds+1])
-        }
-        ##crds <- data.frame("x"=cols,"y"=rows)
-        useinds <- !(cols == startingCell$c & rows == startingCell$r)
-        cellmat <- cbind(cols[useinds],rows[useinds])
-        colnames(cellmat) <- c('x','y')
-        return(as.data.frame(cellmat))
-        ##return( crds[!(crds$x == startingCell$c & crds$y == startingCell$r),] )
-        ##return(ret)
-    }else{
-        return(NULL)
-    }
-}
-
-
-#{{Martin}} why are there two copies of this function?  Is there a significant difference?
-#' Returns the cells crossed by a beam from the starting cell to
 #' the target cell.
 #' [Does not produce same output as getCells, same reported cells but order is different].
 #' 
@@ -956,7 +907,7 @@ getCells.opt <- function(startingCell, targetCell, debug=FALSE) {
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A data.frame containing x and y indicies of cells crossed by a beam from the starting cell to the target cell.
 #' @export
-getCells.new <- function(startingCell, targetCell, debug=FALSE, nr=NULL) {
+getCells.opt <- function(startingCell, targetCell, debug=FALSE, nr=NULL) {
     if(!(startingCell$r==targetCell$r & startingCell$c==targetCell$c)){
         sC <- offset(startingCell)
         tC <- offset(targetCell)
@@ -1040,30 +991,29 @@ graph <- function(result, params, plot.bathy=TRUE) {
         xlab <- 'x dir'
         ylab <- 'y dir'
 
-	#{{Martin}} can we plot these dynamically instead of having a method for each one (perhaps with the exception of the RR graphs?}}
-    
 	## BGrid
 	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	png(filenames$bGrid)
-        plotBGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='bGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## FGrid
 	filenames$fGrid = sprintf("img/fGrid-%g.png", time)
 	png(filenames$fGrid)
-        plotFGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## SumGrid
 	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
 	png(filenames$sumGrid)
+        plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
         plotSumGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## Acoustic Coverage
 	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
 	png(filenames$acousticCoverage)
-        plotAcousticCoverage(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 
     ## Unique Recovery Rate
@@ -1075,38 +1025,24 @@ graph <- function(result, params, plot.bathy=TRUE) {
 	return(filenames)
 }
 
-
-## Plot Acoustic coverage
-plotAcousticCoverage <- function(result,xlab='',ylab='',plot.bathy=TRUE){
-    image(result$bGrid$x,result$bGrid$y,result$stats$acousticCoverage,main='Acoustic Coverage',xlab=xlab,ylab=ylab)
+## Plots grids for result
+plotGrid <- function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE){
+    if(type=='bGrid'){
+      grid <- result$bGrid$bGrid
+    }
+    if(type=='fGrid'){
+      grid <- result$fGrid
+    }
+    if(type=='sumGrid'){
+      grid <- result$sumGrid
+    }
+    if(type=='acousticCoverage'){
+      grid <- result$stats$acousticCoverage
+    }
+    image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab)
     if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
     plotSensors(result)
 }
-
-
-## Plot sumGrid
-plotSumGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
-    image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='Goodness grid',xlab=xlab,ylab=ylab)
-    if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
-    plotSensors(result)
-}
-
-
-## Plot fGrid
-plotFGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
-    image(result$bGrid$x,result$bGrid$y,result$fGrid,main='fGrid',xlab=xlab,ylab=ylab)
-    if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
-    plotSensors(result)
-}
-
-
-## Plot bGrid
-plotBGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
-    image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid',xlab=xlab,ylab=ylab)
-    if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
-    plotSensors(result)
-}
-
 
 ## Plot unique recovery rate as a function of number of sensors
 plotUniqueRR <- function(result){
@@ -1233,7 +1169,7 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     land <- bG >= 0
     sensorDepth <- bG + params$sensorElevation
     rng <- params$range
-	#{{Martin}} should this be a parameter?
+	#{{Martin}} should this be a parameter? mwp: no, see above
 	## If false then proportion of water column is calculated, if true depth preference is used
     dpflag <- FALSE 
     for(i in 1:numProj){
@@ -1387,8 +1323,8 @@ convertMetersToGrid <- function(params,bGrid){
 }
 #' Performs the convolution operation in 1D.
 #' 
-#' @param fun {{Martin}} please fill these in. 
-#' @param kern
+#' @param fun Vector containing values to perform convolution operation on
+#' @param kern One-dimensional convolution kernel given as a vector preferably with odd-numbered length
 #' @return 
 #' @export
 conv.1D <- function(fun,kern){
@@ -1403,9 +1339,9 @@ conv.1D <- function(fun,kern){
 
 #' Performs the convolution operation in 2D (using two 1D kernels though)
 #' 
-#' @param mat {{Martin}} please fill these in.
-#' @param kx
-#' @param ky
+#' @param mat Matrix containing values to perform convolution operation on
+#' @param kx Convolution kernel in x direction
+#' @param ky Convolution kernel in y direction
 #' @return 
 #' @export
 conv.2D <- function(mat,kx,ky){

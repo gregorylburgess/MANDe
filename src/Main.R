@@ -166,9 +166,9 @@ if(FALSE){
   ylab <- 'y dir'
   plot.bathy <- TRUE
   graphics.off()
-  plotFGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
-  ##plotSumGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)  
+  plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
   dev.new()
+  plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
   plotAcousticCoverage(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
   dev.new()
   plotUniqueRR(result)
