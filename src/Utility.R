@@ -2,15 +2,26 @@
 
 source("src/ShapeFunctions.R")
 
-# Finds a "good" set of sensor placements for a given setup [bGrid, fGrid, params].
-# Returns a list of locations as grid coordinates.
-# Bias cases:
-# 1. fish only
-# 2. bathy only
-# 3. detectable fish due to bathy
+#' Finds a "good" set of sensor placements for a given setup [bGrid, fGrid, params].
+#' Returns a list of locations as grid coordinates.
+#' Bias cases:
+#' 1. Fish density only.
+#' 2. Visibility due to Bathy only.
+#' 3. Detectable fish accounting for bathy.
+#'
+#' @param numSensors The number of sensors the program should place.
+#' @param bGrid A valid BGrid.
+#' @param fGrid A valid FGrid.
+#' @param range The range of the sensor in bathymetric cells.
+#' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param opt Tells the program to use vectorized R commands.
+#' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
+#' @export
 sensorFun <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, opt=FALSE) {
     if (debug) {
-        cat("\n[sensors]\n")
+        cat("\n[sensorFun]\n")
         print("bGrid")
         print(bGrid)
         print("fGrid")
@@ -30,12 +41,11 @@ sensorFun <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE
     grids = sumGridFun(grids, range, bias, params, debug, opt)
     sumGrid = grids$sumGrid
     # for each sensor, find a good placement
-    ##print(paste('Suppression fcn:',params$suppressionFcn))
+    print(paste('Suppression fcn:',params$suppressionFcn))
     for (i in 1:numSensors) {
-        ##print(paste('Placing sensor',i))
         # find the max location 
         maxLoc = which.max(grids$sumGrid)
-        # Switch the row/col vals since R references Grid coords differently
+        # Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
         c=ceiling(maxLoc/rows)
         r=(maxLoc %% rows)
         if (r==0) {
@@ -62,14 +72,24 @@ sensorFun <- function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE
     return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid))
 }
 
-## Update the fGrid after each sensor is placed to reflect which areas that are already covered by sensors
+
+#' Updates the FGrid after each sensor is placed to reflect which areas that are already covered by sensors.
+#'
+#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param opt Tells the program to use vectorized R commands.
+#' @return Returns the grids parameter, with an updated FGrid.
+#' @export
 updateFGrid <- function(loc,grids,params,debug=FALSE,opt=FALSE){
   grid <- grids$fGrid
   bG <- grids$bGrid$bGrid
   dims <- dim(grid)
   rows <- dim(grid)[1]
   cols <- dim(grid)[2]
-  vals = getArea(loc, dims, params$range) ## Use range as in sumGrid calculation
+  ## Use range as in sumGrid calculation
+  vals = getArea(loc, dims, params$range) 
 
   rind <- vals$rs:vals$re
   cind <- vals$cs:vals$ce
@@ -78,33 +98,47 @@ updateFGrid <- function(loc,grids,params,debug=FALSE,opt=FALSE){
   Rind <- matrix(rep(rind,ncols),nrows,ncols)
   Cind <- matrix(rep(cind,nrows),nrows,ncols,byrow=TRUE)
   dist <- sqrt( (loc$c-Cind)^2 + (loc$r-Rind)^2 )
-
-  dgrid2 <- do.call(params$shapeFcn, list(dist, params)) ## Detection fun supp
+  ## Detection fun supp
+  dgrid2 <- do.call(params$shapeFcn, list(dist, params)) 
 
   land <- bG >= 0
   sensorDepth <- bG + params$sensorElevation
   ng <- rows*cols
   nr <- rows
-  dpflag <- FALSE ## If false then proportion of water column is calculated, if true depth preference is used
+  ## If false then proportion of water column is calculated, if true depth preference is used
+  dpflag <- FALSE 
   pctviz <- calc.percent.viz(loc$r,loc$c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params)
   testmap <- matrix(0,rows,cols)
   testmap[pctviz$inds] <- pctviz$percentVisibility
   testmap[loc$r,loc$c] <- 1
-  dgrid1 <- testmap[rind,cind] ## Line of sight supp
+  ## Line of sight supp
+  dgrid1 <- testmap[rind,cind] 
   dgrid <- 1 - (dgrid1 * dgrid2)
-  grid[rind,cind] <- grid[rind,cind] * dgrid ## Downweigh observed region
+  ## Downweigh observed region
+  grid[rind,cind] <- grid[rind,cind] * dgrid 
   grids$fGrid <- grid
   return(grids)
 }
 
-# Calculates the composite "goodness" grid for a particular bias.
-sumGridFun <- function (grid, range, bias, params, debug=FALSE, opt=FALSE) {
+
+#' Calculates the composite "goodness" grid for a particular bias.
+#'
+#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param range The range of the sensor in bathymetric cells.
+#' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See package manual for more details.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param opt Tells the program to use vectorized R commands.
+#' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
+sumGridFun <- function (grids, range, bias, params, debug=FALSE, opt=FALSE) {
     if (debug) {
         cat("\n[sumGrid]\n")
         print("bGrid")
-        print(grid$bGrid)
+        print(grids$bGrid)
         print("fGrid")
-        print(grid$fGrid)
+        print(grids$fGrid)
         print(sprintf("bias=%g", bias))
         print("params")
         print(params)
@@ -112,26 +146,26 @@ sumGridFun <- function (grid, range, bias, params, debug=FALSE, opt=FALSE) {
     #Fish
     if (bias == 1) {
         if(opt){
-            return(sumGrid.sumSimple.opt(grid, "fGrid", range, debug))
+            return(sumGrid.sumSimple.opt(grids, "fGrid", range, debug))
         }else{
-            return(sumGrid.sumSimple(grid, "fGrid", range, debug))
+            return(sumGrid.sumSimple(grids, "fGrid", range, debug))
         }
     }
     #Bathy
     else if (bias == 2) {
         if(opt){
-            return(sumGrid.sumBathy.opt(grid, params, debug, opt))
+            return(sumGrid.sumBathy.opt(grids, params, debug, opt))
         }else{
-            return(sumGrid.sumBathy(grid, range, params$shapeFcn, params, debug))
+            return(sumGrid.sumBathy(grids, range, params$shapeFcn, params, debug))
         }
     }
     #Combo
     else if (bias == 3) {
         if(opt){
             ## Note sumGrid.sumBathy.opt also handles bias 3
-            return(sumGrid.sumBathy.opt(grid, params, debug,opt))
+            return(sumGrid.sumBathy.opt(grids, params, debug,opt))
         }else{
-            return(sumGrid.sumProduct(grid, range, params$shapeFcn, params, debug))
+            return(sumGrid.sumProduct(grids, range, params$shapeFcn, params, debug))
         }
     }
     else {
@@ -139,13 +173,20 @@ sumGridFun <- function (grid, range, bias, params, debug=FALSE, opt=FALSE) {
     }   
 }
 
-# Simply sums the values within range of a cell for each cell in the given grid.
-sumGrid.sumSimple <- function (grid, key, range, debug=FALSE) {
-    tempGrid = get(key, grid)
+
+#' Simply sums the values within range of a cell, for each cell in the given grid.
+#'
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param key A key to the dictionary provided in the 'grids' parameter specifying which grid should be summed.
+#' @param range The range of the sensor in bathymetric cells.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
+sumGrid.sumSimple <- function (grids, key, range, debug=FALSE) {
+    tempGrid = get(key, grids)
     tempCopy = tempGrid
     rows = dim(tempGrid)[1]
     cols = dim(tempGrid)[2]
-    
     
     for (i in 1:rows) {
         for(j in 1:cols) {
@@ -155,38 +196,54 @@ sumGrid.sumSimple <- function (grid, key, range, debug=FALSE) {
         }
     }
     
-    grid$sumGrid = tempGrid
+    grids$sumGrid = tempGrid
     if(debug){
         cat("\n[sumGrid.sumSimple]\n")
-        print("grid")
-        print(grid)
+        print("grids")
+        print(grids)
     }
-    return(grid)
+    return(grids)
 }
 
-# Simply sums the values within range of a cell for each cell in the given grid.
-# [optimized, but gives different results than non-opt version, why?, see
-# TestUtility.R for speed comparison]
-sumGrid.sumSimple.opt <- function (grid, key, range, debug=FALSE) {
-    kernel <- rep(1,2*range+1) ## Assume that range is an integer
-    tempGrid = get(key, grid)
-    grid$sumGrid <- conv.2D(tempGrid,kernel,kernel)
+
+#' Simply sums the values within range of a cell, for each cell in the given grid.  
+#' [optimized, but gives different results than non-opt version, why?, see TestUtility.R for speed comparison]
+#'
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param key A key to the dictionary provided in the 'grids' parameter specifying which grid should be summed.
+#' @param range The range of the sensor in bathymetric cells.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
+sumGrid.sumSimple.opt <- function (grids, key, range, debug=FALSE) {
+	## Assume that range is an integer
+    kernel <- rep(1,2*range+1) 
+    tempGrid = get(key, grids)
+    grids$sumGrid <- conv.2D(tempGrid,kernel,kernel)
 
     if(debug){
-        cat("\n[sumGrid.sumSimple]\n")
-        print("grid")
-        print(grid)
+        cat("\n[sumGrid.sumSimple.opt]\n")
+        print("grids")
+        print(grids)
     }
-    return(grid)
+    return(grids)
 }
 
-# Sums the result of calling the detect() function on each cell within range of 
-# a target cell for each cell in the given grid.
-sumGrid.sumBathy <- function (grid, range, shapeFcn="shape.t", 
+
+#' Sums the result of calling the detect() function on each cell within range of 
+#' a target cell for each cell in the given grid.
+#' 
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param range The range of the sensor in bathymetric cells.
+#' @param shapeFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
+sumGrid.sumBathy <- function (grids, range, shapeFcn="shape.t", 
         params, debug=FALSE) {
     
-    sumGrid0 = grid$bGrid$bGrid
-    tempCpy = grid$bGrid$bGrid
+    sumGrid0 = grids$bGrid$bGrid
+    tempCpy = grids$bGrid$bGrid
     rows = dim(sumGrid0)[1]
     cols = dim(sumGrid0)[2]
     
@@ -210,31 +267,38 @@ sumGrid.sumBathy <- function (grid, range, shapeFcn="shape.t",
         }
     }
     
-    grid$sumGrid = sumGrid0
+    grids$sumGrid = sumGrid0
     if(debug){
         cat("\n[sumGrid.sumBathy]\n")
         print("visibilities")
         print(visibilities)
-        print("grid")
-        print(grid)
+        print("grids")
+        print(grids)
     }
-    return(grid)
+    return(grids)
 }
 
-# Sums the result of calling the detect() function on each cell within range of 
-# a target cell for each cell in the given grid.
-# [optimized version, which also supports bias 3]
-sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
 
-    ##grid <- list(bGrid=bGrid)
-    nr <- dim(grid$bGrid$bGrid)[1]
-    nc <- dim(grid$bGrid$bGrid)[2]
+#' # Sums the result of calling the detect() function on each cell within range of 
+#' a target cell for each cell in the given grid.
+#' [optimized version, which also supports bias 3]
+#' 
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param opt Tells the program to use vectorized R commands.
+#' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
+sumGrid.sumBathy.opt <- function (grids, params, debug=FALSE,opt=FALSE) {
+
+    nr <- dim(grids$bGrid$bGrid)[1]
+    nc <- dim(grids$bGrid$bGrid)[2]
     ng <- nr*nc
-    bG <- grid$bGrid$bGrid
-        
-    sumGrid <- matrix(0,nr,nc) ## Allocate memory
-    rng <- round(params$range) ## Round to integer range
-    ##params$sensorElevation <- 1
+    bG <- grids$bGrid$bGrid
+	## Allocate memory
+    sumGrid <- matrix(0,nr,nc)
+	## Round to integer range
+    rng <- round(params$range)
     sensorDepth <- bG + params$sensorElevation
     belowSurf <- sensorDepth < 0
     land <- bG >= 0
@@ -243,37 +307,48 @@ sumGrid.sumBathy.opt <- function (grid, params, debug=FALSE,opt=FALSE) {
     for(c in 1:nc){
         cind <- max(c(1,c-rng)):min(c(nc,c+rng))
         for(r in 1:nr){
-            if(belowSurf[r,c]){ ## Only calculate if sensor is below surface
+			## Only calculate if sensor is below surface
+            if(belowSurf[r,c]){ 
                 rind <- max(c(1,r-rng)):min(c(nr,r+rng))
                 pV <- calc.percent.viz(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params)
                 probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
-                if(usefGrid) probOfRangeDetection <- probOfRangeDetection * grid$fGrid[pV$inds]
+                if(usefGrid) probOfRangeDetection <- probOfRangeDetection * grids$fGrid[pV$inds]
                 sumGrid[r,c] = sum(probOfRangeDetection * pV$percentVisibility)
             }
         }
     }
     
-    grid$sumGrid = sumGrid
+    grids$sumGrid = sumGrid
     if(debug){
-        cat("\n[sumGrid.sumBathy]\n")
-        print("grid")
-        print(grid)
+        cat("\n[sumGrid.sumBathy.opt]\n")
+        print("grids")
+        print(grids)
     }
-    return(grid)
+    return(grids)
 }
 
-## Calculates a matrix of proportion of water column visibile of the cells surrounding the current cell
-## The current cell looks at the surrounding cells within the detection range
-## and assigns a value to each of those cells, which is the proportion of the visible water column in that cell
-## Feel free to change this poor explanation
+#' {{Martin}}
+#' Calculates a matrix ()of proportion of water column visibile of the cells surrounding the current cell
+#' The current cell looks at the surrounding cells within the detection range
+#' and assigns a value to each of those cells, which is the proportion of the visible water column in that cell
+#' Feel free to change this poor explanation 
+#' 
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param opt Tells the program to use vectorized R commands.
+#' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params){
     ## Find rows and columns for relevant cells
     rvec <- rep(rind,length(cind))
     cvec <- sort(rep(cind,length(rind)))
-    tmp <- which(!(rvec==r & cvec==c)) ## Remove self cell
+	## Remove self cell
+    tmp <- which(!(rvec==r & cvec==c))
     rvec <- rvec[tmp]
     cvec <- cvec[tmp]
-    inds <- sub2ind(rvec,cvec,nr) ## Translate to single index
+	## Translate to single index
+    inds <- sub2ind(rvec,cvec,nr) 
     ninds <- length(inds)
     ## Get depths, dists and slopes
     disttmp <- sort(sqrt((r-rvec)^2 + (c-cvec)^2),decreasing=TRUE,index=TRUE) ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
@@ -284,15 +359,19 @@ calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,para
     slopes <- (depths-sensorDepth[r,c])/dists
     ibig2ismall <- rep(0,ng)
     ibig2ismall[inds[disttmp$ix]] <- 1:ninds
-    vizDepths <- rep(-1e-4,ninds) ## Assign small negative number to avoid problem with being exactly at the surface in pnorm
-    remaining <- 1:ninds
+	## Assign small negative number to avoid problem with being exactly at the surface in pnorm
+	vizDepths <- rep(-1e-4,ninds)
+	remaining <- 1:ninds
 
-    while(length(remaining)>0){ ## Calculate visible depths
+	## Calculate visible depths
+    while(length(remaining)>0){
         ii <- remaining[1]
         losinds <- getCells.new(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
-        is <- ibig2ismall[losinds] ## Get indices in small vectors (not whole grid)
+		## Get indices in small vectors (not whole grid)
+		is <- ibig2ismall[losinds]
         d2 <- sort(dists[is],index=TRUE)
-        blocks <- land[losinds[d2$ix]] ## If LOS is blocked by land don't calculate for cells behind
+		## If LOS is blocked by land don't calculate for cells behind
+        blocks <- land[losinds[d2$ix]] 
         if(any(blocks)){
             if(!all(blocks)){
                 indsNoBlock <- 1:(min(which(blocks))-1)
@@ -310,8 +389,9 @@ calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,para
         ##points(cvec[disttmp$ix[remaining]],rvec[disttmp$ix[remaining]])
         ##Sys.sleep(0.3)
     }
-          
-    vizDepths[vizDepths>0] <- -1e-4 ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])
+	
+	## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])      
+    vizDepths[vizDepths>0] <- -1e-4 
     indsNotLand <- depths<0
     ## if we have normal distribution data (depth preference), use it
     if(dpflag) {
@@ -333,12 +413,23 @@ calc.percent.viz <- function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,para
     return(list(percentVisibility=percentVisibility,dists=dists[indsNotLand],inds=inds[disttmp$ix[indsNotLand]]))
 }
 
-# Determines the likelihood of a tag at a given position is detectable by a sensor at a 
-# given position, using a specific shapeFunction.  This function considers Bathymetry and
-# sensor range.
-# Returns the percent chance of detection as a double between 0 [no chance of detection] 
-# and 1 [guaranteed detection].
-# [usable only in optimized version]
+
+#' Determines the likelihood of a tag at a given position is detectable by a sensor at a 
+#' given position, using a specific shapeFunction.  This function considers Bathymetry and
+#' sensor range.
+#' Returns the percent chance of detection as a double between 0 [no chance of detection] 
+#' and 1 [guaranteed detection].
+#' [usable only in optimized version].
+#' 
+#' @param bGrid A valid BGrid.
+#' @param sensorPos A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
+#' @param tagPos A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
+#' @param shapeFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param opt Tells the program to use vectorized R commands.
+#' @return Returns a value between 0 and 1 representing the probability of detecting a tag due bathymetry.
+#' @export
 detect.new <- function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE,opt=FALSE) {
     rvec = tagPos$rs:tagPos$re
     nr <- length(rvec)
@@ -349,15 +440,14 @@ detect.new <- function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE,o
 
     dist = sqrt((sensorPos$c - cmat)^2 + (sensorPos$r - rmat)^2)
     probOfRangeDetection = do.call(shapeFcn, list(dist, params))
-
-    probOfLOSDetection = matrix(0,nr,nc) ## Allocate memory
+	## Allocate memory
+    probOfLOSDetection = matrix(0,nr,nc)
     for (r in 1:nr) {
         for (c in 1:nc) {
             probOfLOSDetection[r,c] = checkLOS(bGrid, sensorPos, list(r=rvec[r],c=cvec[c]), params, debug)
         }
     }
     
-    ##probOfLOSDetection = checkLOS(bGrid, sensorPos, tagPos, params, debug)
     probOfDetection = probOfRangeDetection * probOfLOSDetection
     if(debug) {
         cat("\n[detect]\n")
@@ -365,13 +455,20 @@ detect.new <- function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE,o
         print(sprintf("probOfRangeDetection=%g",probOfRangeDetection))
         print(sprintf("TotalProbOfDetection=%g",probOfDetection))
     }
-    ##return(probOfRangeDetection * probOfLOSDetection)
     return(probOfDetection)
 }
 
 
-# For each cell in a given grid, the function sums (the number of fish
-# times the probability of detection) for all cells within range
+#' For each cell in a given grid, the function sums (the number of fish
+#' times the probability of detection) for all cells within range.
+#' 
+#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param range The range of the sensor in bathymetric cells.
+#' @param shapeFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 sumGrid.sumProduct <- function (grids, range, shapeFcn="shape.t", 
         params, debug=FALSE) {
     
@@ -393,8 +490,8 @@ sumGrid.sumProduct <- function (grids, range, shapeFcn="shape.t",
                 for (c in cs:ce) {
                     visibilities = c(
                             visibilities,
-                            detect(tempCpy, sensorPos=list(r=i,c=j), tagPos=list(r=r,c=c), shapeFcn=shapeFcn,
-                                    params, debug) * fGrid[r,c])
+                            detect(tempCpy, sensorPos=list(r=i,c=j), tagPos=list(r=r,c=c),
+									shapeFcn=shapeFcn, params, debug) * fGrid[r,c])
                 }
             }
             sumGrid0[i,j] = sum(visibilities, na.rm=TRUE)
@@ -412,17 +509,28 @@ sumGrid.sumProduct <- function (grids, range, shapeFcn="shape.t",
     return(grids)
 }
 
-# Supresses the values of cells around a sensor using various suppressionFunctions.
-# minsuppression: The minimum value to return
-# maxsuppression: The maximum value to return (also the return value for suppression.static())
-supress <- function(grid, dims, loc, suppressionFcn, suppressionRange,
+
+#' Supresses the values of cells around a sensor using a specified suppressionFunction.
+#' 
+#' @param sumGrid A valid SumGrid.
+#' @parm dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
+#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
+#' @param suppressionFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
+#' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
+#' @param minsuppressionValue: The minimum allowable value to return.
+#' @param maxsuppressionValue: The maximum allowable value to return (also the return value for suppression.static())
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns a suppressed sumGrid.
+#' @export
+supress <- function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
                     minsuppressionValue, maxsuppressionValue, params, debug=FALSE) {
     if(debug) {
         cat("\n[supress]\n")
         print(sprintf("suppressionFcn: %s", suppressionFcn))
         print(sprintf("loc: (%g,%g)",loc$c,loc$r))
-        print("grid")
-        print(grid)
+        print("sumGrid")
+        print(sumGrid)
     }
     vals = getArea(loc, dims, suppressionRange)
     mini = vals$rs
@@ -432,33 +540,43 @@ supress <- function(grid, dims, loc, suppressionFcn, suppressionRange,
     for (i in mini:maxi) {
         for (j in minj:maxj) {
                     dist = sqrt((loc$c - j)^2 + (loc$r - i)^2)
-                    grid[i,j] = grid[i,j] * do.call(suppressionFcn, list(dist, suppressionRange, 
+					sumGrid[i,j] = sumGrid[i,j] * do.call(suppressionFcn, list(dist, suppressionRange, 
                                         minsuppressionValue, maxsuppressionValue, params, debug))
             }
     }
-    return(grid)
+    return(sumGrid)
 }
 
 
-# Supresses the values of cells around a sensor using various suppressionFunctions.
-# minsuppression: The minimum value to return
-# maxsuppression: The maximum value to return (also the return value for suppression.static())
-suppress.opt <- function(grid, dims, loc, params, bG, debug=FALSE) {
+#' Supresses the values of cells around a sensor using a specified suppressionFunction.
+#' [Optimized using vectorization].
+#' 
+#' @param A valid SumGrid.
+#' @parm dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
+#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param A valid BGrid.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns a suppressed sumGrid.
+#' @export
+suppress.opt <- function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
     if(debug) {
         cat("\n[suppress.opt]\n")
-        print(sprintf("suppressionFcn: %s", params$suppressionFcn))
+        print(sprintf("suppressionFcn: %s", suppressionFcn))
         print(sprintf("loc: (%g,%g)",loc$c,loc$r))
-        print("grid")
-        print(grid)
+        print("sumGrid")
+        print(sumGrid)
+		print("bGrid")
+		print(bGrid)
     }
     suppressionFcn <- params$suppressionFcn
     minsuppressionValue <- params$minsuppressionValue
     maxsuppressionValue <- params$maxsuppressionValue
     ## dfflag indicates wheter detection function should be used for suppression
     dfflag <- suppressionFcn=='detection.function' | suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'
-    rows <- dim(grid)[1]
-    cols <- dim(grid)[2]
-    ##vals = getArea(loc, dims, suppressionRange)
+    rows <- dim(sumGrid)[1]
+    cols <- dim(sumGrid)[2]
+	
     if(dfflag){
       vals = getArea(loc, dims, params$range) ## Use range as in sumGrid calculation
     }else{
@@ -486,37 +604,57 @@ suppress.opt <- function(grid, dims, loc, params, bG, debug=FALSE) {
       partmp$sd <- partmp$suppsd
       supgrid2 <- do.call(params$shapeFcn, list(dist, partmp)) ## Detection fun supp
       if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
-        land <- bG >= 0
-        sensorDepth <- bG + params$sensorElevation
+        land <- bGrid >= 0
+        sensorDepth <- bGrid + params$sensorElevation
         ng <- rows*cols
         nr <- rows
-        ##print(sensorDepth)
-        ##print(loc)
-        dpflag <- FALSE ## If false then proportion of water column is calculated, if true depth preference is used
-        pctviz <- calc.percent.viz(loc$r,loc$c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params)
+		## If false then proportion of water column is calculated, if true depth preference is used
+		## {{Martin}} should this be a parameter?
+        dpflag <- FALSE 
+        pctviz <- calc.percent.viz(loc$r, loc$c, rind, cind, ng, nr, bGrid, land,
+								   sensorDepth, dpflag, params)
         testmap <- matrix(0,rows,cols)
         testmap[pctviz$inds] <- pctviz$percentVisibility
         testmap[loc$r,loc$c] <- 1
-        supgrid1 <- testmap[rind,cind] ## Line of sight supp
+		## Line of sight supp
+        supgrid1 <- testmap[rind,cind]
         supgrid <- 1 - (supgrid1 * supgrid2)
       }else{
         supgrid <- 1 - supgrid2
       }
     }
-    
-    grid[rind,cind] <- grid[rind,cind] * supgrid ## Do suppression
+	## Do suppression
+    sumGrid[rind,cind] <- sumGrid[rind,cind] * supgrid
 
-    return(grid)
+    return(sumGrid)
 }
 
-# Returns a static value defined by 'maxsuppressionValue'
+#' Returns a static value, effectively setting all cells within suppressionRange of a sensor to that number.
+#' 
+#' @param dist The distance between two cells on a grid.
+#' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
+#' @param minsuppressionValue: The minimum allowable value to return.
+#' @param maxsuppressionValue: The maximum allowable value to return (also the return value for suppression.static())
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns The value given in maxSuppression Value.
+#' @export
 suppression.static <- function (dist, suppressionRange, minsuppressionValue, 
                                maxsuppressionValue, params, debug=FALSE) {
     return (maxsuppressionValue)
 }
 
-# Returns a dynamic value based on distance from a point.
-# Returned value should be multiplied by the value to be scaled.
+
+#' Returns a dynamic value based on distance from a chosen sensor. The returned value should be multiplied by the value to be scaled.
+#'
+#' @param dist The distance between two cells on a grid.
+#' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
+#' @param minsuppressionValue: The minimum allowable value to return.
+#' @param maxsuppressionValue: The maximum allowable value to return (also the return value for suppression.static())
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns The value given in maxSuppression Value.
+#' @export
 suppression.scale <- function (dist, suppressionRange, minsuppressionValue, 
         maxsuppressionValue, params, debug=FALSE) {
     
@@ -534,13 +672,24 @@ suppression.scale <- function (dist, suppressionRange, minsuppressionValue,
     return (value)
 }
 
-# Defines the "shape" of a sensor's range, returns an set of start/end indexes
-# for rows and columns respectively named : {rs,re,cs,ce}.
-getArea<-function(loc, dim, range, debug=FALSE) {
-    r = loc$r # the row index for our central point
-    c = loc$c # the col index for our central point
-    rows = dim[1] # the max number of rows in the grid
-    cols = dim[2] # the max number of cols in the grid
+
+#' Defines the "shape" of a sensor's range.
+#' 
+#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
+#' @parm dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
+#' @param range The range of the sensor in bathymetric cells.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return Returns a dictionary of start/end indexes for rows and columns respectively named : {rs,re,cs,ce}.
+#' @export
+getArea<-function(loc, dims, range, debug=FALSE) {
+	# the row index for our central point
+    r = loc$r
+	# the col index for our central point
+    c = loc$c
+	# the max number of rows in the grid
+    rows = dims[1]
+	# the max number of cols in the grid
+    cols = dims[2]
     
     # defines a square
     rs0 = max(1, r - range) 
@@ -552,11 +701,18 @@ getArea<-function(loc, dim, range, debug=FALSE) {
 }
 
 
-# Determines the likelihood of a tag at a given position is detectable by a sensor at a 
-# given position, using a specific shapeFunction.  This function considers Bathymetry and
-# sensor range.
-# Returns the percent chance of detection as a double between 0 [no chance of detection] 
-# and 1 [guaranteed detection].
+#'Determines the likelihood of a tag at a given position is detectable by a sensor at a 
+#' given position, using a specific shapeFunction.  This function considers Bathymetry and
+#' sensor range.
+#' 
+#' @param bGrid A valid BGrid.
+#' @param sensorPos A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
+#' @param tagPos A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
+#' @param shapeFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return The percent chance of detection as a double between 0 [no chance of detection] and 1 [guaranteed detection].
+#' @export
 detect <- function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 
     dist = sqrt((sensorPos$c - tagPos$c)^2 + (sensorPos$r - tagPos$r)^2)
@@ -574,11 +730,23 @@ detect <- function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 }
 
 
-# Returns the percent of the water column visible at a target cell from a
-# starting cell.
+
+#' Returns the percent of the water column visible at a target cell from a starting cell.  
+#' If 'depth_off_bottom' and 'depth_off_bottom_sd' are keys in 'params', then the algorithm 
+#' assumes a normal distribution of fish within the specified zone and will return
+#' the integral of the visible zone.  Otherwise, it assumes an equal distribution of fish 
+#' throughout the watercolumn.
+#' 
+#' @param bGrid A valid BGrid.
+#' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
+#' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
+#' @param shapeFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return The percent of the watercolumn that is visible (as a double between 0 and 1).
+#' @export
 checkLOS<- function(bGrid, startingCell, targetCell, params, debug=FALSE) {
     sensorElevation = params["sensorElevation"]
-    ##sensorElevation = 1
     dist = sqrt((startingCell$c - targetCell$c)^2 + (startingCell$r - targetCell$r)^2)
     if (dist ==0) {
         return(1)
@@ -586,7 +754,7 @@ checkLOS<- function(bGrid, startingCell, targetCell, params, debug=FALSE) {
     # our sensor's z value
     sensorDepth = bGrid[startingCell$r, startingCell$c] + sensorElevation
     # retrieve list of intervening cells
-    table = getCells(startingCell, targetCell, debug) ######getCells returns nothing because the cells are adjacent...
+    table = getCells(startingCell, targetCell, debug)
 
 	# annotate each cell's z value from the bGrid
     table$z <-apply(table, 1, function(rows){ table$z = bGrid[rows[2],rows[1]]})
@@ -633,8 +801,14 @@ checkLOS<- function(bGrid, startingCell, targetCell, params, debug=FALSE) {
     return(percentVisibility)
 }
 
-# Returns the cells crossed by a beam from the starting cell to
-# the target cell.
+
+#' Returns the cells crossed by a beam from the starting cell to the target cell.
+#' 
+#' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
+#' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return A data.frame containing x and y indicies of cells crossed by a beam from the starting cell to the target cell.
+#' @export
 getCells<-function(startingCell, targetCell, debug=FALSE) {
     sC=offset(startingCell)
     tC=offset(targetCell)
@@ -708,9 +882,9 @@ getCells<-function(startingCell, targetCell, debug=FALSE) {
     start = list('x'=startingCell$c,'y'=startingCell$r)
     end = list('x'=targetCell$c,'y'=targetCell$r)
     grid = data.frame("x"=tx,"y"=ty)
-    # uniques
+    # return only unique values
     grid = unique(grid)
-    # remove start and end cells
+    # remove the starting cell
     grid = grid[!(grid$x == startingCell$c & grid$y == startingCell$r),]
     #grid = grid[!(grid$x == targetCell$c & grid$y == targetCell$r),]
     if(debug) {
@@ -724,9 +898,15 @@ getCells<-function(startingCell, targetCell, debug=FALSE) {
     return(grid)
 }
 
-# Returns the cells crossed by a beam from the starting cell to
-# the target cell.
-# [Optimized version, see TestUtility.R to evaluate speed gain]
+
+#' Returns the cells crossed by a beam from the starting cell to
+#' the target cell. [Optimized version, see TestUtility.R to evaluate speed gain].
+#' 
+#' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
+#' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return A data.frame containing x and y indicies of cells crossed by a beam from the starting cell to the target cell.
+#' @export
 getCells.opt <- function(startingCell, targetCell, debug=FALSE) {
   if(!(startingCell$r==targetCell$r & startingCell$c==targetCell$c)){
         sC <- offset(startingCell)
@@ -766,9 +946,16 @@ getCells.opt <- function(startingCell, targetCell, debug=FALSE) {
 }
 
 
-# Returns the cells crossed by a beam from the starting cell to
-# the target cell.
-# [Does not produce same output as getCells, same reported cells but order is different]
+#{{Martin}} why are there two copies of this function?  Is there a significant difference?
+#' Returns the cells crossed by a beam from the starting cell to
+#' the target cell.
+#' [Does not produce same output as getCells, same reported cells but order is different].
+#' 
+#' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
+#' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @return A data.frame containing x and y indicies of cells crossed by a beam from the starting cell to the target cell.
+#' @export
 getCells.new <- function(startingCell, targetCell, debug=FALSE, nr=NULL) {
     if(!(startingCell$r==targetCell$r & startingCell$c==targetCell$c)){
         sC <- offset(startingCell)
@@ -810,10 +997,16 @@ getCells.new <- function(startingCell, targetCell, debug=FALSE, nr=NULL) {
     }
 }
 
-# Offsets a cartesian point towards the center of the gridcell it represents.
-# ex: the cartesian point (3,2) would be converted to (2.5, 1.5), which puts it in the
-# cell located at the third column, second row (aka the cell at (3,2) on a 1-based grid
-# system).
+
+#' Translates a cartesian point to the center of the gridcell it represents.  This is necessary
+#' for drawing Line of Sight since we assume sensors are in the center of cells.
+#' ex: the cartesian point (3,2) would be converted to (2.5, 1.5), which puts it in the
+#' cell located at the third column, second row (aka the cell at (3,2) on a 1-based grid
+#' system).
+#' 
+#' @param point A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the point to translate on the BGrid.
+#' @return A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the translated point.
+#' @export
 offset<- function(point){
     r= point$r
     c=point$c
@@ -830,6 +1023,15 @@ offset<- function(point){
     return(list("r"=r,"c"=c))
 }
 
+
+#' Generates .png files for the visualizations of various grids.  You must have write access to the 
+#' R working directory that the program is executed from.  Additionally, ensure that an 'img' folder exists there.
+#' 
+#' @param results A dictionary of return objects, the result of a successfull call to run() or sensorFun().
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
+#' @return A dictionary containing the filenames of the generated images.
+#' @export
 graph <- function(result, params, plot.bathy=TRUE) {
 	## Plotting
 	graphics.off()
@@ -837,7 +1039,9 @@ graph <- function(result, params, plot.bathy=TRUE) {
 	time = as.numeric(Sys.time()) %% 1
         xlab <- 'x dir'
         ylab <- 'y dir'
-	
+
+	#{{Martin}} can we plot these dynamically instead of having a method for each one (perhaps with the exception of the RR graphs?}}
+    
 	## BGrid
 	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	png(filenames$bGrid)
@@ -856,13 +1060,13 @@ graph <- function(result, params, plot.bathy=TRUE) {
         plotSumGrid(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
-	## acoustic coverage
+	## Acoustic Coverage
 	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
 	png(filenames$acousticCoverage)
         plotAcousticCoverage(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 
-        ## Unique recovery rate
+    ## Unique Recovery Rate
 	filenames$recoveryRates = sprintf("img/recoveryRates-%g.png", time)
 	png(filenames$recoveryRates)
         plotUniqueRR(result)
@@ -878,12 +1082,15 @@ plotAcousticCoverage <- function(result,xlab='',ylab='',plot.bathy=TRUE){
     if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
     plotSensors(result)
 }
+
+
 ## Plot sumGrid
 plotSumGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
     image(result$bGrid$x,result$bGrid$y,result$sumGrid,main='Goodness grid',xlab=xlab,ylab=ylab)
     if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
     plotSensors(result)
 }
+
 
 ## Plot fGrid
 plotFGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
@@ -892,12 +1099,14 @@ plotFGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
     plotSensors(result)
 }
 
+
 ## Plot bGrid
 plotBGrid <- function(result,xlab='',ylab='',plot.bathy=TRUE){
     image(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,main='bGrid',xlab=xlab,ylab=ylab)
     if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
     plotSensors(result)
 }
+
 
 ## Plot unique recovery rate as a function of number of sensors
 plotUniqueRR <- function(result){
@@ -920,6 +1129,7 @@ plotUniqueRR <- function(result){
     grid()
 }
 
+
 ## Adds sensors to current plot (an existing plot is required)
 plotSensors <- function(result,circles=TRUE,circlty=3){
   ns <- length(result$sensors)
@@ -938,20 +1148,27 @@ plotSensors <- function(result,circles=TRUE,circlty=3){
   }
 }
 
-# Provides Statistical data on detection, given a particular bGrid, fGrid, and sensor 
-# arrangement.
-# Returns a dictionary of staistical values.
+
+
+#' Provides Statistical data on detection, given a particular bGrid, fGrid, and sensor arrangement.
+#' Returns a dictionary of staistical values.
+#' 
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param bGrid A valid BGrid.
+#' @param fGrid A valid FGrid.
+#' @param sensors The result of a successful call to sensorFun().
+#' @return A dictionary of statistical values.
+#' @export
 stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
-    print('Calculating stats!')
     statDict <- list()
     numSensors <- length(sensors$sensorList)
     rows <- dim(fGrid)[1]
     cols <- dim(fGrid)[2]
     
-    ## --- Calculate the value of each sensor (as the increase in unique recoveryrate)
+    ## Calculate the value of each sensor (as the increase in unique recoveryrate)
     numProj <- 2*numSensors
-    sumGridSupp <- sensors$sumGridSupp ## sumGrid suppressed by numSensors
-    ##sumGridSupp <- sensors$sumGrid
+	## sumGrid suppressed by numSensors
+    sumGridSupp <- sensors$sumGridSupp
     sensorList <- sensors$sensorList
     ## Calculate locations of projected sensors
     for (i in 1:(numProj-numSensors)) { 
@@ -1014,10 +1231,11 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     bG <- bGrid$bGrid
     nr <- dim(bG)[1]
     land <- bG >= 0
-    ##params$sensorElevation <- 1
     sensorDepth <- bG + params$sensorElevation
     rng <- params$range
-    dpflag <- FALSE ## If false then proportion of water column is calculated, if true depth preference is used
+	#{{Martin}} should this be a parameter?
+	## If false then proportion of water column is calculated, if true depth preference is used
+    dpflag <- FALSE 
     for(i in 1:numProj){
       r <- ySens[i]
       c <- xSens[i]
@@ -1030,12 +1248,13 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
       demap[,,i] <- demap[,,i] * testmap
     }
 
-    ## --- Coverage map
+    ## Coverage map
     cover <- matrix(1,rows,cols)
     covertmp <- array(0,dim=c(rows,cols,numProj))
     uniqRRs <- rep(0,numProj)
     for(i in 1:numProj){
-        cover <- cover * (1 - demap[,,i]) ## Probability of no detection
+		## Probability of no detection
+        cover <- cover * (1 - demap[,,i]) 
         covertmp[,,i] <- 1-cover
         uniqRRs[i] <- sum(covertmp[,,i] * fGrid)
         ##if(i==numSensors)  statDict$acousticCoverage <- covertmp ## Save coverage map for numSensors
@@ -1048,20 +1267,22 @@ stats <- function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     statDict$uniqRRs <- cumsum(srt$x)
     statDict$acousticCoverage <- 1-apply(1-demap[,,srt$ix[1:numSensors]],c(1,2),prod) ## Acoustic coverage for best sensors
     
-    ## --- Absolute recovery rate (here we don't care about getting the same ping multiple times)
+    ## Absolute recovery rate (here we don't care about getting the same ping multiple times)
     demapmat <- apply(demap[,,srt$ix[1:numSensors]],c(1,2),sum)
-    statDict$absRecoveryRate <- sum(demapmat*fGrid)    
-
-    ##cover <- covertmp ## Detection probability at location
-    ##statDict$acousticCoverage <- cover ## Coverage map
-
-    ## --- Calculate recovery rate of unique detections    
+    statDict$absRecoveryRate <- sum(demapmat*fGrid)
+	
+    ## Calculate recovery rate of unique detections    
     statDict$uniqRecoveryRate <- sum(statDict$acousticCoverage * fGrid)
     
     return(statDict)
 }
 
-# Provides default parameter values if none are provided.
+
+#' Provides default parameter values if none are provided.
+#' 
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @return The 'params' parameter, populated with default values where necessary.
+#' @export
 checkParams <- function(params) {
 
     names = names(params)
@@ -1111,7 +1332,7 @@ checkParams <- function(params) {
         }
     
     # Bathymetry defaults
-        if(('inputfile' %in% names)) {
+	if(('inputfile' %in% names)) {
 		params$inputfile = as.character(params$inputfile)
 	}
     if(!('cellSize' %in% names)) {
@@ -1159,13 +1380,17 @@ convertMetersToGrid <- function(params,bGrid){
   params$sd <- params$detectionRange/dr1/dx ## SD in grid cells
   params$suppsd <- params$suppressionRangeFactor * params$sd
   params$range = round(3*params$sd) ## Range in grid cells, used to cut out sub grids from large grid
-
+  
   params$suppressionRange = round(params$suppressionRangeFactor*params$detectionRange/dx) ## Using equation 8 in Pedersen & Weng 2013
 
   return(params)
 }
-
-## Performs the convolution operation in 1D
+#' Performs the convolution operation in 1D.
+#' 
+#' @param fun {{Martin}} please fill these in. 
+#' @param kern
+#' @return 
+#' @export
 conv.1D <- function(fun,kern){
   lk <- length(kern)
   kern <- kern[lk:1]
@@ -1175,7 +1400,14 @@ conv.1D <- function(fun,kern){
   test[(lk2+1):(lf+lk-lk2-1)]
 }
 
-## Performs the convolution operation in 2D (using two 1D kernels though)
+
+#' Performs the convolution operation in 2D (using two 1D kernels though)
+#' 
+#' @param mat {{Martin}} please fill these in.
+#' @param kx
+#' @param ky
+#' @return 
+#' @export
 conv.2D <- function(mat,kx,ky){
   dimmat <- dim(mat)
   matout <- matrix(0,dimmat[1],dimmat[2])
@@ -1184,24 +1416,44 @@ conv.2D <- function(mat,kx,ky){
   matout
 }
 
-## Convert from row col to linear index
-sub2ind <- function(row,col,dim){
-    (col-1)*dim[1] + row
+
+#' Converts a row, col index to a linear index within a matrix.
+#' 
+#' @param row The row index.
+#' @param col The col index.
+#' @parm dims The dimensions of the BGrid.  Just call dim() on the parent matrix for this.
+#' @return The translated linear index.
+#' @export
+sub2ind <- function(row,col,dims){
+    (col-1)*dims[1] + row
 }
 
-## Plots a circle with radius r and center x,y
+
+#' Plots a circle with radius r and center (x,y).
+#' 
+#' @param x The x coordinate of the center of the circle.
+#' @param y The y coordinate of the center of the circle.
+#' @parm r The radius of the circle.
+#' @parm lty Line type option.  See R documentation on the lines() function for more details.
+#' @parm col Line color option.  See R documentation on the lines() function for more details.
+#' @return The drawn circle.
+#' @export
 plot.circle <- function(x,y,r,lty=1,col=1){
   a <- seq(0,2*pi,length.out=100)
   X <- r*cos(a)+x; Y <- r*sin(a)+y
   lines(X,Y,lty=lty,col=col)
 }
 
-## Plots line intersects (useful for plotting recovery rate as a function of sensors)
+
+#' Plots line intersects (useful for plotting recovery rate as a function of sensors).
+#' 
+#' @param n An x value.
+#' @param rate A y value.
+#' @parm col Line color option.  See R documentation on the lines() function for more details.
+#' @parm lty Line type option.  See R documentation on the lines() function for more details.
+#' @return The drawn lines of intersection.
+#' @export
 plot.intersect <- function(n,rate,col=1,lty=1){
   lines(rep(n,2),c(0,rate),col=col,lty=lty)
   lines(c(0,n),rep(rate,2),col=col,lty=lty)
 }
-
-
-
-##checkParams({})

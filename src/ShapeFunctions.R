@@ -3,6 +3,14 @@
 ## Output: detection probability
 ## Todo: Possibly add Gompertz, linear, and other functions
 
+#{{Martin}} please fill in missing/incorrect details for all shape fcns.
+
+#' Decription
+#' 
+#' @param dist The distance from the tag to the reciever. 
+#' @param par A dictionary containing the keys 'sd' and 'peak', where sd defines a standard deviation, and peak defiens the peak value of the curve (maximum value).
+#' @return The probability of detecting a tag at a given dist with the given parameters.
+#' @export
 shape.t <- function(dist,par){
     sd <- par$sd
     peak <- par$peak
@@ -10,6 +18,13 @@ shape.t <- function(dist,par){
     return(peak*dt(dist/sd,df=1)/dt(0,df=1))
 }
 
+
+#' Decription
+#' 
+#' @param dist The distance from the tag to the reciever. 
+#' @param par A dictionary containing the keys 'sd' and 'peak', where sd defines a standard deviation, and peak defiens the peak value of the curve (maximum value).
+#' @return The probability of detecting a tag at a given dist with the given parameters.
+#' @export
 shape.gauss <- function(dist,par){
 	sd <- par$sd
 	peak <- par$peak
@@ -17,6 +32,13 @@ shape.gauss <- function(dist,par){
     return (peak*dnorm(dist/sd,0,1)/dnorm(0,0,1))
 }
 
+
+#' Decription
+#' 
+#' @param dist The distance from the tag to the reciever. 
+#' @param par A dictionary containing the keys 'sd' and 'peak', where sd defines a standard deviation, and peak defiens the peak value of the curve (maximum value).
+#' @return The probability of detecting a tag at a given dist with the given parameters.
+#' @export
 shape.sigmoidal <- function(dist,par){
     pmax <- par[1]
     D50 <- par[2]
