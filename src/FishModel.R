@@ -15,7 +15,6 @@ fish <- function(params, bGrid) {
     land <- bGrid$bGrid>=0
     switch(params$fishmodel,
             rw={ ## Random walk case
-                print('rw')
                 fGrid <- matrix(1,rows,cols)
                 if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
                     print('RW: Using vertical habitat to calculate fGrid')
@@ -23,14 +22,19 @@ fish <- function(params, bGrid) {
                 }
             },
             ou={ ## Ornstein-Uhlenbeck case
-                print('ou')
-                sigma <- params$msd/sqrt(params$dt)
-                B <- matrix(c(params$By,params$Bxy,params$Bxy,params$Bx),2,2)
-                hrCov <- 0.5*sigma^2*solve(B)
-                X <- matrix(rep(bGrid$x,rows),rows,cols,byrow=TRUE)
-                Y <- matrix(rep(bGrid$y,cols),rows,cols,byrow=FALSE)
+                mux <- min(bGrid$x) + diff(range(bGrid$x))*params$mux
+                muy <- min(bGrid$y) + diff(range(bGrid$y))*params$muy
+                varx <- params$ousdx^2
+                vary <- params$ousdy^2
+                covxy <- params$oucor * params$ousdx * params$ousdy
+                hrCov <- matrix(c(vary,covxy,covxy,varx),2,2)
+                ##sigma <- params$msd/sqrt(params$dt)
+                ##B <- matrix(c(params$By,params$Bxy,params$Bxy,params$Bx),2,2)
+                ##hrCov <- 0.5*sigma^2*solve(B)
+                Y <- matrix(rep(bGrid$y,rows),rows,cols,byrow=TRUE)
+                X <- matrix(rep(bGrid$x,cols),rows,cols,byrow=FALSE)
                 XY <- cbind(as.vector(X),as.vector(Y))
-                hrVals <- dmvnorm(XY,c(params$muy,params$mux),hrCov)
+                hrVals <- dmvnorm(XY,c(mux,muy),hrCov)
                 fGrid <- matrix(hrVals,rows,cols,byrow=FALSE)
                 if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
                     print('OU: Using vertical habitat to calculate fGrid')
