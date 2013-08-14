@@ -5,10 +5,10 @@
 			<Field id="userEmail" label="User Email" type="text" toolTip="If you provide an email address, we will notify you when your job has finished processing.  This is useful for long requests.">example@mailservice.com</Field>			
 		</Fields>
 		<Fields>
-			<Field id="opt" label="Use C Code?" type="select" toolTip="Directive to use C/R code.">		
+			<Field id="opt" label="Use Optimized R?" type="select" toolTip="Directive to use C/R code.">		
 				<Options>
-					<Option label="Use R">FALSE</Option>
-					<Option label="Use C">TRUE</Option>
+					<Option label="Use Optimized R">TRUE</Option>
+					<Option label="Use Unoptimized R">FALSE</Option>
 				</Options>
 			</Field>	
 		</Fields>
@@ -21,28 +21,22 @@
 					<Option label="Ornstein-Uhlenbeck (OU)">True</Option>
 				</Options>
 				<Hidable>
-					<HField id="mux"  label="Center of Home Range (X value)"  type="text"  toolTip="X value for the center of the home range.">
+					<HField id="mux"  label="Center of Home Range (X value)"  type="text"  toolTip="The X value for the center of the home range.">
 						0.4
 					</HField>
-					<HField id="muy"  label="Center of Home Range (Y value)"  type="text"  toolTip="Y value for the center of the home range.">
+					<HField id="muy"  label="Center of Home Range (Y value)"  type="text"  toolTip="The Y value for the center of the home range.">
 						0.4
 					</HField>
-					<HField id="Bx"  label="Attraction Towards Center (X value)"  type="text"  toolTip="X value for the strength of attraction towards the center of the home range.">
-						0.02
+					<HField id="ousdx"  label="Home Range Directional Correlation (X value)"  type="text"  toolTip="The SD of home range in the x direction in meters.">
+						25
 					</HField>
-					<HField id="By"  label="Attraction Towards Center (Y value)"  type="text"  toolTip="Y value for the strength of attraction towards the center of the home range.">
-						0.02
+					<HField id="ousdy"  label="Home Range Directional Correlation (Y value)"  type="text"  toolTip="The SD of home range in the y direction in meters.">
+						25
 					</HField>
-					<HField id="Bxy"  label="Attraction Towards Center (XY value)"  type="text"  toolTip="XY value for the strength of attraction towards the center of the home range.">
-						0
+					<HField id="oucor"  label="SD of Home Range Directional Correlation"  type="text"  toolTip="The correlation between directions, -1 &lt; x &lt; 1.">
+						0.7
 					</HField>
 				</Hidable>
-			</Field>
-			<Field id="msd"  label="Mead Squared Displacement of Fish"  type="text"  toolTip="Mean squared displacement of fish (a proxy for movement capacity).">
-				0.1
-			</Field>
-			<Field id="dt"  label="Sampling Time Step"  type="text"  toolTip="Time interval for the simulation.">
-				1
 			</Field>
 			<Field id="vhabitat"  label="Restrict Vertical Habitat Range"  type="toggle"  toolTip="Restricts fish to habitat cells within a given depth range.">
 				<Options>
@@ -86,18 +80,19 @@
 					<Option label="3">3</Option>
 				</Options>
 			</Field>
+			<Field id="sensorElevation"  label="Sensor Elevation"  type="text"  toolTip="Elevation of all sensors off of the bottom in meters.">
+				1
+			</Field>
 			<Field id="shapeFcn"  label="Sensor Shape Function"  type="select"  toolTip="Determines which shape function to use for simulating signal attenuation.">
 				<Options>
 					<Option label="shape.gauss">shape.gauss</Option>
-					<Option label="shape.T">shape.t</Option>
-					<Option label="shape.sigmoidal">shape.sigmoidal</Option>
 				</Options>
 			</Field>
 			<Field id="peak"  label="Max Detection Value"  type="text"  toolTip="The probability of detecting a fish right next to your sensor.  Specifies a maximum value for the shape function.">
 				.98
 			</Field>
-			<Field id="sd"  label="SD of Detection Value"  type="text"  toolTip="The standard deviation for your sensor's detection capability.">
-				1
+			<Field id="detectionRange"  label="Detection Range"  type="text"  toolTip="The distance in meters from the sensor where the chance of detecting a signal is 0.05.">
+				13
 			</Field>		
 		</Fields>
 	</Group>
@@ -105,29 +100,32 @@
 	<Group id="Bathymetry Variables">
 		<Fields>
 			<Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
-				Pal_IKONOS\\pal_dball.asc
+				src/palmyrabath.RData
 			</Field>
 			<Field id="inputFileType"  label="Input File Type"  type="select"  toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS, NetCDF, and ASC.">
 				<Options>
+					<Option label="ASC">asc</Option>
 					<Option label="ArcGIS">arcgis</Option>
 					<Option label="NetCDF">netcdf</Option>
-					<Option label="ASC">asc</Option>
 				</Options>
 			</Field>
 			<Field id="seriesName"  label="Data Series Name"  type="text"  toolTip="For ArcGIS/NetCDF, this specifies the name of the data series to use.">
 				z
 			</Field>
+			<Field id="cellSize"  label="Grid Cell Size"  type="text"  toolTip="Specifies the size of the grid cell in meters.">
+				5
+			</Field>
 			<Field id="startX"  label="Beginning X Index"  type="text"  toolTip="Specifies the starting X cell-index of the area of interest for the file chosen.">
-				1
+				500
 			</Field>
 			<Field id="XDist"  label="X Axis Length"  type="text"  toolTip="Specifies how far the area of interest extends along the X axis.">
-				10
+				300
 			</Field>
 			<Field id="startY"  label="Beginning Y Index"  type="text"  toolTip="Specifies the starting Y cell-index of the area of interest for the file chosen.">
-				1
+				500
 			</Field>
 			<Field id="YDist"  label="Y Axis Length"  type="text"  toolTip="Specifies how far the area of interest extends along the Y axis.">
-				10
+				300
 			</Field>
 		</Fields>
 	</Group>
@@ -135,14 +133,14 @@
 
 	<Group id="Suppression Variables">
 		<Fields>
+			<Field id="suppressionRangeFactor"  label="Suppression Factor"  type="text"  toolTip="Specifies the ratio of suppression range to sensor range.">
+				2
+			</Field>
 			<Field id="suppressionFcn"  label="Suppression Function"  type="select"  toolTip="The suppression function to use.">
 				<Options>
 					<Option label="suppression.scale">suppression.scale</Option>
 					<Option label="suppression.static">suppression.static</Option>
 				</Options>
-			</Field>
-			<Field id="suppressionRange"  label="Suppression Range"  type="text"  toolTip="Specifies the radius of suppression in grid cells.  To deter sensor overlap, a good value to use is six times the sensor sd specified above.">
-				2
 			</Field>
 			<Field id="maxsuppressionValue"  label="Max Suppression Value"  type="text"  toolTip="Specifies the maximum suppression penalty to apply.">
 				1

@@ -28,6 +28,8 @@ shape.gauss <- function(dist,par){
 	sd <- par$sd
 	peak <- par$peak
     ## Shape based on normal distribution
+	#print(sprintf("Dist:%g",dist))
+	#print(sprintf("sd:%g",sd))
     return (peak*dnorm(dist/sd,0,1)/dnorm(0,0,1))
 }
 

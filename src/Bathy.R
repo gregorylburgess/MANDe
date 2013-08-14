@@ -5,7 +5,7 @@
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param inputFile The relative path to the file to open.
-#' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "custom" (asc)
+#' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "asc".
 #' @param startX Starting index of the BGrid to take from the bathy file.
 #' @param startY Starting index of the BGrid to take from the bathy file.
 #' @param XDist The width of your desired BGrid.
@@ -14,42 +14,38 @@
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A BGrid based on the parameters given.  If an error occurs, a default grid is provided.
 getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, seriesName, debug=FALSE) {
-	switch(inputFileType, 
-		"netcdf" = {
-		    if(file.exists(as.character(inputFile)) && require(ncdf)){
-				library(ncdf)
+	if (file.exists(as.character(inputFile))) {
 		
-	            ## open the netCDF file
-	            ncdfObj = open.ncdf(inputFile)
-	            
-	            ## grab a slice (in grid form)
-	            bGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), 
-	                    count=c( XDist, YDist))
-		    }
-			else {
-				bGrid = simulate(XDist, YDist)
-			}
-		},
-	    "arcgis" = {
-			print(file.exists(as.character(inputFile)))
-			if(file.exists(as.character(inputFile)) && require(sp) && require(rgdal) 
-					&& require(raster)){
-				library(sp)
-				library(raster)
-				library(rgdal)
-				print("Arcgis")
-		        #For an arc/grid inputFile is the folder!:
-		        bGrid = raster(inputFile)
-	    	}
-			else {
-				bGrid = simulate(XDist, YDist)
-			}
-		},
-		"custom" = {
-			print("Loading file")
-			load("src//palmyrabath.RData")
-			bGrid = bath[startY:(startY+YDist),startX:(startX+XDist)]
-		})
+		if(inputFileType == "netcdf" && require(ncdf)){
+					library(ncdf)
+		            ## open the netCDF file
+		            ncdfObj = open.ncdf(inputFile)
+		            
+		            ## grab a slice (in grid form)
+		            bGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), 
+		                    count=c( XDist, YDist))
+	    }
+		else if(inputFileType == "arcgis" && require(sp) && require(rgdal) && require(raster)){
+					library(sp)
+					library(raster)
+					library(rgdal)
+			        #For an arc/grid inputFile is the folder!:
+			        bGrid = raster(inputFile)
+    	}
+		else if(inputFileType == "asc") {
+					load(inputFile)
+					bGrid = bath[startY:(startY+YDist),startX:(startX+XDist)]
+		}
+		else {
+			bGrid = simulate(XDist,YDist)
+		}
+	}
+	else {
+		print("File not found.")
+		bGrid = simulate(XDist,YDist)
+	}
+	#bGrid[is.na(bGrid)] <- 0
+	#print(bGrid)
     return(bGrid)
 }
 

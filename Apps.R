@@ -1,7 +1,7 @@
 #' Defines handlers for Rook URIs.
 #' 
 #' 
-source("Acoustic/R/Main.R")
+source("src/Main.R")
 library("rjson")
 
 #' The main function that calls the webapp with parameters

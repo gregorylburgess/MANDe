@@ -11,6 +11,3 @@ source("scripts/change.R")
 
 library(roxygen2)
 roxygenize("acoustic", copy=FALSE, roclets = c("collate", "namespace", "rd"))
-
-
-mapply()

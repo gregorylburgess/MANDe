@@ -27,15 +27,18 @@ run <- function(params, debug=FALSE, opt=FALSE){
     params = checkParams(params)
 
     ## Create/Load the Bathy grid for the area of interest
-    bGrid <- getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
+    bGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
             params$XDist, params$YDist, params$seriesName, debug)
     bGrid = list("bGrid"=bGrid, "cellRatio"=params$cellSize)
     ## Convert parameter values from meters to number of grid cell 
-    params <- convertMetersToGrid(params,bGrid)
+    params = convertMetersToGrid(params,bGrid)
     ## Specify a standard scale of x and y axes if previously undefined
-    if(!('x' %in% names(bGrid))) bGrid$x <- (1:dim(bGrid$bGrid)[1])*params$cellSize ##seq(0,1,length=dim(bGrid$bGrid)[1])
-    if(!('y' %in% names(bGrid))) bGrid$y <- (1:dim(bGrid$bGrid)[2])*params$cellSize ##seq(0,1,length=dim(bGrid$bGrid)[2])
-
+    if(!('x' %in% names(bGrid))) {
+		bGrid$x = (1:dim(bGrid$bGrid)[1])*params$cellSize 
+	}
+    if(!('y' %in% names(bGrid))) {
+		bGrid$y = (1:dim(bGrid$bGrid)[2])*params$cellSize
+	}
     ## Calculate fish grid
     fGrid = fish(params, bGrid)
 
@@ -76,88 +79,74 @@ test <- function(debug=FALSE, opt=FALSE) {
 	#notification option
 	params$userEmail = "epy00n@hotmail.com"
 	
-	## Array variables
+	## Sensor variables
 	params$numSensors = 10
-	params$cellSize = 3 ## in meters
-	params$bias = 3
-	
-	## Receiver variables
-        params$shapeFcn <- 'shape.gauss'
-        params$detectionRange <- 13
-	##params$sd = 3 ## Not needed anymore
+	params$bias = 1
+	params$sensorElevation <- 1
+    params$shapeFcn <- 'shape.gauss'
 	params$peak=.98 
-	##params$shapeFcn= "shape.gauss" ## Not needed anymore
-	##params$range = 3*params$sd ## Not needed anymore
-        params$sensorElevation <- 1
+    params$detectionRange <- 13
 	
 	# BGrid Variables
-	params$inputFile = "Pal_IKONOS\\pal_dball.asc"
-	params$inputFileType = "arcgis"
-	#params$startX = 370
-	#params$startY = 1200
-	#params$XDist = 80
-	#params$YDist = 80
-	params$startX = 1
-	params$startY = 1
-	params$XDist = 41
-	params$YDist = 35
+	params$inputFile = "src/palmyrabath.RData"
+	params$inputFileType = "asc"
 	params$seriesName = 'z'
+	params$cellSize = 3 
+	params$startX = 500
+	params$XDist = 300
+	params$startY = 500
+	params$YDist = 300
 	
-	## suppression variables
-        ##params$sparsity <- 0.9 ## This is a lower bound for sparsity
-	params$suppressionFcn = "suppression.scale"
-	params$suppressionFcn = "detection.function"
-	##params$suppressionFcn = "detection.function.shadow"
-	##params$suppressionFcn = "detection.function.exact"
-        ## suppression range
-        ##dists <- 1:max(c(params$XDist,params$YDist))
-        ##dfvals <- do.call(params$shapeFcn, list(dists, params))
-        ##params$detectionRange <- dists[min(which(dfvals<0.05))] ##This is different from range above as range is mostly used to cut out areas of grid, whereas detectionRange is closer to what we understand as the actual physical detection range, which is used in sparsity calculations
+	## Suppression Variables
 	params$suppressionRangeFactor = 2
-	params$maxsuppressionValue = 1  ## This is only relevant with suppression.scale
-	params$minsuppressionValue = .5 ## This is only relevant with suppression.scale
-	## Mean squared displacement of fish (a proxy for movement capacity)
-	##params$msd <- 0.1 ## Not needed anymore
-	## Sampling time step
-	##params$dt <- 1 ## Not needed anymore
+	params$suppressionFcn = "suppression.scale"
+	## This is only relevant with suppression.scale
+	params$maxsuppressionValue = 1
+	## This is only relevant with suppression.scale
+	params$minsuppressionValue = .5 
 	## Choose random walk type movement model
 	params$fishmodel <- 'rw'
-	## Set to TRUE if vertical habitat range is applied
-	if(FALSE){
+	if(params$fishmodel == 'ou'){
+		## OU parameter: center of home range
+		params$mux <- 0.7 ## Proportion of x scale
+		params$muy <- 0.5 ## Proportion of y scale
+		
+		## ----- OU: Home range shape and size parameters: -----
+		## SD of home range in x direction, sdx > 0 in meters
+		params$ousdx <- 25
+		## SD of home range in y direction, sdy > 0 in meters
+		params$ousdy <- 25
+		## Correlation between directions, -1 < cor < 1
+		params$oucor <- 0.7
+	}
+	## Apply vertical habitat range?
+	vHabitatRange = FALSE
+	if(vHabitatRange){
 	    ## Minimum depth (shallowest depth)
 	    params$mindepth <- -2
 	    ## Maximum depth (deepest depth)
 	    params$maxdepth <- -8
 	}
-	## Set to TRUE if depth preference should be applied
-	if(FALSE){
+	## Apply depth preference?
+	depthPref = FALSE
+	if(depthPref){
 	    ## Depth preference of fish relative to bottom (in meters off the bottom)
 	    params$dp <- 2
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
 	    params$dpsd <- 2
 	}
-	## Set to TRUE of Ornstein-Uhlenbeck (OU) movement should be applied
-	if(FALSE){
-	    ## Choose Ornstein-Uhlenbeck type movement model
-	    params$fishmodel <- 'ou'
-	    ## OU parameter: center of home range
-	    params$mux <- 0.7 ## Proportion of x scale
-	    params$muy <- 0.5 ## Proportion of y scale
-	    ## OU: Home range shape and size parameters
-	    params$ousdx <- 25 ## SD of home range in x direction, sdx > 0
-	    params$ousdy <- 25 ## SD of home range in y direction, sdy > 0
-	    params$oucor <- 0.7    ## Correlation between directions, -1 < cor < 1
-	}
 	
-	## Print time stamp (to be able to check run time)
-	result = run(params, debug, opt)
-	return(result)
+	return(run(params, debug, opt))
 }
 
 ##Rprof(tmp <- tempfile())
 ##asd <- test(opt=TRUE)
 ##Rprof()
 ##summaryRprof(tmp)
+
+
+#print(test())
+
 
 #system.time(result <- test(opt=TRUE))
 #system.time(result <- test(debug=FALSE,opt=TRUE))
