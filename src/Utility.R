@@ -298,10 +298,14 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
     dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
     usefGrid = params$bias==3
     for(c in 1:nc){
+		comp = c/nc
+		print(sprintf("completed:%g", comp))
         cind = max(c(1,c-rng)):min(c(nc,c+rng))
         for(r in 1:nr){
 			## Only calculate if sensor is below surface
-            if(belowSurf[r,c]){ 
+			## {{Patch}}
+			cell = belowSurf[r,c]
+            if(!is.na(cell) && cell){ 
                 rind = max(c(1,r-rng)):min(c(nr,r+rng))
                 pV = calc.percent.viz(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,params)
                 probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
@@ -363,7 +367,7 @@ calc.percent.viz = function(r,c,rind,cind,ng,nr,bG,land,sensorDepth,dpflag,param
         d2 = sort(dists[is],index=TRUE)
 		## If LOS is blocked by land don't calculate for cells behind
         blocks = land[losinds[d2$ix]] 
-        if(any(blocks)){
+        if(any(blocks, na.rm=TRUE)){
             if(!all(blocks)){
                 indsNoBlock = 1:(min(which(blocks))-1)
             }else{

@@ -81,8 +81,8 @@ test <- function(debug=FALSE, opt=FALSE) {
 	
 	## Sensor variables
 	params$numSensors = 10
-	params$bias = 1
-	params$sensorElevation <- 1
+	params$bias = 2
+	params$sensorElevation <- 0
     params$shapeFcn <- 'shape.gauss'
 	params$peak=.98 
     params$detectionRange <- 13
@@ -92,10 +92,10 @@ test <- function(debug=FALSE, opt=FALSE) {
 	params$inputFileType = "asc"
 	params$seriesName = 'z'
 	params$cellSize = 3 
-	params$startX = 500
+	params$startX = 100
 	params$XDist = 300
-	params$startY = 500
-	params$YDist = 300
+	params$startY = 150
+	params$YDist = 150
 	
 	## Suppression Variables
 	params$suppressionRangeFactor = 2
@@ -145,7 +145,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 ##summaryRprof(tmp)
 
 
-#print(test())
+test(opt=TRUE)
 
 
 #system.time(result <- test(opt=TRUE))
