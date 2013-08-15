@@ -1,48 +1,22 @@
 ## This file contains shape functions (also known as detection functions)
 ## Input: distance from receiver, shape parameters
 ## Output: detection probability
-## Todo: Possibly add Gompertz, linear, and other functions
+## Todo: Possibly add support for Gompertz, linear, student's t, sigmoidal, and other functions
 
-#{{Martin}} please fill in missing/incorrect details for all shape fcns.
 #' @title sf
 #' @name shape
-#' Decription
+
+#' Detection function with the shape of a half Gaussian distribution peaking
+#' at distance zero, and declining with increasing distances.
 #' 
 #' @param dist The distance from the tag to the reciever. 
-#' @param par A dictionary containing the keys 'sd' and 'peak', where sd defines a standard deviation, and peak defiens the peak value of the curve (maximum value).
+#' @param params A dictionary containing the keys 'sd' and 'peak', where sd defines a standard deviation, and peak defiens the peak value of the curve (maximum value).
 #' @return The probability of detecting a tag at a given dist with the given parameters.
-shape.t <- function(dist,par){
-    sd <- par$sd
-    peak <- par$peak
-    ## Shape based on t-distribution
-    return(peak*dt(dist/sd,df=1)/dt(0,df=1))
-}
-
-
-#' Decription
-#' 
-#' @param dist The distance from the tag to the reciever. 
-#' @param par A dictionary containing the keys 'sd' and 'peak', where sd defines a standard deviation, and peak defiens the peak value of the curve (maximum value).
-#' @return The probability of detecting a tag at a given dist with the given parameters.
-shape.gauss <- function(dist,par){
-	sd <- par$sd
-	peak <- par$peak
+shape.gauss <- function(dist,params){
+	sd <- params$sd
+	peak <- params$peak
     ## Shape based on normal distribution
 	#print(sprintf("Dist:%g",dist))
 	#print(sprintf("sd:%g",sd))
     return (peak*dnorm(dist/sd,0,1)/dnorm(0,0,1))
-}
-
-
-#' Decription
-#' 
-#' @param dist The distance from the tag to the reciever. 
-#' @param par A dictionary containing the keys 'sd' and 'peak', where sd defines a standard deviation, and peak defiens the peak value of the curve (maximum value).
-#' @return The probability of detecting a tag at a given dist with the given parameters.
-shape.sigmoidal <- function(dist,par){
-    pmax <- par[1]
-    D50 <- par[2]
-    D95 <- par[3]
-    ## Detection probability function from How and de Lestang 2012, eqn 3, note error in eqn 3, it should +exp not -exp
-    return(pmax/(1 + exp(log(19)*(dist-D50)/(D95-D50))))
 }

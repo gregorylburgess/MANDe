@@ -49,7 +49,7 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
     return(bGrid)
 }
 
-#' Creates a default BGrid to use if real data couldn't be loaded.
+#' Creates a default BGrid to use if real data could not be loaded.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param XDist The width of your desired BGrid.
