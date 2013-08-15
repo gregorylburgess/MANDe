@@ -61,10 +61,10 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
                                     params$suppressionRange, params$minsuppressionValue, 
                                     params$maxsuppressionValue, params, debug)
           }
-      }else{
-          grids = updateFGrid(maxLoc,grids,params,debug,opt)
-          grids = sumGridFun(grids, range, bias, params, debug, opt)
-      }
+        }else{
+            grids = updateFGrid(maxLoc,grids,params,debug,opt)
+            grids = sumGridFun(grids, range, bias, params, debug, opt)
+        }
     }
     return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid))
 }
@@ -103,9 +103,8 @@ updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
   dgrid2 = do.call(params$shapeFcn, list(dist, params)) 
 
   land = bG >= 0
+
   sensorDepth = bG + params$sensorElevation
-  ng = rows*cols
-  nr = rows
   ## If false then proportion of water column is calculated, if true depth preference is used
   dpflag = FALSE 
   pctviz = calc.percent.viz(loc$r,loc$c,rind,cind,bG,land,sensorDepth[loc$r,loc$c],dpflag,params)
@@ -302,6 +301,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
     sensorDepth = bG + params$sensorElevation
     belowSurf = sensorDepth < 0
     land = bG >= 0
+
     dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
     usefGrid = params$bias==3
     for(c in 1:nc){
@@ -378,7 +378,7 @@ calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
         is = ibig2ismall[losinds]
         d2 = sort(dists[is],index=TRUE)
         ## If LOS is blocked by land don't calculate for cells behind
-        blocks = land[losinds[d2$ix]] 
+        blocks = land[losinds[d2$ix]]
         if(any(blocks)){
             if(!all(blocks)){
                 indsNoBlock = 1:(min(which(blocks))-1)
@@ -1205,20 +1205,40 @@ checkParams = function(params) {
 				the depth specified, no fish will be generated.", stderr())
 	}
 
-    # suppression Function Defaults
-    if(!('suppressionFcn' %in% names)) {
-        params$suppressionFcn = "detection.function"
-        params$sparsity = 0.5
-        ##params$maxsuppressionValue = 0
-        ##params$minsuppressionValue = 0
+    # Bathymetry defaults
+    if(('inputFile' %in% names)) {
+        params$inputFile = as.character(params$inputFile)
+    }
+    if(('inputFileType' %in% names)) {
+        params$inputFileType = as.character(params$inputFileType)
+    }   else {
+                params$inputFileType = 'custom'
+        }
+    if(!('cellSize' %in% names)) {
+        params$cellSize = 1
+    }
+    if(!('startX' %in% names)) {
+        params$startX = 1
+    }
+    if(!('startY' %in% names)) {
+        params$startY = 1
+    }
+    if(!('XDist' %in% names)) {
+        params$XDist = 21
+    }
+    if(!('YDist' %in% names)) {
+        params$YDist = 21
+    }
+    if(!('seriesName' %in% names)) {
+        params$seriesName = 'z'
     }	else {
-		params$suppressionFcn = as.character(params$suppressionFcn)
+		params$seriesName = as.character(params$seriesName)
 	}
-    
+
     # Shape Function Defaults
     if(!('shapeFcn' %in% names)) {
         params$shapeFcn = "shape.gauss"
-        params$detectionRange = 2
+        params$detectionRange = 3*params$cellSize
         params$peak = 0.98
     }	else {
 		params$shapeFcn = "shape.gauss" ##as.character(params$shapeFcn) ## Always use Gauss for simplicity
@@ -1232,29 +1252,25 @@ checkParams = function(params) {
                 params$sensorElevation = as.numeric(params$sensorElevation)
         }
     
-    # Bathymetry defaults
-	if(('inputfile' %in% names)) {
-		params$inputfile = as.character(params$inputfile)
-	}
-    if(!('cellSize' %in% names)) {
-        params$cellSize = 1
-    }
-    if(!('startX' %in% names)) {
-        params$startX = 9000
-    }
-    if(!('startY' %in% names)) {
-        params$startY = 8000
-    }
-    if(!('XDist' %in% names)) {
-        params$startY = 10
-    }
-    if(!('YDist' %in% names)) {
-        params$startY = 10
-    }
-    if(!('seriesName' %in% names)) {
-        params$seriesName = 'z'
+    ## Approximate upper bound for suppression range
+    studyArea = params$XDist * params$YDist * params$cellSize^2
+    areaPerSensor = studyArea/params$numSensors
+    requiredDetectionRange = 2*sqrt(areaPerSensor/pi)
+    maxSuppressionRangeFactor = requiredDetectionRange/params$detectionRange
+    
+    # Suppression Defaults
+    if(!('suppressionFcn' %in% names)) {
+        params$suppressionFcn = "detection.function"
     }	else {
-		params$seriesName = as.character(params$seriesName)
+		params$suppressionFcn = as.character(params$suppressionFcn)
+	}
+    if(!('suppressionRangeFactor' %in% names)) {
+        params$suppressionRangeFactor = 2
+    }	else {
+		params$suppressionRangeFactor = as.numeric(params$suppressionRangeFactor)
+                if(params$suppressionRangeFactor > maxSuppressionRangeFactor){
+                    params$suppressionRangeFactor = maxSuppressionRangeFactor
+                }
 	}
     
     # Fish Modeling

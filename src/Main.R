@@ -81,25 +81,25 @@ test <- function(debug=FALSE, opt=FALSE) {
 	
 	## Sensor variables
 	params$numSensors = 10
-	params$bias = 1
+	params$bias = 3
 	params$sensorElevation <- 1
-    params$shapeFcn <- 'shape.gauss'
+        params$shapeFcn <- 'shape.gauss'
 	params$peak=.98 
-    params$detectionRange <- 13
+        params$detectionRange <- 100
 	
 	# BGrid Variables
 	params$inputFile = "src/palmyrabath.RData"
 	params$inputFileType = "asc"
 	params$seriesName = 'z'
-	params$cellSize = 3 
-	params$startX = 500
-	params$XDist = 300
-	params$startY = 500
-	params$YDist = 300
+	params$cellSize = 5 
+	params$startX = 350
+	params$XDist = 100
+	params$startY = 1200
+	params$YDist = 100
 	
 	## Suppression Variables
 	params$suppressionRangeFactor = 2
-	params$suppressionFcn = "suppression.scale"
+	params$suppressionFcn = "detection.function"
 	## This is only relevant with suppression.scale
 	params$maxsuppressionValue = 1
 	## This is only relevant with suppression.scale
@@ -161,9 +161,10 @@ if(FALSE){
   plot.bathy <- TRUE
   graphics.off()
   plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+  #dev.new()
+  #plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
   dev.new()
-  plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
-  plotAcousticCoverage(result,xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+  plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
   dev.new()
   plotUniqueRR(result)
 }
