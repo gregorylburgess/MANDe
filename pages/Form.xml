@@ -5,7 +5,7 @@
 			<Field id="userEmail" label="User Email" type="text" toolTip="If you provide an email address, we will notify you when your job has finished processing.  This is useful for long requests.">example@mailservice.com</Field>			
 		</Fields>
 		<Fields>
-			<Field id="opt" label="Use Optimized R?" type="select" toolTip="Directive to use C/R code.">		
+			<Field id="opt" label="Use Optimized R?" type="select" toolTip="Directive to use R code.">		
 				<Options>
 					<Option label="Use Optimized R">TRUE</Option>
 					<Option label="Use Unoptimized R">FALSE</Option>
@@ -21,19 +21,19 @@
 					<Option label="Ornstein-Uhlenbeck (OU)">True</Option>
 				</Options>
 				<Hidable>
-					<HField id="mux"  label="Center of Home Range (X value)"  type="text"  toolTip="The X value for the center of the home range.">
+					<HField id="mux"  label="Home Range Center (X value)"  type="text"  toolTip="X coordinate of the home range center given as proportion of the x axis.">
 						0.4
 					</HField>
-					<HField id="muy"  label="Center of Home Range (Y value)"  type="text"  toolTip="The Y value for the center of the home range.">
+					<HField id="muy"  label="Home Range Center (Y value)"  type="text"  toolTip="Y coordinate of the home range center given as proportion of the y axis.">
 						0.4
 					</HField>
-					<HField id="ousdx"  label="Home Range Directional Correlation (X value)"  type="text"  toolTip="The SD of home range in the x direction in meters.">
+					<HField id="ousdx"  label="Home Range Extent (X value)"  type="text"  toolTip="SD of the utilization distribution in the x direction in meters.">
 						25
 					</HField>
-					<HField id="ousdy"  label="Home Range Directional Correlation (Y value)"  type="text"  toolTip="The SD of home range in the y direction in meters.">
+					<HField id="ousdy"  label="Home Range Extent (Y value)"  type="text"  toolTip="SD of the utilization distribution in the y direction in meters.">
 						25
 					</HField>
-					<HField id="oucor"  label="SD of Home Range Directional Correlation"  type="text"  toolTip="The correlation between directions, -1 &lt; x &lt; 1.">
+					<HField id="oucor"  label="Directional Correlation of Home Range"  type="text"  toolTip="The correlation between x and y directions, -1 &lt; x &lt; 1.">
 						0.7
 					</HField>
 				</Hidable>
@@ -133,7 +133,7 @@
 
 	<Group id="Suppression Variables">
 		<Fields>
-			<Field id="suppressionRangeFactor"  label="Suppression Factor"  type="text"  toolTip="Specifies the ratio of suppression range to sensor range.">
+			<Field id="suppressionRangeFactor"  label="Suppression Factor"  type="text"  toolTip="Specifies the ratio of suppression range to sensor detection range.">
 				2
 			</Field>
 			<Field id="suppressionFcn"  label="Suppression Function"  type="select"  toolTip="The suppression function to use.">

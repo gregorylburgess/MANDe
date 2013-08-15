@@ -44,12 +44,17 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 		print("File not found.")
 		bGrid = simulate(XDist,YDist)
 	}
-	#bGrid[is.na(bGrid)] <- 0
+
+        ## Quick fix to get rid of NA in bGrid, should probably be interpolated (or something)
+        if(any(is.na(bGrid))){
+            bGrid[is.na(bGrid)] <- 0
+        }
+
 	#print(bGrid)
     return(bGrid)
 }
 
-#' Creates a default BGrid to use if real data couldn't be loaded.
+#' Creates a default BGrid to use if real data could not be loaded.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param XDist The width of your desired BGrid.
