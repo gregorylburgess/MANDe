@@ -1,7 +1,7 @@
-#' @title s
-#' @name bathy
-#' 
-#' @description Generates a Bathymetric Grid (BGrid) for the program to use.  Able to ingest NetCDF, ArcGIS, and ASC file formats.
+
+#' @name getBathy
+#' @title Generates a Bathymetric Grid (BGrid) for the program to use.  Able to ingest NetCDF, 
+#' ArcGIS, and ASC file formats.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param inputFile The relative path to the file to open.
@@ -54,7 +54,8 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
     return(bGrid)
 }
 
-#' Creates a default BGrid to use if real data could not be loaded.
+#' @name simulate
+#' @title Creates a default BGrid to use if real data could not be loaded.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param XDist The width of your desired BGrid.

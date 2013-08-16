@@ -1,10 +1,8 @@
-# Models Fish Behavior.  Outputs a Fish grid with the same dimensions as the Bathymetry grid,
-# containing the percentage of transmissions sent per cell.
 library(mvtnorm)
-#' @title f
-#' @name fmodel
-#' Generates a Fish Location Grid (FGrid) for the program to use.  Values in the cells of this grid 
-#' are expressed as a percentage of the total number of fish on the grid.
+#' @name fish
+#' @title Generates a Fish Location Grid (FGrid) for the program to use.  
+#' @description Values in the cells of this grid are expressed as a percentage of 
+#' the total number of fish on the grid.
 #' 
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.  
 #' @param bGrid A valid BGrid.
@@ -48,11 +46,16 @@ fish <- function(params, bGrid) {
     return (fGrid)
 }
 
-#' @name verticalhabitat
-#' A helper function that indicates if a cell has a depth between mindepth and maxdepth.  
-#' 
+#' @name verticalHabitat
+#' @title A vectorized helper function that indicates if a cell has a depth 
+#' between mindepth and maxdepth.  
+#' @description Returns boolean grid.  Cells between the given depths are set to TRUE,
+#' and all other cells are set to FALSE.
 #' @param mindepth The shallowest depth a fish will visit.
 #' @param maxdepth The deepest depth a fish will visit.
 #' @param bGrid A valid BGrid.
-#' @return TRUE if the cell is between the depth restrictions, FALSE otherwise.
-verticalHabitat <- function(mindepth,maxdepth,bGrid) bGrid < mindepth & bGrid > maxdepth
+#' @return A boolean grid with values set to TRUE if the cell is between the depth restrictions,
+#' and FALSE otherwise.
+verticalHabitat <- function(mindepth,maxdepth,bGrid) {
+	bGrid < mindepth & bGrid > maxdepth
+}

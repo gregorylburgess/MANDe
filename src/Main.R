@@ -11,9 +11,9 @@ source('src/Bathy.R')
 source('src/FishModel.R')
 source('src/Utility.R')
 
-#' @title m
-#' @name base
-#' Runs the simulation with the provided parameters.
+
+#' @name run
+#' @title  the simulation with the provided parameters.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
@@ -66,8 +66,9 @@ run <- function(params, debug=FALSE, opt=FALSE){
     return(results)
 }
 
-#' Executes a test run of the program, using default parameters.  
-#' No additional parameters are necessary.
+#' @name test
+#' @title Executes a test run of the program, using default parameters.  No additional 
+#' parameters are necessary.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
@@ -144,8 +145,6 @@ test <- function(debug=FALSE, opt=FALSE) {
 ##Rprof()
 ##summaryRprof(tmp)
 
-
-test(opt=TRUE)
 
 
 #system.time(result <- test(opt=TRUE))

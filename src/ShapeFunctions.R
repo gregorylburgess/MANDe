@@ -3,10 +3,8 @@
 ## Output: detection probability
 ## Todo: Possibly add support for Gompertz, linear, student's t, sigmoidal, and other functions
 
-#' @title sf
-#' @name shape
-
-#' Detection function with the shape of a half Gaussian distribution peaking
+#' @name shape.gauss
+#' @title  Detection function with the shape of a half Gaussian distribution peaking
 #' at distance zero, and declining with increasing distances.
 #' 
 #' @param dist The distance from the tag to the reciever. 
@@ -15,8 +13,5 @@
 shape.gauss <- function(dist,params){
 	sd <- params$sd
 	peak <- params$peak
-    ## Shape based on normal distribution
-	#print(sprintf("Dist:%g",dist))
-	#print(sprintf("sd:%g",sd))
     return (peak*dnorm(dist/sd,0,1)/dnorm(0,0,1))
 }

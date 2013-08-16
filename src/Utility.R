@@ -1,8 +1,9 @@
 source("src/ShapeFunctions.R")
-#' @title u
-#' @name util
-#' Finds a "good" set of sensor placements for a given setup [bGrid, fGrid, params].
-#' Returns a list of locations as grid coordinates.
+#' @name sensorFun
+#' @title Calls functions to generate a 'goodness' grid and choose sensor locations.
+#' @details Finds a "good" set of sensor placements for a given setup [bGrid, fGrid, params].
+#' Returns a list of locations as grid coordinates, and the calculated sumGrid (goodness grid).
+#' Bias value controls the 'goodness' algorithm that gets called.
 #' Bias cases:
 #' 1. Fish density only.
 #' 2. Visibility due to Bathy only.
@@ -121,9 +122,10 @@ updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
 }
 
 
-#' @description Calculates the composite "goodness" grid for a particular bias.
-#' 
-#' @details 
+#' @name sumGridFun
+#' @title Calculates the composite "goodness" grid for a particular bias.
+#' @description Calls a particular sumGrid function based on the bias and opt values.  Actual work
+#' 			is done by the called function.
 #'
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
@@ -331,20 +333,25 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
     return(grids)
 }
 
-#' @description Calculates a matrix centered around the current cell (r,c) and containing the percentage
+#' @name calc.percent.viz
+#' @title Calculates a matrix centered around the current cell (r,c) and containing the percentage
 #' of the water column in the surrounding cells that is visible to a sensor placed in the
 #' current cell.
 #'
 #' 
-#' @param r Row of the current cell in the bGrid
-#' @param c Column of the current cell in the bGrid
-#' @param rind Row indices of the bGrid to calculate visibility percentage
-#' @param cind Column indices of the bGrid to calculate visibility percentage
-#' @param bGrid A valid bGrid
-#' @param land Matrix containing logicals (TRUE = land cell) indicating wheter a cell in the bGrid is a land cell.
+#' @param r Row of the current cell in the bGrid.
+#' @param c Column of the current cell in the bGrid.
+#' @param rind Row indices of the bGrid to calculate visibility percentage.
+#' @param cind Column indices of the bGrid to calculate visibility percentage.
+#' @param bGrid A valid bGrid.
+#' @param land Matrix containing logicals (TRUE = land cell) indicating wheter a cell 
+#' in the bGrid is a land cell.
 #' @param sensorDepth Depth of sensor in current cell.
-#' @param dpflag If TRUE depth preference is used meaning that the percentage of visible fish is calculated, if FALSE visible water column is calculated.
-#' @param params A list of three variables: the percentage visibility of the surrounding cells, the distance to the surrounding cells from the current cell, the indices of bGrid to which these visibilities/distances pertain
+#' @param dpflag If TRUE depth preference is used meaning that the percentage of visible 
+#' fish is calculated, if FALSE visible water column is calculated.
+#' @param params A list of three variables: the percentage visibility of the surrounding 
+#' cells, the distance to the surrounding cells from the current cell, the indices of bGrid 
+#' to which these visibilities/distances pertain
 #' @return Returns the grids parameter, with an updated sumGrid.
 calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
     rows = dim(bGrid)[1]
@@ -688,8 +695,8 @@ detect = function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 
 
 
-#' Returns the percent of the water column visible at a target cell from a starting cell.  
-#' If 'depth_off_bottom' and 'depth_off_bottom_sd' are keys in 'params', then the algorithm 
+#' @title Returns the percent of the water column visible at a target cell from a starting cell.  
+#' @description If 'depth_off_bottom' and 'depth_off_bottom_sd' are keys in 'params', then the algorithm 
 #' assumes a normal distribution of fish within the specified zone and will return
 #' the integral of the visible zone.  Otherwise, it assumes an equal distribution of fish 
 #' throughout the watercolumn.
@@ -702,7 +709,8 @@ detect = function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return The percent of the watercolumn that is visible (as a double between 0 and 1).
 checkLOS= function(bGrid, startingCell, targetCell, params, debug=FALSE) {
-    sensorElevation = params["sensorElevation"]
+    sensorElevation = params$sensorElevation
+	# find the linear distance between the cells
     dist = sqrt((startingCell$c - targetCell$c)^2 + (startingCell$r - targetCell$r)^2)
     if (dist ==0) {
         return(1)
@@ -893,9 +901,7 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
         }
         useinds = !(cols == startingCell$c & rows == startingCell$r)
         if(is.null(nr)){
-          ##crds = data.frame("x"=cols,"y"=rows)
           return( cbind(cols[useinds],rows[useinds]) )
-          ##return( crds[!(crds$x == startingCell$c & crds$y == startingCell$r),] )
         }else{
           return( biginds[useinds] )
         }
@@ -948,31 +954,31 @@ graph = function(result, params, plot.bathy=TRUE) {
 	## BGrid
 	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	png(filenames$bGrid)
-        plotGrid(result,type='bGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+    plotGrid(result,type='bGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## FGrid
 	filenames$fGrid = sprintf("img/fGrid-%g.png", time)
 	png(filenames$fGrid)
-        plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+    plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## SumGrid
 	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
 	png(filenames$sumGrid)
-        plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+    plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## Acoustic Coverage
 	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
 	png(filenames$acousticCoverage)
-        plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+    plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 
         ## Unique Recovery Rate
 	filenames$recoveryRates = sprintf("img/recoveryRates-%g.png", time)
 	png(filenames$recoveryRates)
-        plotUniqueRR(result)
+    plotUniqueRR(result)
 	dev.off()
 
 	return(filenames)
@@ -1001,7 +1007,9 @@ plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRU
       grid = result$stats$acousticCoverage
     }
     image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab)
-    if(plot.bathy) contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
+    if(plot.bathy) {
+		contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
+	}
     plotSensors(result)
 }
 
