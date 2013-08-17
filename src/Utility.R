@@ -741,6 +741,8 @@ checkLOS= function(bGrid, startingCell, targetCell, params, debug=FALSE) {
 		
         # pnorm gives the percent below the given point, so subtract from 1
         # to get the percent above the given point
+		# {{GREG}}
+		# emulate below line format/params
 		areaToCorrectFor = 1 - (pnorm(bGrid[targetCell$r,targetCell$c]))
         percentVisibility = 1 - (pnorm(targetCellsVisibleDepth,mean=mean,sd=sd))
 		percentVisibility = percentVisibility/areaToCorrectFor
