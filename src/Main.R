@@ -82,7 +82,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 	
 	## Sensor variables
 	params$numSensors = 10
-	params$bias = 3
+	params$bias = 1
 	params$sensorElevation <- 1
         params$shapeFcn <- 'shape.gauss'
 	params$peak=.98 
@@ -121,12 +121,12 @@ test <- function(debug=FALSE, opt=FALSE) {
 		params$oucor <- 0.7
 	}
 	## Apply vertical habitat range?
-	vHabitatRange = FALSE
+	vHabitatRange = TRUE
 	if(vHabitatRange){
 	    ## Minimum depth (shallowest depth)
-	    params$mindepth <- -2
+	    params$mindepth <- -5
 	    ## Maximum depth (deepest depth)
-	    params$maxdepth <- -8
+	    params$maxdepth <- -10
 	}
 	## Apply depth preference?
 	depthPref = FALSE
@@ -145,9 +145,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 ##Rprof()
 ##summaryRprof(tmp)
 
-
-
-#system.time(result <- test(opt=TRUE))
+##system.time(result <- test(opt=TRUE))
 #system.time(result <- test(debug=FALSE,opt=TRUE))
 
 if(FALSE){
