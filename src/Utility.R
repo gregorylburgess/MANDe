@@ -44,8 +44,8 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
         # find the max location 
         maxLoc = which.max(grids$sumGrid)
         # Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
-        c=ceiling(maxLoc/rows)
-        r=(maxLoc %% rows)
+        c = ceiling(maxLoc/rows)
+        r = (maxLoc %% rows)
         if (r==0) {
             r=rows
         }
@@ -533,8 +533,8 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
         print(sprintf("loc: (%g,%g)",loc$c,loc$r))
         print("sumGrid")
         print(sumGrid)
-		print("bGrid")
-		print(bGrid)
+        print("bGrid")
+        print(bGrid)
     }
     suppressionFcn = params$suppressionFcn
     minsuppressionValue = params$minsuppressionValue
@@ -1033,7 +1033,7 @@ plotUniqueRR = function(result){
     plot.intersect(ns,result$stats$uniqRecoveryRate,col='orange',lty=1)
     grid()
     text(0.05*length(result$stats$uniqRRs),result$stats$uniqRecoveryRate,round(result$stats$uniqRecoveryRate,digits=4),pos=3)
-    legend('bottomright',c('Calculated','Projected','Requested'),lty=c(1,2,1),col=c(1,1,'orange'),bg='white')
+    legend('bottomright',c('Calculated','Requested','Projected'),lty=c(1,1,2),col=c(1,'orange',1),bg='white')
     duRR = diff(c(0,result$stats$uniqRRs))
     plot(1:ns,duRR[1:ns],typ='l',xlab='Number of sensors',ylab='Increase in unique RR',ylim=c(0,max(duRR)),xlim=c(0,nsmax))
     points(1:ns,duRR[1:ns],pch=46,cex=3)
@@ -1142,24 +1142,26 @@ stats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     for(i in 1:numProj) demap[,,i] = do.call(params$shapeFcn, list(dimap[,,i], params))
 
     ## Incorporate vertical detection probability using line of sight
-    ng = rows*cols
-    bG = bGrid$bGrid
-    nr = dim(bG)[1]
-    land = bG >= 0
-    sensorDepth = bG + params$sensorElevation
-    rng = params$range
-    ## If false then proportion of water column is calculated, if true depth preference is used
-    dpflag = FALSE 
-    for(i in 1:numProj){
-      r = ySens[i]
-      c = xSens[i]
-      cind = max(c(1,c-rng)):min(c(cols,c+rng))
-      rind = max(c(1,r-rng)):min(c(rows,r+rng))
-      pctviz = calc.percent.viz(ySens[i],xSens[i],rind,cind,bG,land,sensorDepth[ySens[i],xSens[i]],dpflag,params)
-      testmap = matrix(0,rows,cols)
-      testmap[pctviz$inds] = pctviz$percentVisibility
-      testmap[r,c] = 1
-      demap[,,i] = demap[,,i] * testmap
+    if(params$bias!=1){
+      ng = rows*cols
+      bG = bGrid$bGrid
+      nr = dim(bG)[1]
+      land = bG >= 0
+      sensorDepth = bG + params$sensorElevation
+      rng = params$range
+      ## If false then proportion of water column is calculated, if true depth preference is used
+      dpflag = FALSE 
+      for(i in 1:numProj){
+        r = ySens[i]
+        c = xSens[i]
+        cind = max(c(1,c-rng)):min(c(cols,c+rng))
+        rind = max(c(1,r-rng)):min(c(rows,r+rng))
+        pctviz = calc.percent.viz(ySens[i],xSens[i],rind,cind,bG,land,sensorDepth[ySens[i],xSens[i]],dpflag,params)
+        testmap = matrix(0,rows,cols)
+        testmap[pctviz$inds] = pctviz$percentVisibility
+        testmap[r,c] = 1
+        demap[,,i] = demap[,,i] * testmap
+      }
     }
 
     ## Coverage map
@@ -1178,7 +1180,8 @@ stats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     srt = sort(duniqRRs,index=TRUE,decreasing=TRUE) 
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)
     
-    statDict$sensorMat = sensorMat[srt$ix,]
+    statDict$sensorMatNotSorted = sensorMat
+    statDict$sensorMat = sensorMat[srt$ix,] ## This causes weirdnes, have to look at this
     statDict$uniqRRs = cumsum(srt$x)
     ## Acoustic coverage for best sensors
     statDict$acousticCoverage = 1-apply(1-demap[,,srt$ix[1:numSensors]],c(1,2),prod) 
