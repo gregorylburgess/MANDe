@@ -71,7 +71,11 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 }
 
 
-#' Updates the FGrid after each sensor is placed to reflect which areas that are already covered by sensors.
+#' @title Updates the FGrid after each sensor is placed to reflect which areas that are already covered by sensors.
+#' @description When a sensor is placed the FGrid must be updated to reflect where unique signals are emitted.
+#' This is done by calculating the coverage of the sensor given by loc and then downweighing the FGrid
+#' using this coverage such that locations that are well covered by the sensor at loc is downweighed more
+#' that poorly covered locations.
 #'
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
@@ -90,33 +94,41 @@ updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
   dims = dim(grid)
   rows = dim(grid)[1]
   cols = dim(grid)[2]
-  ## Use range as in sumGrid calculation
+  ## get rows and column indices for relevant area
   vals = getArea(loc, dims, params$range) 
 
   rind = vals$rs:vals$re
   cind = vals$cs:vals$ce
   nrows = length(rind)
   ncols = length(cind)
+  ## Make matrices with row and column indices to allow vectorized calculations
   Rind = matrix(rep(rind,ncols),nrows,ncols)
   Cind = matrix(rep(cind,nrows),nrows,ncols,byrow=TRUE)
+  ## Calculate a matrix containing the distances from loc to all cells
   dist = sqrt( (loc$c-Cind)^2 + (loc$r-Rind)^2 )
-  ## Detection fun supp
+  ## Calculate the detection function value at all grid points
   dgrid2 = do.call(params$shapeFcn, list(dist, params)) 
-
+  ## Create a matrix where land cells have value TRUE
   land = bG >= 0
-
-  sensorDepth = bG + params$sensorElevation
-  ## If false then proportion of water column is calculated, if true depth preference is used
-  dpflag = FALSE 
-  pctviz = calc.percent.viz(loc$r,loc$c,rind,cind,bG,land,sensorDepth[loc$r,loc$c],dpflag,params)
+  ## Create the depth value of a sensor placed at loc
+  sensorDepth = bG[loc$r,loc$c] + params$sensorElevation
+  ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+  dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+  ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
+  pctviz = calc.percent.viz(loc$r,loc$c,rind,cind,bG,land,sensorDepth,dpflag,params)
+  ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+  ## Initialize
   testmap = matrix(0,rows,cols)
+  ## Insert values at correct indices
   testmap[pctviz$inds] = pctviz$percentVisibility
+  ## 100% detected in self cell
   testmap[loc$r,loc$c] = 1
-  ## Line of sight supp
-  dgrid1 = testmap[rind,cind] 
+  ## Copy relevant area to dgrid1
+  dgrid1 = testmap[rind,cind]
+  ## dgrid contains downweighing values
   dgrid = 1 - (dgrid1 * dgrid2)
   ## Downweigh observed region
-  grid[rind,cind] = grid[rind,cind] * dgrid 
+  grid[rind,cind] = grid[rind,cind] * dgrid
   grids$fGrid = grid
   return(grids)
 }
@@ -208,20 +220,23 @@ sumGrid.sumSimple = function (grids, key, range, debug=FALSE) {
 }
 
 
-#' Simply sums the values within range of a cell, for each cell in the given grid.
-#' This is a speed optimized version, which uses the convolution operation (which
+#' @title Simply sums the values within range of a cell, for each cell in the given grid.
+#' @description This is a speed optimized version, which uses the convolution operation (which
 #' mainly gains it speed from using FFT) as an alternative to running through tedious
 #' R for loops.
 #'
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param key A key to the dictionary provided in the 'grids' parameter specifying which grid should be summed.
-#' @param range The range of the sensor in bathymetric cells.
+#' @param range The range of the sensor in bathymetric cells (integer).
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated sumGrid.
 sumGrid.sumSimple.opt = function (grids, key, range, debug=FALSE) {
-	## Assume that range is an integer
-    kernel = rep(1,2*range+1) 
+    ## Initialize the kernel, the total range of cells affecting the current cell is 2*range + 1 (-range to range including the current cell itself)
+    kernel = rep(1,2*range+1)
+    ## Extract relevant grid as given by key
     tempGrid = get(key, grids)
+    ## Do convolution. This operation is identical to the for loop in sumGrid.sumSimple
+    ## For more general information about how the convolution operation is defined google it! wikipedia has a decent explanation
     grids$sumGrid = conv.2D(tempGrid,kernel,kernel)
 
     if(debug){
@@ -281,9 +296,10 @@ sumGrid.sumBathy = function (grids, range, shapeFcn="shape.t",
 }
 
 
-#' # Sums the result of calling the detect() function on each cell within range of 
-#' a target cell for each cell in the given grid.
-#' [Optimized mainly using vectorization. This version also supports bias 3]
+#' @title Calculates the sumGrid when a line of sight bias is chosen (bias 2 or 3).
+#' @description Loops through all cells where sensor placement is valid (where sensor would be below surface)
+#' and calculates goodness. If bias is 2 only bathymetry (line of sight) is used to calculate goodness, whereas if
+#' bias is 3 both bathymetry and fish distribution (fGrid) are used. This function uses vectorized calculations.
 #' 
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
@@ -294,31 +310,42 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 
     nr = dim(grids$bGrid$bGrid)[1]
     nc = dim(grids$bGrid$bGrid)[2]
+    ## Calculate the number of cells in the bGrid
     ng = nr*nc
+    ## Make a copy of the bGrid to make code look nicer (could get rid of to save memory)
     bG = grids$bGrid$bGrid
-    ## Allocate memory
+    ## Initialize the sumGrid matrix (allocate memory)
     sumGrid = matrix(0,nr,nc)
-    ## Round to integer range
+    ## Make sure we use an integer range
     rng = round(params$range)
+    ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
     sensorDepth = bG + params$sensorElevation
+    ## Calculate a matrix where grid cells containing TRUE values would containg a sensor below the surface
     belowSurf = sensorDepth < 0
+    ## Create a matrix where land cells have value TRUE
     land = bG >= 0
-
+    ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
     dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
     usefGrid = params$bias==3
     for(c in 1:nc){
-		comp = c/nc
-		print(sprintf("completed:%g", comp))
+        comp = c/nc
+        print(sprintf("completed:%g", comp))
+        ## Column indices
         cind = max(c(1,c-rng)):min(c(nc,c+rng))
         for(r in 1:nr){
-			## Only calculate if sensor is below surface
-			## {{Patch}}
-			cell = belowSurf[r,c]
-            if(!is.na(cell) && cell){ 
+            ## Only calculate if sensor is below surface
+            ## {{Patch}}
+            cell = belowSurf[r,c]
+            if(!is.na(cell) && cell){
+                ## Row indices
                 rind = max(c(1,r-rng)):min(c(nr,r+rng))
+                ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at (r,c)
                 pV = calc.percent.viz(r,c,rind,cind,bG,land,sensorDepth[r,c],dpflag,params)
+                ## Calculate the detection function value at all grid points
                 probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
+                ## If bias == 3 include the fGrid in the calculations, if not just use bathymetry and detection function
                 if(usefGrid) probOfRangeDetection = probOfRangeDetection * grids$fGrid[pV$inds]
+                ## Calculate goodness of cell (r,c) by summing detection probabilities of all visible cells
                 sumGrid[r,c] = sum(probOfRangeDetection * pV$percentVisibility)
             }
         }
@@ -334,7 +361,8 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 }
 
 #' @name calc.percent.viz
-#' @title Calculates a matrix centered around the current cell (r,c) and containing the percentage
+#' @title Calculates the percentage of the water column in the surrounding cells that is visible to a sensor placed in the current cell.
+#' @description Calculates a matrix centered around the current cell (r,c) and containing the percentage
 #' of the water column in the surrounding cells that is visible to a sensor placed in the
 #' current cell.
 #'
@@ -352,7 +380,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 #' @param params A list of three variables: the percentage visibility of the surrounding 
 #' cells, the distance to the surrounding cells from the current cell, the indices of bGrid 
 #' to which these visibilities/distances pertain
-#' @return Returns the grids parameter, with an updated sumGrid.
+#' @return Returns a dictionary with three keys (all vectors): percentVisibility contains the percentage visible, inds contains the linear indices in the bGrid to which the visibilities pertain, dists contains the distance from the current cell to each of the returned cell.
 calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
     rows = dim(bGrid)[1]
     cols = dim(bGrid)[2]
@@ -366,59 +394,85 @@ calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
     tmp = which(!(rvec==r & cvec==c))
     rvec = rvec[tmp]
     cvec = cvec[tmp]
-    ## Translate to single index
+    ## Translate from row col index to to single index
     inds = sub2ind(rvec,cvec,nr) 
     ninds = length(inds)
-    ## Get depths, dists and slopes
+    ## Calculate distances from the current cell to the surrounding cells within range
     ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
-    disttmp = sort(sqrt((r-rvec)^2 + (c-cvec)^2),decreasing=TRUE,index=TRUE) 
+    disttmp = sort(sqrt((r-rvec)^2 + (c-cvec)^2),decreasing=TRUE,index=TRUE)
+    ## Save actual distances in the dists vector
     dists = disttmp$x
+    ## Get depths at the sorted cells by using disttmp$ix, which contains the sorted indices
     depths = bGrid[inds[disttmp$ix]]
+    ## Calculate the line of sight slopes to each of the sorted cells
     slopes = (depths-sensorDepth)/dists
+    ## Create a vector, which can be used to easily map an index in the sorted vector to an index in the rind by cind matrix
     ibig2ismall = rep(0,ng)
     ibig2ismall[inds[disttmp$ix]] = 1:ninds
+
+    ## Initialize vizDepths vector, this will be filled with visible depths below
     ## Assign small negative number to avoid problem with being exactly at the surface in pnorm
     vizDepths = rep(-1e-4,ninds)
+    ## Initialize the remaining vector, which contains the indices of the cells for which the vizDepth has not yet been calculated
     remaining = 1:ninds
 
-    ## Calculate visible depths
+    ## Calculate visible depths as long as uncalculated cells remain
     while(length(remaining)>0){
+        ## Since cells are sorted by decreasing distance taking the first index of remaining always gives the farthest uncalculated cell
         ii = remaining[1]
+        ## Find the indices of the cells within the line of sight from r,c to ii, losinds are indices of big grid
         losinds = getCells.opt(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
-        ## Get indices in small vectors (not whole grid)
+        ## Get indices in small sorted vector (not whole grid)
         is = ibig2ismall[losinds]
+        ## Sort the distances within LOS
         d2 = sort(dists[is],index=TRUE)
-		## If LOS is blocked by land don't calculate for cells behind
-        blocks = land[losinds[d2$ix]] 
+        ## Find indices of obstacles (land areas) in LOS. If LOS is blocked by land don't calculate for cells behind.
+        blocks = land[losinds[d2$ix]]
+        
         if(any(blocks, na.rm=TRUE)){
             if(!all(blocks)){
+                ## Find indices that are not blocked
                 indsNoBlock = 1:(min(which(blocks))-1)
             }else{
                 indsNoBlock = NULL
             }
         }else{
+            ## If theres no obstacles all cells in LOS are actually visible
             indsNoBlock = 1:length(losinds)
         }
-            
-        ## Here cummax ensures that the steepest slopes is used for calculating visible depth, it is important that the slopes are sorted in order of increasing distance from current cell to target cells, this is handled by d2$ix
+
+        ## Vectorized calculation of the visible depths of the unblocked cells with LOS using the simple formula for a line y = ax + b
+        ## a is cummax(slopes[is[d2$ix[indsNoBlock]]])
+        ## Here cummax ensures that the steepest slopes between the current cell (r,c) cell along the LOS is used for calculating visible depth, it is important that the slopes are sorted in order of increasing distance from current cell to target cells, this is handled by d2$ix
+        ## x is d2$x[indsNoBlock], the sorted distances from (r,c)
+        ## b is sensorDepth, which is the intercept of the line
         vizDepths[is[d2$ix[indsNoBlock]]] = cummax(slopes[is[d2$ix[indsNoBlock]]])*d2$x[indsNoBlock] + sensorDepth
+        ## Remove the cells from remaining for which calculations are done
         remaining = setdiff(remaining,is)
     }
 	
     ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])      
-    vizDepths[vizDepths>0] = -1e-4 
+    vizDepths[vizDepths>0] = -1e-4
+    ## Find indices that are not land cells
     indsNotLand = depths<0
     ## if we have normal distribution data (depth preference), use it
     if(dpflag) {
         ## compute % fish visible from sensor to target cell
+        ## calculate the mean fish depth in all cells
         mean = depths[indsNotLand] + params$depth_off_bottom
+        ## Values above water are set to be at the surface
         mean[mean>0] = 0
+        ## Save SD in sd for prettier code
         sd = params$depth_off_bottom_sd
             
         ## Get cum probability for "available" water (between depth pref and surf)
+        ## Cumulative probability below surface
         psurf = pnorm(0,mean=mean,sd=sd)
-        areaToCorrectFor = psurf - pnorm(depths[indsNotLand],mean=mean,sd=sd)
+        ## Calculate the percentage of visible fish (the area under the visible part of the normal curve)
         percentVisibility = psurf - pnorm(vizDepths[indsNotLand],mean=mean,sd=sd)
+        ## Probability within available water (from bottom to surface), if this value is different from 1 it means that the vertical fish distribution extends below the bottom and/or above the surface, in which case we need to normalise the probability between bottom and surface so it sums to one.
+        areaToCorrectFor = psurf - pnorm(depths[indsNotLand],mean=mean,sd=sd)
+        ## Correct for the distribution extending out of bounds
         percentVisibility = percentVisibility/areaToCorrectFor
     }else{
         ## if we don't have normal distribution data, assume equal distribution
@@ -516,7 +570,7 @@ supress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
 }
 
 
-#' Supresses the values of cells around a sensor using a specified suppressionFunction.
+#' @title Supresses the values of cells around a sensor using a specified suppressionFunction.
 #' [Optimized using vectorization].
 #' 
 #' @param sumGrid A valid SumGrid.
@@ -539,21 +593,20 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
     suppressionFcn = params$suppressionFcn
     minsuppressionValue = params$minsuppressionValue
     maxsuppressionValue = params$maxsuppressionValue
-    ## dfflag indicates wheter detection function should be used for suppression
+    ## dfflag indicates whether detection function variant should be used for suppression
     dfflag = suppressionFcn=='detection.function' | suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'
     rows = dim(sumGrid)[1]
     cols = dim(sumGrid)[2]
 	
-    if(dfflag){
-      ## Use range as in sumGrid calculation
-      vals = getArea(loc, dims, params$range) 
-    }else{
-      vals = getArea(loc, dims, params$suppressionRange)
-    }
+    ## Find the values that are affected by suppression (are within suppression range)
+    vals = getArea(loc, dims, params$suppressionRange)
+
+    ## Construct vectors containing row and col indices
     rind = vals$rs:vals$re
     cind = vals$cs:vals$ce
     nrows = length(rind)
     ncols = length(cind)
+    ## Create matrices containing row and col indices and use for vectorized calculation of distances from loc to surrounding cells
     Rind = matrix(rep(rind,ncols),nrows,ncols)
     Cind = matrix(rep(cind,nrows),nrows,ncols,byrow=TRUE)
     dist = sqrt( (loc$c-Cind)^2 + (loc$r-Rind)^2 )
@@ -567,31 +620,41 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
       supgrid[supgrid<0] = 0
       supgrid[supgrid>1] = 1
     }
+    ## Use detection function variant
     if(dfflag){
+      ## Save a temporary copy of params
       partmp = params
+      ## Alter the SD value such that the shape function uses the suppression SD and not the detection SD since the shape function looks for the sd key
       partmp$sd = partmp$suppsd
-      ## Detection fun supp
-      supgrid2 = do.call(params$shapeFcn, list(dist, partmp)) 
+      ## Detection fun suppression
+      supgrid2 = do.call(params$shapeFcn, list(dist, partmp))
+      ## If shadowing should be accounted for in the suppression
       if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
+        ## Create a matrix where land cells have value TRUE
         land = bGrid >= 0
-        sensorDepth = bGrid + params$sensorElevation
-        ng = rows*cols
-        nr = rows
-        ## If false then proportion of water column is calculated, if true depth preference is used
-        dpflag = FALSE 
-        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, bGrid, land,
-								   sensorDepth[loc$r,loc$c], dpflag, params)
+        ## Create the depth value of a sensor placed at loc
+        sensorDepth = bGrid[loc$r,loc$c] + params$sensorElevation
+        ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+        dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+        ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
+        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, bGrid, land, sensorDepth, dpflag, params)
+        ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+        ## Initialize
         testmap = matrix(0,rows,cols)
+        ## Insert values at correct indices
         testmap[pctviz$inds] = pctviz$percentVisibility
+        ## 100% detected in self cell
         testmap[loc$r,loc$c] = 1
-        ## Line of sight supp
+        ## Copy relevant area to dgrid1
         supgrid1 = testmap[rind,cind]
+        ## supgrid contains suppression values
         supgrid = 1 - (supgrid1 * supgrid2)
       }else{
+        ## supgrid contains suppression values
         supgrid = 1 - supgrid2
       }
     }
-    ## Do suppression
+    ## Do suppression at the relevant indices given by rind and cind
     sumGrid[rind,cind] = sumGrid[rind,cind] * supgrid
 
     return(sumGrid)
@@ -710,7 +773,7 @@ detect = function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 #' @return The percent of the watercolumn that is visible (as a double between 0 and 1).
 checkLOS= function(bGrid, startingCell, targetCell, params, debug=FALSE) {
     sensorElevation = params$sensorElevation
-	# find the linear distance between the cells
+    # find the linear distance between the cells
     dist = sqrt((startingCell$c - targetCell$c)^2 + (startingCell$r - targetCell$r)^2)
     if (dist ==0) {
         return(1)
