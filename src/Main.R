@@ -80,25 +80,25 @@ test <- function(debug=FALSE, opt=FALSE) {
 	params$userEmail = "epy00n@hotmail.com"
 	
 	## Sensor variables
-	params$numSensors = 10
-	params$bias = 1
+	params$numSensors = 4
+	params$bias = 3
 	params$sensorElevation <- 1
         params$shapeFcn <- 'shape.gauss'
 	params$peak=.98 
-        params$detectionRange <- 100
+        params$detectionRange <- 25
 	
 	# BGrid Variables
 	params$inputFile = "src/palmyrabath.RData"
 	params$inputFileType = "asc"
 	params$seriesName = 'z'
 	params$cellSize = 5 
-	params$startX = 350
-	params$XDist = 100
-	params$startY = 1200
-	params$YDist = 100
+	params$startX = 380
+	params$XDist = 40
+	params$startY = 1250
+	params$YDist = 40
 	
 	## Suppression Variables
-	params$suppressionRangeFactor = 2
+	params$suppressionRangeFactor = 99
 	params$suppressionFcn = "detection.function"
 	## This is only relevant with suppression.scale
 	params$maxsuppressionValue = 1
@@ -145,7 +145,7 @@ test <- function(debug=FALSE, opt=FALSE) {
 ##summaryRprof(tmp)
 
 ##system.time(result <- test(opt=TRUE))
-#system.time(result <- test(debug=FALSE,opt=TRUE))
+##system.time(result <- test(debug=FALSE,opt=TRUE))
 
 if(FALSE){
   print(result$stats$absRecoveryRate)

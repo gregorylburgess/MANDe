@@ -235,7 +235,7 @@ sumGrid.sumSimple.opt = function (grids, key, range, debug=FALSE) {
     ## Extract relevant grid as given by key
     tempGrid = get(key, grids)
     ## Do convolution. This operation is identical to the for loop in sumGrid.sumSimple
-    ## For more general information about how the convolution operation is defined google it! wikipedia has a decent explanation
+    ## For more general information about how the convolution operation is defined google it! wikipedia has a decent explanation.
     grids$sumGrid = conv.2D(tempGrid,kernel,kernel)
 
     if(debug){
@@ -377,10 +377,11 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 #' @param sensorDepth Depth of sensor in current cell.
 #' @param dpflag If TRUE depth preference is used meaning that the percentage of visible 
 #' fish is calculated, if FALSE visible water column is calculated.
-#' @param params A list of three variables: the percentage visibility of the surrounding 
-#' cells, the distance to the surrounding cells from the current cell, the indices of bGrid 
-#' to which these visibilities/distances pertain
-#' @return Returns a dictionary with three keys (all vectors): percentVisibility contains the percentage visible, inds contains the linear indices in the bGrid to which the visibilities pertain, dists contains the distance from the current cell to each of the returned cell.
+#' @param A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @return Returns a dictionary with three keys (all vectors): percentVisibility contains
+#' the percentage fish/signals visible in the surrounding cells, inds contains the linear
+#' indices in the bGrid to which the visibilities pertain, dists contains the distance
+#' from the current cell to each of the returned cells as given by inds.
 calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
     rows = dim(bGrid)[1]
     cols = dim(bGrid)[2]
@@ -571,7 +572,7 @@ supress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
 
 
 #' @title Supresses the values of cells around a sensor using a specified suppressionFunction.
-#' [Optimized using vectorization].
+#' @description This is an optimized version, which uses vectorization.
 #' 
 #' @param sumGrid A valid SumGrid.
 #' @param dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
@@ -710,16 +711,16 @@ suppression.scale = function (dist, suppressionRange, minsuppressionValue,
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a dictionary of start/end indexes for rows and columns respectively named : {rs,re,cs,ce}.
 getArea=function(loc, dims, range, debug=FALSE) {
-	# the row index for our central point
+    ## the row index for our central point
     r = loc$r
-	# the col index for our central point
+    ## the col index for our central point
     c = loc$c
-	# the max number of rows in the grid
+    ## the max number of rows in the grid
     rows = dims[1]
-	# the max number of cols in the grid
+    ## the max number of cols in the grid
     cols = dims[2]
     
-    # defines a square
+    ## defines a square
     rs0 = max(1, r - range) 
     re0 = min(rows, r + range)
     cs0 = max(1 ,c - range)
@@ -729,7 +730,7 @@ getArea=function(loc, dims, range, debug=FALSE) {
 }
 
 
-#'Determines the likelihood of a tag at a given position is detectable by a sensor at a 
+#' Determines the likelihood of a tag at a given position is detectable by a sensor at a 
 #' given position, using a specific shapeFunction.  This function considers Bathymetry and
 #' sensor range.
 #' 
@@ -926,50 +927,81 @@ getCells=function(startingCell, targetCell, debug=FALSE) {
 }
 
 
-#' Returns the cells crossed by a beam from the starting cell to
+#' @title Returns the cells crossed by a beam from the starting cell to
 #' the target cell.
-#' [Optimized using vectorization. Does not produce same output as getCells, same reported cells but order is different so should only be used together with other optimized code].
+#' @description This is an optimized using vectorization. It does not
+#' produce exactly the same output as getCells: the same cells are reported,
+#' but the cell order is different so this function should only be used
+#' together with other optimized code. 
 #' 
 #' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
 #' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param nr Number of rows in bGrid.
-#' @return A vector containing the linear indices (not row and col) of cells in the bGrid crossed by a beam from the starting cell to the target cell.
+#' @return If nr != NULL a vector is returned containing the linear indices
+#' (not row and col) of cells in the bGrid crossed by a beam from the starting
+#' cell to the target cell. If nr == NULL a matrix with a row column and a col
+#' column is returned.
 getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
     if(!(startingCell$ r== targetCell$r && startingCell$c == targetCell$c)){
+        ## Offset starting and target cells
         sC = offset(startingCell)
         tC = offset(targetCell)
-        e = 1e-6
+        ## Define a value slightly larger than -1
+        e = 1e-6 - 1
+        ## Slope of a beam (line) from start to target cell
+        ## Note: this is a slope in the horizontal not vertial plane
+        ## rows act as y vals, cols act as x vals
         a = (tC$r-sC$r)/(tC$c-sC$c)
+        ## If absolute slope is less than 1
         if(abs(a)<=1){
+            ## Intercept of beam
             b = sC$r - a*sC$c
-            cPoints = sort((startingCell$c):targetCell$c)-1
-            cols = ceiling(cPoints+e)
-            rows = ceiling(a*(cPoints+e) + b)
+            ## Column indices touched by beam (shift by e and then use ceiling to be sure to get the right column, this may unnecessary)
+            cPoints = sort(startingCell$c:targetCell$c) + e
+            cols = ceiling(cPoints)
+            ## Find rows touched by beam
+            rows = ceiling(a*cPoints + b)
+            ## More than one row can be touched per column if -1 < a < 1
             if(a!=1){
-                inds = which(abs(diff(rows))>0)
-                cols = c(cols,cols[inds])
+                ## inds contains the indices where within one column two rows were touched 
+                inds = which( abs(diff(rows))>0 )
+                ## Find the rows and add them to the rows vector
                 rows = c(rows,rows[inds+1])
+                ## Add the corresponding columns also
+                cols = c(cols,cols[inds])
             }
+            ## Convert to linear (not row col) indices in the bGrid
             if(!is.null(nr)) biginds = sub2ind(rows,cols,nr)
         }else{
+            ## If absolute slope is larger than 1 make rows act as x vals and cols as y vals
+            ## Change slope accordingly
             a = 1/a
+            ## Find intercept
             b = sC$c - a*sC$r
-            rPoints = sort((startingCell$r):targetCell$r)-1
-            rows = ceiling(rPoints+e)
-            cols = ceiling(a*(rPoints+e) + b)
+            ## Row indices touched by beam (shift by e and then use ceiling, this may unnecessary)
+            rPoints = sort((startingCell$r):targetCell$r) + e
+            rows = ceiling(rPoints)
+            ## Find columns touched by beam
+            cols = ceiling(a*rPoints + b)
+            ## If within a row multiple columns were touched add them and their rows
             inds = which(abs(diff(cols))>0)
             rows = c(rows,rows[inds])
             cols = c(cols,cols[inds+1])
+            ## Convert to linear (not row col) indices in the bGrid
             if(!is.null(nr)) biginds = sub2ind(rows,cols,nr)
         }
+        ## Indices to use are all of them except the starting cell
         useinds = !(cols == startingCell$c & rows == startingCell$r)
         if(is.null(nr)){
+          ## If nr is not input return a matrix with rows and cols
           return( cbind(cols[useinds],rows[useinds]) )
         }else{
+          ## If nr was input return the linear indices in the bGrid
           return( biginds[useinds] )
         }
     }else{
+        ## Return NULL if target cell is the starting cell
         return(NULL)
     }
 }
@@ -1018,40 +1050,43 @@ graph = function(result, params, plot.bathy=TRUE) {
 	## BGrid
 	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	png(filenames$bGrid)
-    plotGrid(result,type='bGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='bGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## FGrid
 	filenames$fGrid = sprintf("img/fGrid-%g.png", time)
 	png(filenames$fGrid)
-    plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## SumGrid
 	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
 	png(filenames$sumGrid)
-    plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 	
 	## Acoustic Coverage
 	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
 	png(filenames$acousticCoverage)
-    plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	dev.off()
 
         ## Unique Recovery Rate
 	filenames$recoveryRates = sprintf("img/recoveryRates-%g.png", time)
 	png(filenames$recoveryRates)
-    plotUniqueRR(result)
+        plotUniqueRR(result)
 	dev.off()
 
 	return(filenames)
 }
 
-#' Plots the specified grid.
+#' @title Plots the grid specified by the input type.
+#' @description In addition to the grid itself sensor locations are also plotted along
+#' with numbers indicating the order in which sensors were placed. Furthermore, bathymetry
+#' contours can be overlayed using the plot.bathy flag.
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
-#' @param type Character specifying grid type. Available grids: bGrid, fGrid, sumGrid, or acousticCoverage.
+#' @param type Character specifying grid type. Available grids: 'bGrid', 'fGrid', 'sumGrid', or 'acousticCoverage'.
 #' @param main Set title of plot.
 #' @param xlab Set label of x axis.
 #' @param ylab Set label of y axis.
@@ -1059,44 +1094,56 @@ graph = function(result, params, plot.bathy=TRUE) {
 #' @return Nothing.
 plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE){
     if(type=='bGrid'){
-      grid = result$bGrid$bGrid
+        grid = result$bGrid$bGrid
     }
     if(type=='fGrid'){
-      grid = result$fGrid
+        grid = result$fGrid
     }
     if(type=='sumGrid'){
-      grid = result$sumGrid
+        grid = result$sumGrid
     }
     if(type=='acousticCoverage'){
-      grid = result$stats$acousticCoverage
+        grid = result$stats$acousticCoverage
     }
+    ## Plot the actual grid as an image
     image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab)
     if(plot.bathy) {
-		contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
-	}
+        ## Add bathymetry contour
+        contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
+    }
+    ## Add sensors and their numbers
     plotSensors(result)
 }
 
 
-#' Plots cumulative unique recovery rate and gained unique recovery rate per sensor as a
-#' function of number of sensors (in the order they were placed).
+#' @title Plot unique recovery rate as a function of placed sensors.
+#' @description Two-way plot showing cumulative unique recovery rate (top) and gained
+#' unique recovery rate (bottom) per sensor as a function of number of sensors (in the
+#' order they were placed). This is useful when assessing the value of adding more sensors
+#' and when assessing the number of sensors required to obtain a certain recovery rate.
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @return Nothing.
 plotUniqueRR = function(result){
+    ## Find number of placed sensors
     ns = length(result$sensors)
+    ## Find number of sensors for which unique recovery rate was calculated
     nsmax = length(result$stats$uniqRRs)
+    ## Calculate the max value to use for the y-axis in TOP PLOT
+    ## It looks good to show 1 as the max y val, but only if we are relatively close (above 0.7)
     ymax = ifelse(max(result$stats$uniqRRs)>0.7,1.02,max(result$stats$uniqRRs))
+    ## Make two way plot
     par(mfrow=c(2,1),las=1)
+    ## TOP PLOT
     plot(0:ns,c(0,result$stats$uniqRRs[1:ns]),typ='l',xlab='Number of sensors',ylab='Unique recovery rate',ylim=c(0,ymax),xlim=c(0,nsmax))
     points(0:ns,c(0,result$stats$uniqRRs[1:ns]),pch=46,cex=3)
     lines(ns:length(result$stats$uniqRRs),result$stats$uniqRRs[ns:nsmax],lty=2)
-
     plot.intersect(ns,result$stats$uniqRecoveryRate,col='orange',lty=1)
     grid()
     text(0.05*length(result$stats$uniqRRs),result$stats$uniqRecoveryRate,round(result$stats$uniqRecoveryRate,digits=4),pos=3)
     legend('bottomright',c('Calculated','Requested','Projected'),lty=c(1,1,2),col=c(1,'orange',1),bg='white')
     duRR = diff(c(0,result$stats$uniqRRs))
+    ## BOTTOM PLOT
     plot(1:ns,duRR[1:ns],typ='l',xlab='Number of sensors',ylab='Increase in unique RR',ylim=c(0,max(duRR)),xlim=c(0,nsmax))
     points(1:ns,duRR[1:ns],pch=46,cex=3)
     lines(ns:nsmax,duRR[ns:nsmax],lty=2)
@@ -1104,7 +1151,8 @@ plotUniqueRR = function(result){
 }
 
 
-#' Adds sensors to current plot (an existing plot is required).
+#' @title Adds sensors to current plotGrid plot.
+#' @description This function assumes a plot created by plotGrid exists.
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @param circles If TRUE circles with radius equal to the detection range are drawn around sensors.
@@ -1113,7 +1161,8 @@ plotUniqueRR = function(result){
 plotSensors = function(result,circles=TRUE,circlty=3){
   ns = length(result$sensors)
   ## Radius of circle
-  r = result$params$detectionRange 
+  r = result$params$detectionRange
+  ## Radian values for a full circle
   a = seq(0, 2 * pi, length.out=100)
   ## Cols
   sensx = result$bGrid$x[result$stats$sensorMat[1:ns, 2]]
@@ -1131,8 +1180,11 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 }
 
 
-#' Provides Statistical data on detection, given a particular bGrid, fGrid, and sensor arrangement.
-#' Returns a dictionary of staistical values.
+#' @title Provides statistical data on detection, given a particular bGrid, fGrid, and sensor arrangement.
+#' @description This function calculates placements of projected sensors and the value
+#' of each sensor (requested and projected) as given in increase in unique recovery rate.
+#' Additionally, the acoustic coverage map, unique recovery rate, absolute recovery rate, and sparsity
+#' are calculated and returned after placing the requested number of sensors.
 #' 
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param bGrid A valid BGrid.
@@ -1140,9 +1192,11 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @param sensors The result of a successful call to sensorFun().
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
-#' @return A dictionary of statistical values.
+#' @return A dictionary of statistical values containing the keys: "delta", "sensorMat"         
+#' "uniqRRs", "acousticCoverage", "absRecoveryRate", "uniqRecoveryRate".
 getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     statDict = list()
+    ## Number of requested sensors
     numSensors = length(sensors$sensorList)
     rows = dim(fGrid)[1]
     cols = dim(fGrid)[2]
@@ -1181,18 +1235,7 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
         xSens[i] = sensorList[[i]]$c
         ySens[i] = sensorList[[i]]$r
     }
-    ## Calculate distance matrix needed to calculate sparsity
-    distVec = rep(0,numSensors)
-    for(i in 1:numSensors){
-        dists = sqrt((bGrid$x[xSens[i]]-bGrid$x[xSens[1:numSensors]])^2 + (bGrid$y[ySens[i]]-bGrid$y[ySens[1:numSensors]])^2)
-        distVec[i] = min(dists[dists>0])
-    }
     
-    ## a is the median of the distances between the receivers
-    a = median(distVec)
-
-    ## delta is a sparsity measure (see Pedersen & Weng 2013)
-    statDict$delta = a/(2*params$detectionRange) 
     ## Distance maps (the distance from any grid cell to a receiver)
     rows = dim(fGrid)[1]
     cols = dim(fGrid)[2]
@@ -1207,23 +1250,29 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
 
     ## Incorporate vertical detection probability using line of sight
     if(params$bias!=1){
-      ng = rows*cols
       bG = bGrid$bGrid
-      nr = dim(bG)[1]
+      ## Create a matrix where land cells have value TRUE
       land = bG >= 0
+      ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
       sensorDepth = bG + params$sensorElevation
       rng = params$range
-      ## If false then proportion of water column is calculated, if true depth preference is used
-      dpflag = FALSE 
+      ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+      dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
       for(i in 1:numProj){
         r = ySens[i]
         c = xSens[i]
         cind = max(c(1,c-rng)):min(c(cols,c+rng))
         rind = max(c(1,r-rng)):min(c(rows,r+rng))
+        ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
         pctviz = calc.percent.viz(ySens[i],xSens[i],rind,cind,bG,land,sensorDepth[ySens[i],xSens[i]],dpflag,params)
+        ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+        ## Initialize
         testmap = matrix(0,rows,cols)
+        ## Insert values at correct indices
         testmap[pctviz$inds] = pctviz$percentVisibility
+        ## 100% detected in self cell
         testmap[r,c] = 1
+        ## Update demap (detection map)
         demap[,,i] = demap[,,i] * testmap
       }
     }
@@ -1237,18 +1286,34 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
         cover = cover * (1 - demap[,,i]) 
         covertmp[,,i] = 1-cover
         uniqRRs[i] = sum(covertmp[,,i] * fGrid)
-        ##if(i==numSensors)  statDict$acousticCoverage = covertmp ## Save coverage map for numSensors
     }
     duniqRRs = diff(c(0,uniqRRs))
     ## Sort list so best sensors come first
     srt = sort(duniqRRs,index=TRUE,decreasing=TRUE) 
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)
-    
+
+    ## Store the unsorted sensor list (this order may not have a decreasing value per sensor)
+    ## That is, the sensor placed as say 10 may be better than sensor 9 (this can happen when
+    ## not using detection.function.exact as suppression)
     statDict$sensorMatNotSorted = sensorMat
-    statDict$sensorMat = sensorMat[srt$ix,] ## This causes weirdnes, have to look at this
+    ## Order sensor such that best are placed first
+    statDict$sensorMat = sensorMat[srt$ix,]
+    ## Re-calculate unique recovery rate (OBS: this should really be re-calculated by iteratively
+    ## placing sensors and calculating unique RR as above)
     statDict$uniqRRs = cumsum(srt$x)
     ## Acoustic coverage for best sensors
-    statDict$acousticCoverage = 1-apply(1-demap[,,srt$ix[1:numSensors]],c(1,2),prod) 
+    statDict$acousticCoverage = 1-apply(1-demap[,,srt$ix[1:numSensors]],c(1,2),prod)
+
+    ## Calculate distance matrix needed to calculate sparsity
+    distVec = rep(0,numSensors)
+    for(i in 1:numSensors){
+        dists = sqrt((bGrid$x[xSens[srt$ix[i]]]-bGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (bGrid$y[ySens[srt$ix[i]]]-bGrid$y[ySens[srt$ix[1:numSensors]]])^2)
+        distVec[i] = min(dists[dists>0])
+    }
+    ## a is the median of the distances between the receivers
+    a = median(distVec)
+    ## delta is a sparsity measure (see Pedersen & Weng 2013)
+    statDict$delta = a/(2*params$detectionRange)
     
     ## Absolute recovery rate (here we don't care about getting the same ping multiple times)
     demapmat = apply(demap[,,srt$ix[1:numSensors]],c(1,2),sum)
@@ -1333,11 +1398,21 @@ checkParams = function(params) {
                 params$sensorElevation = as.numeric(params$sensorElevation)
         }
     
-    ## Approximate upper bound for suppression range
+    ## Calculate an approximate upper bound for suppression range
+    ## First calculate the area of the study region
     studyArea = params$XDist * params$YDist * params$cellSize^2
+    ## Then find the available area per sensor
     areaPerSensor = studyArea/params$numSensors
-    requiredDetectionRange = 2*sqrt(areaPerSensor/pi)
-    maxSuppressionRangeFactor = requiredDetectionRange/params$detectionRange
+    ## Find the radius of a circle covering this area
+    ## (then if sensors had this range the total area covered is equal to the
+    ## area of the study region.) 
+    requiredDetectionRange = sqrt(areaPerSensor/pi)
+    ## However, since a suppressionRangeFactor of 2 is the default value use this
+    ## as the minimum max value. Also multiply requiredDetectionRange by 2 because
+    ## suppression resulting in non-overlapping detection zones should have a
+    ## suppressionRangeFactor, which is twice the detectionRange. Using 2 may, however,
+    ## result in too large suppression so a trade-off is 1.5. (we could think more about this)
+    maxSuppressionRangeFactor = max(c(2,1.5*requiredDetectionRange/params$detectionRange))
     
     # Suppression Defaults
     if(!('suppressionFcn' %in% names)) {
@@ -1370,18 +1445,21 @@ checkParams = function(params) {
     return(params)
 }
 
-#' Converts input parameters from meters to grid cells. These are used for internal calculations and are invisible to the user.
+#' @title Converts input parameters from meters to grid cells.
+#' @description These are used for internal calculations and are invisible to the user.
 #' 
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param bGrid A valid bGrid.
-#' @return The 'params' parameter, populated with necessary internal variables with unit 'grid cells'.
+#' @return The 'params' parameter, populated with necessary internal variables ("sd",
+#' "suppsd", "range", "suppressionRange") with unit 'grid cells'.
 convertMetersToGrid = function(params,bGrid){
   ## Cell size in meters
   cellSize = params$cellSize
   ## Detection range with SD=1, dx=1
   detectrng1 = abs(qnorm(0.05 / 2 /params$peak))
   ## SD in grid cells
-  params$sd = params$detectionRange / detectrng1 / cellSize 
+  params$sd = params$detectionRange / detectrng1 / cellSize
+  ## SD used for suppression in grid cells
   params$suppsd = params$suppressionRangeFactor * params$sd
   ## Range in grid cells, used to cut out sub grids from large grid
   params$range = round(3 * params$sd)
@@ -1391,22 +1469,31 @@ convertMetersToGrid = function(params,bGrid){
   return(params)
 }
 
-#' Performs the convolution operation in 1D.
+#' @title Performs the convolution operation in 1D.
 #' 
 #' @param fun Vector containing values to perform convolution operation on.
 #' @param kern One-dimensional convolution kernel given as a vector preferably with odd-numbered length.
 #' @return A vector containing the result of the convolution operation with same length as fun.
 conv.1D = function(fun, kern){
+  ## Length of kernel
   lk = length(kern)
+  ## Prepare kern for input to R's built-in convolve
   kern = kern[lk:1]
+  ## Do convolution, because of the "open" type the returned vector is longer than fun
+  test = convolve(fun,kern,type='open')
+  ## Calculate variable needed when extracting the relevant information from test
   lk2 = 0.5 * (lk - 1)
   lf = length(fun)
-  test = convolve(fun,kern,type='o')
-  test[(lk2 + 1):(lf + lk - lk2 - 1)]
+  ## Extract and return relevant information from test
+  return(test[(lk2 + 1):(lf + lk - lk2 - 1)])
 }
 
 
-#' Performs the convolution operation in 2D (using two 1D kernels though)
+#' @title Performs the convolution operation in 2D.
+#' @description This is a simple generalization of conv.1D to two dimensions in the sense that
+#' it performs two 1D convolutions using two 1D kernels (which can be different). This
+#' function is not able to do an actual 2D convolution using a convolution matrix (this functionality
+#' is not needed here anyway).
 #' 
 #' @param mat Matrix containing values to perform convolution operation on
 #' @param kx Convolution kernel in x direction
@@ -1414,14 +1501,17 @@ conv.1D = function(fun, kern){
 #' @return A matrix containing the result of the convolution operation with same dimensions as mat.
 conv.2D = function(mat, kx, ky){
   dimmat = dim(mat)
+  ## Initialize return matrix
   matout = matrix(0, dimmat[1], dimmat[2])
+  ## Convolve in x-direction
   for(i in 1:dimmat[1]) matout[i,] = conv.1D(mat[i,],kx)
+  ## Convolve in y-direction (important to use matout here)
   for(i in 1:dimmat[2]) matout[,i] = conv.1D(matout[,i],ky)
-  matout
+  return(matout)
 }
 
 
-#' Converts a row, col index to a linear index within a matrix.
+#' @title Converts a row, col index to a linear index within a matrix.
 #' 
 #' @param row The row index.
 #' @param col The col index.
@@ -1432,8 +1522,10 @@ sub2ind = function(row, col, dims){
 }
 
 
-#' Plots line intersects on an existing plot, which must exist.  This function is useful for
-#' plotting recovery rate as a function of sensors.
+#' @title Plots line intersects on an existing plot, which must exist.
+#' @description A horizontal line from zero to rate and a vertial line
+#' from zero to n are drawn. This function is useful for highlighting an
+#' important value when plotting recovery rate as a function of sensors.
 #' 
 #' @param n An x value.
 #' @param rate A y value.
