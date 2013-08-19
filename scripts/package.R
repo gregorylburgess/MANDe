@@ -5,7 +5,7 @@
 #' @param pattern The pattern to search for and replace.
 #' @param value The value to replace matched patterns with.
 #' @return N/A
-change <- function(input, output, pattern, value) {
+change <- function(input, output, pattern, value, debug=TRUE) {
 	conn <- file(input, "r")
 	options(warn=-1)
 	out =  readLines(conn, 1)
@@ -17,6 +17,9 @@ change <- function(input, output, pattern, value) {
 	out = gsub(pattern, value, out)
 	cat(out,file=output)
 	close(conn)
+	if(debug) {
+		cat(sprintf("Changed all references to \'%s\' to \'%s\' in \'%s\'\n", pattern, value, output))
+	}
 }
 
 # name of the package to create (Fill in whatever you want)
@@ -54,4 +57,25 @@ for (file in files) {
 library(roxygen2)
 roxygenize(packageName, copy=FALSE)
 
+# Changes all file paths in source() calls to their new values.
+for (file in files) {
+	name = paste(packageName, "/R/", file, sep="")
+	change(name, name, paste("source\\(\'", sep=""),paste("source\\(","\'R/", sep=""))
+}
+
+# Delete the examples{} section of the rd file
+# gsub won't let me match an open curly brace...
+path = paste(packageName, "/man/", packageName, "-package.Rd", sep="")
+conn <- file(path, "r")
+options(warn=-1)
+out =  readLines(conn, 1)
+lines = 0
+while(length(line <- readLines(conn, 1)) > 0 && lines < 38) {
+	lines = lines + 1
+	out = paste(out, line, sep="\n")
+}
+close(conn)
+conn <- file(path, "w+")
+cat(out,file=path)
+close(conn)
 

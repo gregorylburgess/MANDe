@@ -37,12 +37,12 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 					bGrid = bath[startY:(startY+YDist),startX:(startX+XDist)]
 		}
 		else {
-			bGrid = simulate(XDist,YDist)
+			bGrid = simulateBGrid(XDist,YDist)
 		}
 	}
 	else {
 		print("File not found.")
-		bGrid = simulate(XDist,YDist)
+		bGrid = simulateBGrid(XDist,YDist)
 	}
 
         ## Quick fix to get rid of NA in bGrid, should probably be interpolated (or something)
@@ -54,14 +54,14 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
     return(bGrid)
 }
 
-#' @name simulate
+#' @name simulateBGrid
 #' @title Creates a default BGrid to use if real data could not be loaded.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param XDist The width of your desired BGrid.
 #' @param YDist the height of your desired BGrid.
 #' @return A default BGrid of dimensions XDist by YDist.
-simulate <- function(XDist, YDist) {
+simulateBGrid <- function(XDist, YDist) {
 	nx = XDist
 	ny = YDist
 	x <- seq(-2*pi,2*pi,length=nx)

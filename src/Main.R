@@ -33,10 +33,10 @@ run <- function(params, debug=FALSE, opt=FALSE){
     ## Convert parameter values from meters to number of grid cell 
     params = convertMetersToGrid(params,bGrid)
     ## Specify a standard scale of x and y axes if previously undefined
-    if(!('x' %in% names(bGrid))) {
+    if(!("x" %in% names(bGrid))) {
 		bGrid$x = (1:dim(bGrid$bGrid)[1])*params$cellSize 
 	}
-    if(!('y' %in% names(bGrid))) {
+    if(!("y" %in% names(bGrid))) {
 		bGrid$y = (1:dim(bGrid$bGrid)[2])*params$cellSize
 	}
     ## Calculate fish grid
@@ -46,7 +46,7 @@ run <- function(params, debug=FALSE, opt=FALSE){
     sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt)
 
     ## Stat analysis of proposed setup.
-    statDict = stats(params, bGrid, fGrid, sensors, debug, opt)
+    statDict = getStats(params, bGrid, fGrid, sensors, debug, opt)
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params)
@@ -70,7 +70,6 @@ run <- function(params, debug=FALSE, opt=FALSE){
 #' @title Executes a test run of the program, using default parameters.  No additional 
 #' parameters are necessary.
 #'
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.

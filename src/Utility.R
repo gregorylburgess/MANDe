@@ -1,4 +1,4 @@
-source("src/ShapeFunctions.R")
+source('src/ShapeFunctions.R')
 #' @name sensorFun
 #' @title Calls functions to generate a 'goodness' grid and choose sensor locations.
 #' @details Finds a "good" set of sensor placements for a given setup [bGrid, fGrid, params].
@@ -58,7 +58,7 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
           if(opt){
             grids$sumGrid = suppress.opt(grids$sumGrid, dim(fGrid), maxLoc, params, bGrid$bGrid, debug)
           }else{
-            grids$sumGrid = supress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
+            grids$sumGrid = suppress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
                                     params$suppressionRange, params$minsuppressionValue, 
                                     params$maxsuppressionValue, params, debug)
           }
@@ -127,7 +127,6 @@ updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
 #' @description Calls a particular sumGrid function based on the bias and opt values.  Actual work
 #' 			is done by the called function.
 #'
-#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See package manual for more details.
@@ -239,6 +238,7 @@ sumGrid.sumSimple.opt = function (grids, key, range, debug=FALSE) {
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param shapeFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated sumGrid.
 sumGrid.sumBathy = function (grids, range, shapeFcn="shape.t", 
@@ -486,8 +486,8 @@ sumGrid.sumProduct = function (grids, range, shapeFcn="shape.t",
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param suppressionFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
 #' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
-#' @param minsuppressionValue: The minimum allowable value to return.
-#' @param maxsuppressionValue: The maximum allowable value to return (also the return value for suppression.static())
+#' @param minsuppressionValue The minimum allowable value to return.
+#' @param maxsuppressionValue The maximum allowable value to return (also the return value for suppression.static()).
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a suppressed sumGrid.
@@ -601,8 +601,8 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
 #' 
 #' @param dist The distance between two cells on a grid.
 #' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
-#' @param minsuppressionValue: The minimum allowable value to return.
-#' @param maxsuppressionValue: The maximum allowable value to return (also the return value for suppression.static())
+#' @param minsuppressionValue The minimum allowable value to return.
+#' @param maxsuppressionValue The maximum allowable value to return (also the return value for suppression.static()).
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns The value given in maxSuppression Value.
@@ -616,8 +616,8 @@ suppression.static = function (dist, suppressionRange, minsuppressionValue,
 #'
 #' @param dist The distance between two cells on a grid.
 #' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
-#' @param minsuppressionValue: The minimum allowable value to return.
-#' @param maxsuppressionValue: The maximum allowable value to return (also the return value for suppression.static())
+#' @param minsuppressionValue The minimum allowable value to return.
+#' @param maxsuppressionValue The maximum allowable value to return (also the return value for suppression.static()).
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns The value given in maxSuppression Value.
@@ -704,7 +704,6 @@ detect = function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 #' @param bGrid A valid BGrid.
 #' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
 #' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
-#' @param shapeFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return The percent of the watercolumn that is visible (as a double between 0 and 1).
@@ -941,7 +940,7 @@ offset= function(point){
 #' Generates .png files for the visualizations of various grids.  You must have write access to the 
 #' R working directory that the program is executed from.  Additionally, ensure that an 'img' folder exists there.
 #' 
-#' @param results A dictionary of return objects, the result of a successfull call to run() or sensorFun().
+#' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return A dictionary containing the filenames of the generated images.
@@ -988,7 +987,7 @@ graph = function(result, params, plot.bathy=TRUE) {
 
 #' Plots the specified grid.
 #' 
-#' @param results A dictionary of return objects, the result of a successfull call to run() or sensorFun().
+#' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @param type Character specifying grid type. Available grids: bGrid, fGrid, sumGrid, or acousticCoverage.
 #' @param main Set title of plot.
 #' @param xlab Set label of x axis.
@@ -1019,7 +1018,7 @@ plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRU
 #' Plots cumulative unique recovery rate and gained unique recovery rate per sensor as a
 #' function of number of sensors (in the order they were placed).
 #' 
-#' @param results A dictionary of return objects, the result of a successfull call to run() or sensorFun().
+#' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @return Nothing.
 plotUniqueRR = function(result){
     ns = length(result$sensors)
@@ -1044,7 +1043,7 @@ plotUniqueRR = function(result){
 
 #' Adds sensors to current plot (an existing plot is required).
 #' 
-#' @param results A dictionary of return objects, the result of a successfull call to run() or sensorFun().
+#' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @param circles If TRUE circles with radius equal to the detection range are drawn around sensors.
 #' @param circlty Line type for circles.
 #' @return Nothing.
@@ -1076,8 +1075,10 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @param bGrid A valid BGrid.
 #' @param fGrid A valid FGrid.
 #' @param sensors The result of a successful call to sensorFun().
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of statistical values.
-stats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
+getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     statDict = list()
     numSensors = length(sensors$sensorList)
     rows = dim(fGrid)[1]
@@ -1105,7 +1106,7 @@ stats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
       if(opt){
         sumGridSupp = suppress.opt(sumGridSupp, dim(fGrid), maxLoc, params, bGrid$bGrid, debug)
       }else{
-        sumGridSupp = supress(sumGridSupp, dim(fGrid), maxLoc, params$suppressionFcn, 
+        sumGridSupp = suppress(sumGridSupp, dim(fGrid), maxLoc, params$suppressionFcn, 
           params$suppressionRange, params$minsuppressionValue, 
           params$maxsuppressionValue, params, debug)
       }
