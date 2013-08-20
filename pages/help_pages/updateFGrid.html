@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Updates the FGrid after each sensor is placed to reflect...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body>
+
+<table width="100%" summary="page for updateFGrid"><tr><td>updateFGrid</td><td align="right">R Documentation</td></tr></table>
+
+<h2>Updates the FGrid after each sensor is placed to reflect which areas that are already covered by sensors.</h2>
+
+<h3>Description</h3>
+
+<p>When a sensor is placed the FGrid must be updated to
+reflect where unique signals are emitted. This is done by
+calculating the coverage of the sensor given by loc and
+then downweighing the FGrid using this coverage such that
+locations that are well covered by the sensor at loc is
+downweighed more that poorly covered locations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+  updateFGrid(loc, grids, params, debug = FALSE,
+    opt = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>loc</code></td>
+<td>
+<p>A dictionary containing the keys 'r' and 'c',
+which hold the row and column indicies of the chosen
+sensor location.</p>
+</td></tr>
+<tr valign="top"><td><code>grids</code></td>
+<td>
+<p>A dictionary containing the keys 'bGrid',
+'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid
+and SumGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>params</code></td>
+<td>
+<p>A dictionary of parameters, see
+PARAMETER_DESCRIPTIONS.html for more info.</p>
+</td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
+<tr valign="top"><td><code>opt</code></td>
+<td>
+<p>Tells the program to use vectorized R
+commands.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Returns the grids parameter, with an updated FGrid.
+</p>
+
+
+</body></html>

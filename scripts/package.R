@@ -63,6 +63,24 @@ for (file in files) {
 	change(name, name, paste("source\\(\'", sep=""),paste("source\\(","\'R/", sep=""))
 }
 
+# Generate HTML files from Rd Files
+rdFiles = list.files(paste(packageName, "/man", sep=""))
+rdFiles = gsub(".Rd", "", rdFiles)
+
+# write a list of files to file for the help.html file to read.
+cat(rdFiles, file="pages/help_pages/index.txt", sep="\n")
+
+outPath = paste(packageName, "/man/", sep="")
+for (file in rdFiles) {
+	command = paste("R CMD Rdconv -t html -o ", paste(outPath, file, ".html", sep=""),
+					" ", packageName, "/man/", sep="")
+	print(paste(command, file, ".Rd", sep=""))
+	system(command=paste(command, file, ".Rd", sep=""))
+	# Copy files to the pages/help_pages folder
+	file.copy(paste(outPath, file, ".html", sep=""), paste("pages/help_pages/", file, ".html", sep=""),
+			overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
+}
+# file.remove("pages/help_pages/acoustic-package.html")
 # Delete the examples{} section of the rd file
 # gsub won't let me match an open curly brace...
 path = paste(packageName, "/man/", packageName, "-package.Rd", sep="")

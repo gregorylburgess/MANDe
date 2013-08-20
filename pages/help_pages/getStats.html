@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Provides statistical data on detection, given a particular...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body>
+
+<table width="100%" summary="page for getStats"><tr><td>getStats</td><td align="right">R Documentation</td></tr></table>
+
+<h2>Provides statistical data on detection, given a particular bGrid, fGrid, and sensor arrangement.</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates placements of projected sensors
+and the value of each sensor (requested and projected) as
+given in increase in unique recovery rate. Additionally,
+the acoustic coverage map, unique recovery rate, absolute
+recovery rate, and sparsity are calculated and returned
+after placing the requested number of sensors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+  getStats(params, bGrid, fGrid, sensors, debug = FALSE,
+    opt = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>params</code></td>
+<td>
+<p>A dictionary of parameters, see
+PARAMETER_DESCRIPTIONS.html for more info.</p>
+</td></tr>
+<tr valign="top"><td><code>bGrid</code></td>
+<td>
+<p>A valid BGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>fGrid</code></td>
+<td>
+<p>A valid FGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>sensors</code></td>
+<td>
+<p>The result of a successful call to
+sensorFun().</p>
+</td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
+<tr valign="top"><td><code>opt</code></td>
+<td>
+<p>Tells the program to use vectorized R
+commands.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>A dictionary of statistical values containing the keys:
+&quot;delta&quot;, &quot;sensorMat&quot; &quot;uniqRRs&quot;, &quot;acousticCoverage&quot;,
+&quot;absRecoveryRate&quot;, &quot;uniqRecoveryRate&quot;.
+</p>
+
+
+</body></html>

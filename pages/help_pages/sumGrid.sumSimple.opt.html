@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Simply sums the values within range of a cell, for each cell...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body>
+
+<table width="100%" summary="page for sumGrid.sumSimple.opt"><tr><td>sumGrid.sumSimple.opt</td><td align="right">R Documentation</td></tr></table>
+
+<h2>Simply sums the values within range of a cell, for each cell in the given grid.</h2>
+
+<h3>Description</h3>
+
+<p>This is a speed optimized version, which uses the
+convolution operation (which mainly gains it speed from
+using FFT) as an alternative to running through tedious R
+for loops.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+  sumGrid.sumSimple.opt(grids, key, range, debug = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>grids</code></td>
+<td>
+<p>A dictionary containing the keys 'bGrid',
+'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid
+and SumGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>key</code></td>
+<td>
+<p>A key to the dictionary provided in the
+'grids' parameter specifying which grid should be
+summed.</p>
+</td></tr>
+<tr valign="top"><td><code>range</code></td>
+<td>
+<p>The range of the sensor in bathymetric cells
+(integer).</p>
+</td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Returns the grids parameter, with an updated sumGrid.
+</p>
+
+
+</body></html>
