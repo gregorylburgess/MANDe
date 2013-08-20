@@ -1,4 +1,5 @@
-library(mvtnorm)
+#' @import mvtnorm
+
 #' @name fish
 #' @title Generates a Fish Location Grid (FGrid) for the program to use.  
 #' @description Values in the cells of this grid are expressed as a percentage of 
@@ -8,6 +9,7 @@ library(mvtnorm)
 #' @param bGrid A valid BGrid.
 #' @return An fGrid of the same dimensions as the provided bGrid.
 fish <- function(params, bGrid) {
+    require(mvtnorm)
     rows <- dim(bGrid$bGrid)[1]
     cols <- dim(bGrid$bGrid)[2]
     land <- bGrid$bGrid>=0

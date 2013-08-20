@@ -1,6 +1,8 @@
+#' @import sp rgdal raster ncdf
 
 #' @name getBathy
-#' @title Generates a Bathymetric Grid (BGrid) for the program to use.  Able to ingest NetCDF, 
+#' @title Generate a bGrid.
+#' @description Generates a Bathymetric Grid (BGrid) for the program to use.  Able to ingest NetCDF, 
 #' ArcGIS, and ASC file formats.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.

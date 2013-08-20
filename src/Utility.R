@@ -18,6 +18,7 @@ source('src/ShapeFunctions.R')
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
+#' @export
 sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, opt=FALSE) {
     if (debug) {
         cat("\n[sensorFun]\n")
@@ -83,6 +84,7 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return Returns the grids parameter, with an updated FGrid.
+#' @export
 updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
   if(debug){
       cat("\n[updateFGrid]\n")
@@ -146,6 +148,7 @@ updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 sumGridFun = function (grids, range, bias, params, debug=FALSE, opt=FALSE) {
     if (debug) {
         cat("\n[sumGrid]\n")
@@ -188,13 +191,15 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE, opt=FALSE) {
 }
 
 
-#' Simply sums the values within range of a cell, for each cell in the given grid.
+#' @title Calculates sumGrid for bias 1.
+#' @description Simply sums the values within range of a cell, for each cell in the given grid.
 #'
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param key A key to the dictionary provided in the 'grids' parameter specifying which grid should be summed.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 sumGrid.sumSimple = function (grids, key, range, debug=FALSE) {
     tempGrid = get(key, grids)
     tempCopy = tempGrid
@@ -229,6 +234,7 @@ sumGrid.sumSimple = function (grids, key, range, debug=FALSE) {
 #' @param range The range of the sensor in bathymetric cells (integer).
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 sumGrid.sumSimple.opt = function (grids, key, range, debug=FALSE) {
     ## Initialize the kernel, the total range of cells affecting the current cell is 2*range + 1 (-range to range including the current cell itself)
     kernel = rep(1,2*range+1)
@@ -247,7 +253,8 @@ sumGrid.sumSimple.opt = function (grids, key, range, debug=FALSE) {
 }
 
 
-#' Sums the result of calling the detect() function on each cell within range of 
+#' @title Calculates sumGrid that accounts for bathymetric shadowing.
+#' @description Sums the result of calling the detect() function on each cell within range of 
 #' a target cell for each cell in the given grid.
 #' 
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
@@ -256,6 +263,7 @@ sumGrid.sumSimple.opt = function (grids, key, range, debug=FALSE) {
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 sumGrid.sumBathy = function (grids, range, shapeFcn="shape.t", 
         params, debug=FALSE) {
     
@@ -306,6 +314,7 @@ sumGrid.sumBathy = function (grids, range, shapeFcn="shape.t",
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 
     nr = dim(grids$bGrid$bGrid)[1]
@@ -377,11 +386,12 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 #' @param sensorDepth Depth of sensor in current cell.
 #' @param dpflag If TRUE depth preference is used meaning that the percentage of visible 
 #' fish is calculated, if FALSE visible water column is calculated.
-#' @param A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @return Returns a dictionary with three keys (all vectors): percentVisibility contains
 #' the percentage fish/signals visible in the surrounding cells, inds contains the linear
 #' indices in the bGrid to which the visibilities pertain, dists contains the distance
 #' from the current cell to each of the returned cells as given by inds.
+#' @export
 calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
     rows = dim(bGrid)[1]
     cols = dim(bGrid)[2]
@@ -484,7 +494,8 @@ calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
 }
 
 
-#' For each cell in a given grid, the function sums (the number of fish
+#' @title Updates sumGrid with probability of fish detections.
+#' @description For each cell in a given grid, the function sums the number of fish
 #' times the probability of detection) for all cells within range.
 #' 
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
@@ -493,6 +504,7 @@ calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated sumGrid.
+#' @export
 sumGrid.sumProduct = function (grids, range, shapeFcn="shape.t", 
         params, debug=FALSE) {
     
@@ -534,7 +546,8 @@ sumGrid.sumProduct = function (grids, range, shapeFcn="shape.t",
 }
 
 
-#' Supresses the values of cells around a sensor using a specified suppressionFunction.
+#' @title Suppress when a sensor is placed.
+#' @description Suppresses the values of cells around a sensor using a specified suppressionFunction.
 #' 
 #' @param sumGrid A valid SumGrid.
 #' @param dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
@@ -546,10 +559,11 @@ sumGrid.sumProduct = function (grids, range, shapeFcn="shape.t",
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a suppressed sumGrid.
-supress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
+#' @export
+suppress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
                     minsuppressionValue, maxsuppressionValue, params, debug=FALSE) {
     if(debug) {
-        cat("\n[supress]\n")
+        cat("\n[suppress]\n")
         print(sprintf("suppressionFcn: %s", suppressionFcn))
         print(sprintf("loc: (%g,%g)",loc$c,loc$r))
         print("sumGrid")
@@ -571,7 +585,7 @@ supress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
 }
 
 
-#' @title Supresses the values of cells around a sensor using a specified suppressionFunction.
+#' @title Suppresses the values of cells around a sensor using a specified suppressionFunction.
 #' @description This is an optimized version, which uses vectorization.
 #' 
 #' @param sumGrid A valid SumGrid.
@@ -581,6 +595,7 @@ supress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
 #' @param bGrid valid BGrid.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a suppressed sumGrid.
+#' @export
 suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
     if(debug) {
         cat("\n[suppress.opt]\n")
@@ -661,7 +676,9 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
     return(sumGrid)
 }
 
-#' Returns a static value, effectively setting all cells within suppressionRange of a sensor to that number.
+
+#' @title Constant suppression.
+#' @description Returns a static value, effectively setting all cells within suppressionRange of a sensor to that number.
 #' 
 #' @param dist The distance between two cells on a grid.
 #' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
@@ -670,13 +687,15 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns The value given in maxSuppression Value.
+#' @export
 suppression.static = function (dist, suppressionRange, minsuppressionValue, 
                                maxsuppressionValue, params, debug=FALSE) {
     return (maxsuppressionValue)
 }
 
 
-#' Returns a dynamic value based on distance from a chosen sensor. The returned value should be multiplied by the value to be scaled.
+#' @title Linear suppression.
+#' @description Returns a dynamic value based on distance from a chosen sensor. The returned value should be multiplied by the value to be scaled.
 #'
 #' @param dist The distance between two cells on a grid.
 #' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
@@ -685,6 +704,7 @@ suppression.static = function (dist, suppressionRange, minsuppressionValue,
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns The value given in maxSuppression Value.
+#' @export
 suppression.scale = function (dist, suppressionRange, minsuppressionValue, 
         maxsuppressionValue, params, debug=FALSE) {
     
@@ -703,13 +723,15 @@ suppression.scale = function (dist, suppressionRange, minsuppressionValue,
 }
 
 
-#' Defines the "shape" of a sensor's range.
+#' @title Get rows and cols of area.
+#' @description Defines the "shape" of a sensor's range.
 #' 
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a dictionary of start/end indexes for rows and columns respectively named : {rs,re,cs,ce}.
+#' @export
 getArea=function(loc, dims, range, debug=FALSE) {
     ## the row index for our central point
     r = loc$r
@@ -730,7 +752,8 @@ getArea=function(loc, dims, range, debug=FALSE) {
 }
 
 
-#' Determines the likelihood of a tag at a given position is detectable by a sensor at a 
+#' @title Checks if a tag is detectable by a sensor.
+#' @description Determines the likelihood of a tag at a given position is detectable by a sensor at a 
 #' given position, using a specific shapeFunction.  This function considers Bathymetry and
 #' sensor range.
 #' 
@@ -741,6 +764,7 @@ getArea=function(loc, dims, range, debug=FALSE) {
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return The percent chance of detection as a double between 0 [no chance of detection] and 1 [guaranteed detection].
+#' @export
 detect = function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 
     dist = sqrt((sensorPos$c - tagPos$c)^2 + (sensorPos$r - tagPos$r)^2)
@@ -758,7 +782,6 @@ detect = function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 }
 
 
-
 #' @title Returns the percent of the water column visible at a target cell from a starting cell.  
 #' @description If 'depth_off_bottom' and 'depth_off_bottom_sd' are keys in 'params', then the algorithm 
 #' assumes a normal distribution of fish within the specified zone and will return
@@ -771,6 +794,7 @@ detect = function(bGrid, sensorPos, tagPos, shapeFcn, params, debug=FALSE) {
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return The percent of the watercolumn that is visible (as a double between 0 and 1).
+#' @export
 checkLOS= function(bGrid, startingCell, targetCell, params, debug=FALSE) {
     sensorElevation = params$sensorElevation
     # find the linear distance between the cells
@@ -800,7 +824,7 @@ checkLOS= function(bGrid, startingCell, targetCell, params, debug=FALSE) {
     if( "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params) {
         # compute % fish visible from sensor to target cell
         mean = bGrid[targetCell$r,targetCell$c] + params$depth_off_bottom
-        sd = depth_off_bottom_sd
+        sd = params$depth_off_bottom_sd
 		
         # pnorm gives the percent below the given point, so subtract from 1
         # to get the percent above the given point
@@ -831,12 +855,14 @@ checkLOS= function(bGrid, startingCell, targetCell, params, debug=FALSE) {
 }
 
 
-#' Returns the cells crossed by a beam from the starting cell to the target cell.
+#' @title Find cell crossed by a beam.
+#' @description Returns the cells crossed by a beam from the starting cell to the target cell.
 #' 
 #' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
 #' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A data.frame containing x and y indicies of cells crossed by a beam from the starting cell to the target cell.
+#' @export
 getCells=function(startingCell, targetCell, debug=FALSE) {
     sC=offset(startingCell)
     tC=offset(targetCell)
@@ -942,6 +968,7 @@ getCells=function(startingCell, targetCell, debug=FALSE) {
 #' (not row and col) of cells in the bGrid crossed by a beam from the starting
 #' cell to the target cell. If nr == NULL a matrix with a row column and a col
 #' column is returned.
+#' @export
 getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
     if(!(startingCell$ r== targetCell$r && startingCell$c == targetCell$c)){
         ## Offset starting and target cells
@@ -1007,7 +1034,8 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
 }
 
 
-#' Translates a cartesian point to the center of the gridcell it represents.  This is necessary
+#' @title Offset rows and cols to cell midpoint.
+#' @description Translates a cartesian point to the center of the gridcell it represents.  This is necessary
 #' for drawing Line of Sight since we assume sensors are in the center of cells.
 #' ex: the cartesian point (3,2) would be converted to (2.5, 1.5), which puts it in the
 #' cell located at the third column, second row (aka the cell at (3,2) on a 1-based grid
@@ -1015,6 +1043,7 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
 #' 
 #' @param point A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the point to translate on the BGrid.
 #' @return A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the translated point.
+#' @export
 offset= function(point){
     r= point$r
     c=point$c
@@ -1032,13 +1061,15 @@ offset= function(point){
 }
 
 
-#' Generates .png files for the visualizations of various grids.  You must have write access to the 
+#' @title Generate acoustic plots.
+#' @description Generates .png files for the visualizations of various grids.  You must have write access to the 
 #' R working directory that the program is executed from.  Additionally, ensure that an 'img' folder exists there.
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return A dictionary containing the filenames of the generated images.
+#' @export
 graph = function(result, params, plot.bathy=TRUE) {
 	## Plotting
 	graphics.off()
@@ -1080,6 +1111,7 @@ graph = function(result, params, plot.bathy=TRUE) {
 	return(filenames)
 }
 
+
 #' @title Plots the grid specified by the input type.
 #' @description In addition to the grid itself sensor locations are also plotted along
 #' with numbers indicating the order in which sensors were placed. Furthermore, bathymetry
@@ -1092,6 +1124,7 @@ graph = function(result, params, plot.bathy=TRUE) {
 #' @param ylab Set label of y axis.
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return Nothing.
+#' @export
 plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE){
     if(type=='bGrid'){
         grid = result$bGrid$bGrid
@@ -1124,6 +1157,7 @@ plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRU
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @return Nothing.
+#' @export
 plotUniqueRR = function(result){
     ## Find number of placed sensors
     ns = length(result$sensors)
@@ -1138,7 +1172,7 @@ plotUniqueRR = function(result){
     plot(0:ns,c(0,result$stats$uniqRRs[1:ns]),typ='l',xlab='Number of sensors',ylab='Unique recovery rate',ylim=c(0,ymax),xlim=c(0,nsmax))
     points(0:ns,c(0,result$stats$uniqRRs[1:ns]),pch=46,cex=3)
     lines(ns:length(result$stats$uniqRRs),result$stats$uniqRRs[ns:nsmax],lty=2)
-    plot.intersect(ns,result$stats$uniqRecoveryRate,col='orange',lty=1)
+    plotIntersect(ns,result$stats$uniqRecoveryRate,col='orange',lty=1)
     grid()
     text(0.05*length(result$stats$uniqRRs),result$stats$uniqRecoveryRate,round(result$stats$uniqRecoveryRate,digits=4),pos=3)
     legend('bottomright',c('Calculated','Requested','Projected'),lty=c(1,1,2),col=c(1,'orange',1),bg='white')
@@ -1158,6 +1192,7 @@ plotUniqueRR = function(result){
 #' @param circles If TRUE circles with radius equal to the detection range are drawn around sensors.
 #' @param circlty Line type for circles.
 #' @return Nothing.
+#' @export
 plotSensors = function(result,circles=TRUE,circlty=3){
   ns = length(result$sensors)
   ## Radius of circle
@@ -1194,6 +1229,7 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of statistical values containing the keys: "delta", "sensorMat"         
 #' "uniqRRs", "acousticCoverage", "absRecoveryRate", "uniqRecoveryRate".
+#' @export
 getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     statDict = list()
     ## Number of requested sensors
@@ -1326,10 +1362,12 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
 }
 
 
-#' Provides default parameter values if none are provided.
+#' @title Check model parameters.
+#' @description Provides default parameter values if none are provided.
 #' 
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @return The 'params' parameter, populated with default values where necessary.
+#' @export
 checkParams = function(params) {
 
     names = names(params)
@@ -1452,6 +1490,7 @@ checkParams = function(params) {
 #' @param bGrid A valid bGrid.
 #' @return The 'params' parameter, populated with necessary internal variables ("sd",
 #' "suppsd", "range", "suppressionRange") with unit 'grid cells'.
+#' @export
 convertMetersToGrid = function(params,bGrid){
   ## Cell size in meters
   cellSize = params$cellSize
@@ -1474,6 +1513,7 @@ convertMetersToGrid = function(params,bGrid){
 #' @param fun Vector containing values to perform convolution operation on.
 #' @param kern One-dimensional convolution kernel given as a vector preferably with odd-numbered length.
 #' @return A vector containing the result of the convolution operation with same length as fun.
+#' @export
 conv.1D = function(fun, kern){
   ## Length of kernel
   lk = length(kern)
@@ -1499,6 +1539,7 @@ conv.1D = function(fun, kern){
 #' @param kx Convolution kernel in x direction
 #' @param ky Convolution kernel in y direction
 #' @return A matrix containing the result of the convolution operation with same dimensions as mat.
+#' @export
 conv.2D = function(mat, kx, ky){
   dimmat = dim(mat)
   ## Initialize return matrix
@@ -1517,6 +1558,7 @@ conv.2D = function(mat, kx, ky){
 #' @param col The col index.
 #' @param dims The dimensions of the BGrid.  Just call dim() on the parent matrix for this.
 #' @return The translated linear index.
+#' @export
 sub2ind = function(row, col, dims){
     (col-1) * dims[1] + row
 }
@@ -1532,7 +1574,8 @@ sub2ind = function(row, col, dims){
 #' @param col Line color option.  See R documentation on the lines() function for more details.
 #' @param lty Line type option.  See R documentation on the lines() function for more details.
 #' @return No returned value, lines are drawn on existing plot.
-plot.intersect = function(n, rate, col=1, lty=1){
+#' @export
+plotIntersect = function(n, rate, col=1, lty=1){
   lines(rep(n, 2), c(0, rate), col=col, lty=lty)
   lines(c(0, n), rep(rate, 2), col=col, lty=lty)
 }

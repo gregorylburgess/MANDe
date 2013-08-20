@@ -1,28 +1,23 @@
-# Main Method
-# Supported operations:
-#		1. User provides area of interest and sensor locations, asks for stats.
-#		2. User provides area of interest and number of sensors, asks for optimal 
-#				placement and stats.
-#		3. User provides area of interest, fish behaviors, and number of sensors, 
-#				asks for optimal placement and stats.
-## Clear all variables
-rm(list=ls()) 
+#rm(list=ls()) 
 source('src/Bathy.R')
+#' @include src/Bathy.R
 source('src/FishModel.R')
+#' @include src/FishModel.R
 source('src/Utility.R')
 
 
-#' @name run
+#' @name acousticRun
 #' @title  the simulation with the provided parameters.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-run <- function(params, debug=FALSE, opt=FALSE){
-	startTime = Sys.time()
+#' @export
+acousticRun <- function(params, debug=FALSE, opt=FALSE){
+    startTime = Sys.time()
     if(debug) {
-        cat("\n[run]\n")
+        cat("\n[acousticRun]\n")
     }
     params = checkParams(params)
 
@@ -66,14 +61,15 @@ run <- function(params, debug=FALSE, opt=FALSE){
     return(results)
 }
 
-#' @name test
+#' @name acousticTest
 #' @title Executes a test run of the program, using default parameters.  No additional 
 #' parameters are necessary.
 #'
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
-test <- function(debug=FALSE, opt=FALSE) {
+#' @export
+acousticTest <- function(debug=FALSE, opt=FALSE) {
 	#### TEST RUN
 	params = list()
 	#notification option
@@ -136,16 +132,16 @@ test <- function(debug=FALSE, opt=FALSE) {
 	    params$dpsd <- 2
 	}
 	
-	return(run(params, debug, opt))
+	return(acousticRun(params, debug, opt))
 }
 
 ##Rprof(tmp <- tempfile())
-##asd <- test(opt=TRUE)
+##asd <- acousticTest(opt=TRUE)
 ##Rprof()
 ##summaryRprof(tmp)
 
-##system.time(result <- test(opt=TRUE))
-##system.time(result <- test(debug=FALSE,opt=TRUE))
+##system.time(result <- acousticTest(opt=TRUE))
+##system.time(result <- acousticTest(debug=FALSE,opt=TRUE))
 
 if(FALSE){
   print(result$stats$absRecoveryRate)
