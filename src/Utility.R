@@ -545,7 +545,7 @@ sumGrid.sumProduct = function (grids, range, shapeFcn="shape.t",
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a suppressed sumGrid.
-supress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
+suppress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
                     minsuppressionValue, maxsuppressionValue, params, debug=FALSE) {
     if(debug) {
         cat("\n[supress]\n")
