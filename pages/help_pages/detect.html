@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Determines the likelihood of a tag at a given position is...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body>
+
+<table width="100%" summary="page for detect"><tr><td>detect</td><td align="right">R Documentation</td></tr></table>
+
+<h2>Determines the likelihood of a tag at a given position is detectable by a sensor at a
+given position, using a specific shapeFunction.  This function considers Bathymetry and
+sensor range.</h2>
+
+<h3>Description</h3>
+
+<p>Determines the likelihood of a tag at a given position is
+detectable by a sensor at a given position, using a
+specific shapeFunction.  This function considers
+Bathymetry and sensor range.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+  detect(bGrid, sensorPos, tagPos, shapeFcn, params,
+    debug = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>bGrid</code></td>
+<td>
+<p>A valid BGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>sensorPos</code></td>
+<td>
+<p>A dictionary containing the keys 'r' and
+'c', which hold the row and column indicies of the chosen
+sensor's location on the BGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>tagPos</code></td>
+<td>
+<p>A dictionary containing the keys 'r' and
+'c', which hold the row and column indicies of the chosen
+tag's location on the BGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>shapeFcn</code></td>
+<td>
+<p>The shape function that describes the
+attenuation of a sensor.  See ShapeFunctions.R for a list
+of supported functions.</p>
+</td></tr>
+<tr valign="top"><td><code>params</code></td>
+<td>
+<p>A dictionary of parameters, see
+PARAMETER_DESCRIPTIONS.html for more info.</p>
+</td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>The percent chance of detection as a double between 0 [no
+chance of detection] and 1 [guaranteed detection].
+</p>
+
+
+</body></html>

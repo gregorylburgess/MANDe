@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Supresses the values of cells around a sensor using a...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body>
+
+<table width="100%" summary="page for suppress.opt"><tr><td>suppress.opt</td><td align="right">R Documentation</td></tr></table>
+
+<h2>Supresses the values of cells around a sensor using a specified suppressionFunction.</h2>
+
+<h3>Description</h3>
+
+<p>This is an optimized version, which uses vectorization.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+  suppress.opt(sumGrid, dims, loc, params, bGrid,
+    debug = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>sumGrid</code></td>
+<td>
+<p>A valid SumGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>dims</code></td>
+<td>
+<p>The dimensions of the BGrid.  Just call dim()
+on the BGrid for this.</p>
+</td></tr>
+<tr valign="top"><td><code>loc</code></td>
+<td>
+<p>A dictionary containing the keys 'r' and 'c',
+which hold the row and column indicies of the chosen
+sensor location.</p>
+</td></tr>
+<tr valign="top"><td><code>params</code></td>
+<td>
+<p>A dictionary of parameters, see
+PARAMETER_DESCRIPTIONS.html for more info.</p>
+</td></tr>
+<tr valign="top"><td><code>bGrid</code></td>
+<td>
+<p>valid BGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Returns a suppressed sumGrid.
+</p>
+
+
+</body></html>

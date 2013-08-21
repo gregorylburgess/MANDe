@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Returns the cells crossed by a beam from the starting cell to...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body>
+
+<table width="100%" summary="page for getCells"><tr><td>getCells</td><td align="right">R Documentation</td></tr></table>
+
+<h2>Returns the cells crossed by a beam from the starting cell to the target cell.</h2>
+
+<h3>Description</h3>
+
+<p>Returns the cells crossed by a beam from the starting
+cell to the target cell.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+  getCells(startingCell, targetCell, debug = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>startingCell</code></td>
+<td>
+<p>A dictionary containing the keys 'r'
+and 'c', which hold the row and column indicies of the
+chosen sensor's location on the BGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>targetCell</code></td>
+<td>
+<p>A dictionary containing the keys 'r'
+and 'c', which hold the row and column indicies of the
+chosen tag's location on the BGrid.</p>
+</td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>A data.frame containing x and y indicies of cells crossed
+by a beam from the starting cell to the target cell.
+</p>
+
+
+</body></html>

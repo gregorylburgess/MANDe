@@ -4,17 +4,23 @@ source('src/Bathy.R')
 source('src/FishModel.R')
 #' @include src/FishModel.R
 source('src/Utility.R')
-
+#' @include src/Utility.R
 
 #' @name acousticRun
-#' @title  the simulation with the provided parameters.
+#' @title Design network with the provided parameters.
+#' @description This is the main routine that calls several sub-routines when designing the network.
+#' First the input parameters are checked for validity and default values are assigned if input 
+#' values are missing. Then bathymetry is loaded and the fish distribution generated. Then the
+#' goodness grid (sumGrid) is calculated depending on the design parameters (this is the heavy part).
+#' When the sumGrid is finished sensors can be placed optimally and stats and figures generated.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @param opt Tells the program to use vectorized R commands.
+#' @param opt If TRUE use vectorized R commands (faster).
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
-acousticRun <- function(params, debug=FALSE, opt=FALSE){
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE){
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
@@ -45,19 +51,19 @@ acousticRun <- function(params, debug=FALSE, opt=FALSE){
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params)
-	## Graph results
-	results$filenames = graph(results,params)
-	endTime = Sys.time()
-	results$runTime = endTime - startTime
-	## Email results
-	if("userEmail" %in% names(params)) {
-		from = "acousticwebapp@gmail.com"
-		to = params$userEmail
-		subject <- "Acoustic webapp results"
-		body <- results                    
-		mailControl=list(smtpServer="smtp.gmail.com")
-		#sendmail(from=from,to=to,subject=subject,msg=body,control=mailControl)
-	}
+    ## Graph results
+    results$filenames = graph(results,params,showPlots)
+    endTime = Sys.time()
+    results$runTime = endTime - startTime
+    ## Email results
+    if("userEmail" %in% names(params)) {
+        from = "acousticwebapp@gmail.com"
+        to = params$userEmail
+        subject <- "Acoustic webapp results"
+        body <- results                    
+        mailControl=list(smtpServer="smtp.gmail.com")
+	##sendmail(from=from,to=to,subject=subject,msg=body,control=mailControl)
+    }
     return(results)
 }
 
@@ -65,11 +71,13 @@ acousticRun <- function(params, debug=FALSE, opt=FALSE){
 #' @title Executes a test run of the program, using default parameters.  No additional 
 #' parameters are necessary.
 #'
+#' @param bias Choose between bias 1 (fish only), 2 (shadowing only) or 3 (fish and shadowing).
+#' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @param opt Tells the program to use vectorized R commands.
+#' @param opt If TRUE use vectorized R commands (faster).
 #' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
 #' @export
-acousticTest <- function(debug=FALSE, opt=FALSE) {
+acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	#### TEST RUN
 	params = list()
 	#notification option
@@ -77,7 +85,7 @@ acousticTest <- function(debug=FALSE, opt=FALSE) {
 	
 	## Sensor variables
 	params$numSensors = 4
-	params$bias = 3
+	params$bias = bias
 	params$sensorElevation <- 1
         params$shapeFcn <- 'shape.gauss'
 	params$peak=.98 
@@ -85,7 +93,7 @@ acousticTest <- function(debug=FALSE, opt=FALSE) {
 	
 	# BGrid Variables
 	params$inputFile = "src/palmyrabath.RData"
-	params$inputFileType = "asc"
+	params$inputFileType = "custom"
 	params$seriesName = 'z'
 	params$cellSize = 5 
 	params$startX = 380
@@ -94,7 +102,7 @@ acousticTest <- function(debug=FALSE, opt=FALSE) {
 	params$YDist = 40
 	
 	## Suppression Variables
-	params$suppressionRangeFactor = 99
+	params$suppressionRangeFactor = 2
 	params$suppressionFcn = "detection.function"
 	## This is only relevant with suppression.scale
 	params$maxsuppressionValue = 1
@@ -131,32 +139,6 @@ acousticTest <- function(debug=FALSE, opt=FALSE) {
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
 	    params$dpsd <- 2
 	}
-	
-	return(acousticRun(params, debug, opt))
+	return(acousticRun(params, showPlots, debug, opt))
 }
 
-##Rprof(tmp <- tempfile())
-##asd <- acousticTest(opt=TRUE)
-##Rprof()
-##summaryRprof(tmp)
-
-##system.time(result <- acousticTest(opt=TRUE))
-##system.time(result <- acousticTest(debug=FALSE,opt=TRUE))
-
-if(FALSE){
-  print(result$stats$absRecoveryRate)
-  print(result$stats$uniqRecoveryRate)
-  ns <- length(result$sensors)
-  sens <- matrix(unlist(result$sensors),ns,2,byrow=TRUE)
-  xlab <- 'x dir'
-  ylab <- 'y dir'
-  plot.bathy <- TRUE
-  graphics.off()
-  plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
-  #dev.new()
-  #plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
-  dev.new()
-  plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
-  dev.new()
-  plotUniqueRR(result)
-}

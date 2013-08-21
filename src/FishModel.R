@@ -1,5 +1,3 @@
-#' @import mvtnorm
-
 #' @name fish
 #' @title Generates a Fish Location Grid (FGrid) for the program to use.  
 #' @description Values in the cells of this grid are expressed as a percentage of 

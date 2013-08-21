@@ -3,10 +3,12 @@
 #' @docType package
 #' @title Designs acoustic sensor networks
 #' @author Greg Burgess \email{epy00n@@hotmail.com}
+#' @author Martin W. Pedersen \email{map@@aqua.dtu.dk}
+#' @author Kevin Weng \email{kevincmweng@@gmail.com}
 #' @references
-#' \url{http://en.wikipedia.org/wiki/Fermat's_little_theorem}
-#' @keywords package
-#' @seealso \code{\link{is.pseudoprime}}
+#' \url{http://www.soest.hawaii.edu/PFRP/}
+#' @keywords acoustic network design
+#' @seealso \code{\link{acousticTest}}
 #' @examples
-#' acousticTest()
+#' result <- acousticTest()
 NA

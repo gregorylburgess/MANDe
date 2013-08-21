@@ -1,11 +1,8 @@
-#' @import sp rgdal raster ncdf
-
 #' @name getBathy
 #' @title Generate a bGrid.
 #' @description Generates a Bathymetric Grid (BGrid) for the program to use.  Able to ingest NetCDF, 
 #' ArcGIS, and ASC file formats.
 #'
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param inputFile The relative path to the file to open.
 #' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "asc".
 #' @param startX Starting index of the BGrid to take from the bathy file.
@@ -59,7 +56,6 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 #' @name simulateBGrid
 #' @title Creates a default BGrid to use if real data could not be loaded.
 #'
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param XDist The width of your desired BGrid.
 #' @param YDist the height of your desired BGrid.
 #' @return A default BGrid of dimensions XDist by YDist.
