@@ -52,7 +52,8 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
             r=rows
         }
         maxLoc = list(c=c,r=r)
-        print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
+        print(paste('Placed sensor',i))
+        ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
         # append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
         # down-weigh all near-by cells to discourage them from being chosen by the program

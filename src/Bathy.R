@@ -33,7 +33,7 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
     	}
 		else if(inputFileType == "asc") {
 					load(inputFile)
-					bGrid = bath[startY:(startY+YDist),startX:(startX+XDist)]
+					bGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
 		}
 		else {
 			bGrid = simulateBGrid(XDist,YDist)
@@ -46,6 +46,7 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 
         ## Quick fix to get rid of NA in bGrid, should probably be interpolated (or something)
         if(any(is.na(bGrid))){
+            print("Warning: NAs found in bGrid! setting to zero. This may be inappropriate so you may want to manually remove them.")
             bGrid[is.na(bGrid)] <- 0
         }
 
