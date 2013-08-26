@@ -64,13 +64,18 @@ for (file in files) {
 	change(name, name, paste("source\\(\'", sep=""),paste("source\\(","\'R/", sep=""))
 }
 
-# Generate HTML files from Rd Files
+# write a list of files to file for the help.html file to read.
 rdFiles = list.files(paste(packageName, "/man", sep=""))
 rdFiles = gsub(".Rd", "", rdFiles)
+rdFiles = gsub(" ", "", rdFiles)
+toPrint = "<?xml version=\"1.0\"?><Names>\n"
+for (file in rdFiles) {
+	toPrint = paste(toPrint, "<Name>",file,"</Name>\n", sep="")
+}
+toPrint = paste(toPrint, "</Names>", sep="")
+cat(toPrint, file="pages/help_pages/index.xml", sep="\n")
 
-# write a list of files to file for the help.html file to read.
-cat(rdFiles, file="pages/help_pages/index.txt", sep="\n")
-
+# Generate HTML files from Rd Files
 outPath = paste(packageName, "/man/", sep="")
 for (file in rdFiles) {
 	command = paste("R CMD Rdconv -t html -o ", paste(outPath, file, ".html", sep=""),

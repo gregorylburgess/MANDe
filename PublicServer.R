@@ -30,7 +30,7 @@ if (status == 0) {
 	rook$add(name="static", 
 			Builder$new( 
 					Static$new(
-							urls = c('/css','/img','/js', '/pages'),
+							urls = c('/css','/img','/js', '/pages', '/txt'),
 							root = '.'
 					),
 					Static$new(urls='/plots',root=tempdir()), 

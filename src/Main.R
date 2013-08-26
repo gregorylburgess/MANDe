@@ -51,8 +51,9 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE){
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params)
-    ## Graph results
+    ## Graph results and make data file.
     results$filenames = graph(results,params,showPlots)
+	
     endTime = Sys.time()
     results$runTime = endTime - startTime
     ## Email results
@@ -97,9 +98,9 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	params$seriesName = 'z'
 	params$cellSize = 5 
 	params$startX = 380
-	params$XDist = 40
+	params$XDist = 10
 	params$startY = 1250
-	params$YDist = 40
+	params$YDist = 10
 	
 	## Suppression Variables
 	params$suppressionRangeFactor = 2
@@ -142,3 +143,4 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	return(acousticRun(params, showPlots, debug, opt))
 }
 
+#acousticTest( bias=1)

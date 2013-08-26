@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+		<title>Acoustic Server Installation</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	
+	<!-- Le styles -->
+	<link href="../css/bootstrap.css" rel="stylesheet">
+	<!-- link href="static/css/bootstrap-responsive.css" rel="stylesheet"> -->
+	<link href="../css/custom.css" rel="stylesheet">
+	<link href="../css/install.css" rel="stylesheet">
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+	      <script src="..//js/html5shiv.js"></script>
+	    <![endif]-->
+</head>
+	<body>
+		<div class="container-fluid">
+			<div id="content" class="row-fluid">
+				<div class="span1"></div>
+				<div class="span10">
+					<h2>Acoustic Server Installation: AWS Setup</h2>
+					<h4>Kevin Weng</h4>
+					
+					<i>Note:The Amazon setup guides are here: <a href="https://aws.amazon.com/documentation/"> https://aws.amazon.com/documentation/</a> if you need further reference.</i>
+					</br>
+					</br>	
+					<ol>
+						<li>Set up an account at <a href="http://aws.amazon.com/">http://aws.amazon.com/</a>.
+						    You have to enter a credit card, but you can create a micro-instance, and run it for a year for free.
+					    </li>
+						<li>
+							Launch the AWS Management Console.
+						<li>
+							Sign in. </br>You'll see this:
+							<img src="images/image05.png">
+						</li> 
+						<li>
+							 Click on "EC2".
+						</li>
+						<li>
+							 Click on "Launch Instance".
+						</li>
+						<li>
+							 Click "Quick launch wizard".
+					    </li>
+						<li>
+							 Select "Ubuntu Server 12.04.2 LTS for Cluster Instances".
+						</li>
+						<li>
+							 Click "download".
+						</li>
+						<li>
+							 This is a permission file that you will need to upload on every use of AWS. Save in a safe place and don't lose it.
+							 For this example, our file is located at:</br>
+							 <i>"/Users/kweng/data/PFRPLAB/projects/acoustic_geolocation_tool/AWS_ubuntu/Kevin_ubuntu_1.pem".</i>
+						</li>
+						<li>
+							 Click "continue".
+						 </li>
+						 <li>
+							 You'll see:
+							<img src="images/image08.png">
+							</br>
+						</li>
+						<li>
+							 Click "Launch".
+							<img src="images/image10.png">
+							</br>
+						</li>
+						<li>
+							 Click "Close".
+						 </li>
+						 <li>
+							 You need to set the security group, so take note of the name of the security group for this instance. 
+							 In this example it is "quicklaunch-1". Look for this at the bottom of the screen (scroll down in the section at the bottom pane).
+							<img src="images/image06.png">
+							</br>
+						</li>
+						<li>
+							 On the left side, click on "security groups".
+							<img src="images/image15.png">
+							</br>
+						</li>
+						<li>
+							 Click on the box for the line with the appropriate name.
+							 Go to bottom pane, click "inbound" tab.
+							<img src="images/image19.png">
+							</br>
+						</li>
+						<li>
+							 Create a new rule, pull down and select "HTTP".
+						 </li>
+						 <li>
+							 Hit "add rule" and then "apply rule changes".
+						 </li>
+						 <li>
+							 Then you should see (note that a new line has appeared under TPC Port (Service):
+							<img src="images/image13.png">
+							</br>
+						</li>
+						<li>
+							 Click "Elastic IPs".
+						</li>
+						<li>
+							 Click "Allocate new address".
+						</li>
+						<li>
+							 Click "Yes, allocate".
+						</li>
+						<li>
+							 Now go to top section of page, right click on light blue line with your IP address, and hit "associate".
+							<img src="images/image18.png">
+						</li>
+						<li>
+							 Select the instance <i>(there should only be one, unless you have installed other instances on your AWS).</i>
+							<img src="images/image04.png">
+						</li>
+						<li>
+							 Click "Yes, associate".
+						 </li>
+						 <li>
+							 Copy the IP address you see here <i>(ours is 54.213.157.76)</i>:
+							<img src="images/image12.png">
+							</br>
+						</li>
+						<li>
+							 Click "instances" on left pane.
+						 </li>
+						 <li>
+							 Right click on the light blue line and hit "connect".
+							<img src="images/image17.png">
+						</li>
+						<li>
+							 You'll see:
+							<img src="images/image09.png">
+						</li>
+						<li>
+							 Find where you put the permission file and copy the path. 
+							 Paste it into the "private key path" box. 
+							 You may wish to click "save key location".  Doing so saves the path so you don't have to copy paste in the future.
+						</li>
+						<li>
+							 Click "Launch SSH Client".
+						</li>
+						<li>
+							 Allow Java to run.
+						</li>
+						<li>
+							 If you are using a mac you might see this <i>(Allow it)</i>:
+							<img src="images/image11.png">
+							</br>
+						</li>
+						<li>
+							Read and accept the EULA.
+							<img src="images/image14.png">
+						</li>
+						<li>
+							Several prompts will appear, Click Accept/Allow/Yes in all of them.
+							<img src="images/image02.png">
+							</br>
+							<img src="images/image20.png">
+						</li>
+						<li>
+							If successful you'll get a command line box:
+							<img src="images/image01.png">
+						</li>
+						
+						<li>
+							Your AWS setup is now complete.</br>
+							Follow the directions for <a href="local_install.html">Installing A Local Instance</a> to setup the Acoustic Server.
+						</li>
+					</ol>
+					<h3>
+						NOTE:</br>
+						 DO NOT CLOSE THE SSH TERMINAL WINDOW! Doing so will dramatically slow down the server on AWS.
+					</h3>
+				</div>
+				<div class="span1"></div>
+			</div>
+		</div>
+	</body>
+</html>

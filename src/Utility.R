@@ -1,5 +1,6 @@
 #' @include src/ShapeFunctions.R
 source('src/ShapeFunctions.R')
+library('rjson')
 
 #' @name sensorFun
 #' @title Calls functions to generate a 'goodness' grid and choose sensor locations.
@@ -242,7 +243,10 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE) {
     ## Calculate the detection function value at all distances and that is our kernel
     kernel = do.call(params$shapeFcn, list(dists, params))
     ## Check that the length of the kernel is as it should be
-    if(length(kernel) != 2*params$range+1) print(paste('[sumGrid.sumSimple.opt]: length of kernel was:',length(kernel),'expected:',2*params$range+1))
+    if(length(kernel) != 2*params$range+1) {
+		print(paste('[sumGrid.sumSimple.opt]: length of kernel was:',
+					length(kernel),'expected:',2*params$range+1))
+	}
     ## Extract relevant grid as given by key
     tempGrid = get(key, grids)
     ## Do convolution. This operation is identical to the for loop in sumGrid.sumSimple
@@ -609,7 +613,9 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
     minsuppressionValue = params$minsuppressionValue
     maxsuppressionValue = params$maxsuppressionValue
     ## dfflag indicates whether detection function variant should be used for suppression
-    dfflag = suppressionFcn=='detection.function' | suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'
+    dfflag = suppressionFcn=='detection.function' ||
+			 suppressionFcn=='detection.function.shadow' ||
+			 suppressionFcn=='detection.function.exact'
     rows = dim(sumGrid)[1]
     cols = dim(sumGrid)[2]
 	
@@ -1071,6 +1077,13 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         xlab = 'x dir'
         ylab = 'y dir'
 
+	## Write results to a text file
+	filename = sprintf("txt/%g.txt", time)
+	file.create(filename)
+	sink(filename)
+	print(result)
+	unlink(filename)
+	
 	## BGrid
 	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	if(!showPlots){
@@ -1239,6 +1252,9 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @return A dictionary of statistical values containing the keys: "delta", "sensorMat"         
 #' "uniqRRs", "acousticCoverage", "absRecoveryRate", "uniqRecoveryRate".
 getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
+	if(debug) {
+		print("[getstats]")
+	}
     statDict = list()
     ## Number of requested sensors
     numSensors = length(sensors$sensorList)
@@ -1287,7 +1303,10 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     X = matrix(rep(1:cols,rows),rows,cols,byrow=TRUE)
     Y = matrix(rep(1:rows,cols),rows,cols,byrow=FALSE)
     dimap = array(0,dim=c(rows,cols,numProj))
-    for(i in 1:numProj) dimap[,,i] = sqrt( (X-xSens[i])^2 + (Y-ySens[i])^2 ) ## Distance to receiver
+    for(i in 1:numProj) {
+		## Distance to receiver
+		dimap[,,i] = sqrt( (X-xSens[i])^2 + (Y-ySens[i])^2 )
+	}
     
     ## Horizontal detection maps using detection function
     demap = array(0,dim=c(rows,cols,numProj))
@@ -1335,8 +1354,8 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
         uniqRRs[i] = sum(covertmp * fGrid)
     }
     duniqRRs = diff(c(0,uniqRRs))
-    print(uniqRRs)
-    print(duniqRRs)
+    ##print(uniqRRs)
+    ##print(duniqRRs)
     ## Sort list so best sensors come first
     srt = sort(duniqRRs,index=TRUE,decreasing=TRUE) 
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)

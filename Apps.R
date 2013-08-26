@@ -11,7 +11,7 @@ query <- function(env) {
 	req = Rook::Request$new(env)
 	res = Rook::Response$new()
 	params = parseJSON(req$params())
-	results=run(params)
+	results=acousticRun(params)
 	res$write(toJSON(results, method="C"))
 	res$finish()
 }

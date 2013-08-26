@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+		<title>Acoustic Server Installation</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	
+	<!-- Le styles -->
+	<link href="../css/bootstrap.css" rel="stylesheet">
+	<!-- link href="static/css/bootstrap-responsive.css" rel="stylesheet"> -->
+	<link href="../css/custom.css" rel="stylesheet">
+	<link href="../css/install.css" rel="stylesheet">
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+	      <script src="..//js/html5shiv.js"></script>
+	    <![endif]-->
+</head>
+	<body>
+		<div class="container-fluid">
+			<div id="content" class="row-fluid">
+				<div class="span1"></div>
+				<div class="span10">
+					<h2>Acoustic Server Installation: Local Installation</h2>
+					<h4>Kevin Weng</h4>
+					<h3>
+						Prerequisites:
+					</h3>
+					<ol>
+						<li>
+							Administrative access (you must be able to use 'sudo') to a computer with Ubuntu 12.10 installed. (An AWS instance satisfies this requirement)
+						</li>
+						<li>
+							A working internet connection. (To download the necessary software and packages)
+						</li>
+					</ol>
+					<h3>
+						Installation:</br>
+					</h3>	
+					<ol>
+						<li>
+							 Open a terminal window.
+						 </li>
+						 <li>
+						 	Type <b><i>sudo apt-get install git</i></b> and hit enter.
+							<img src="images/image16.png">
+						</li>
+						<li>
+							 Type "Y". </br>
+							 An installer run, and setup git.
+						 </li>
+						 <li>
+							 In your command window, type:</br>
+							 <b><i>git clone https://github.com/gregorylburgess/acoustic-deploy.git</i></b> and hit enter.
+							 </br>
+							 This will download the the tool and sample bathymetry to your AWS instance, so may take a while. 
+						</li>
+						<li>
+							 Type <b><i>cd acoustic-deploy</i></b> and hit enter.
+						</li>
+						<li>
+							 Type: <b><i>source scripts/install.sh</i></b> and hit enter.
+							 This will run several installers which require user input. 
+							 Keep hitting enter/Y at the prompts.
+							<img src="images/image00.png">
+							</br>
+						</li>
+						<li>
+							If you're asked to install a new version of grub, </br>
+							select "keep the local version currently installed" by using the arrow keys, and hit enter.
+							<img src="images/image21.png">
+							</br>
+						</li>
+						<li>
+							 When it's done you should see:
+							<img src="images/image03.png">
+							</br>
+						<li>
+							 Type: <b><i>sudo nohup Rscript PublicServer.R </i></b>
+							 </br>
+							 Open a new tab in your web browser.
+							 </br>
+							 </br>
+							 <b>If you're installing the server on AWS:</b></br>
+							 Enter into the URL bar the Elastic IP that you copied before, and append <i>/custom/base</i>
+							 </br>
+							 Our url is 54.213.157.76/custom/base
+							 </br>
+							 </br>
+							 <b>If you're doing a local installation of the server:</b></br>
+							 Enter into the URL bar 127.0.0.1/custom/base </br>
+							 </br>
+							 You should see this:
+							<img src="images/image07.png">
+							</br>
+						</li>
+						<li>
+							 If you need to kill the server (perhaps due to an error), go back to the SSH terminal, and press ctrl + c  a few times.
+							 </br>
+							 To restart the server, type the command you used originally, 
+							 </br>
+							 <b><i>sudo nohup Rscript PublicServer.R</i></b>, into the terminal window.
+							 </br>
+							 If you do restart the server, make sure to refresh the browser window containing the web app.
+						</li>
+					</ol>
+				</div>
+			</div>	
+		</div>
+	</body>
+</html>

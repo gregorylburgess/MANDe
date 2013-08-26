@@ -1,0 +1,10 @@
+
+img {
+	width: 600px;
+	display: block;
+	margin: 10px 0 10px 0;
+}
+body.c6 ol li {
+	display: block;
+	float: left;
+}
