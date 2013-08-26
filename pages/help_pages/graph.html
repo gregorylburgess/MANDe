@@ -1,13 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head><title>R: Generates .png files for the visualizations of various grids....</title>
+<html><head><title>R: Generate acoustic plots.</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="stylesheet" type="text/css" href="R.css">
 </head><body>
 
 <table width="100%" summary="page for graph"><tr><td>graph</td><td align="right">R Documentation</td></tr></table>
 
-<h2>Generates .png files for the visualizations of various grids.  You must have write access to the
-R working directory that the program is executed from.  Additionally, ensure that an 'img' folder exists there.</h2>
+<h2>Generate acoustic plots.</h2>
 
 <h3>Description</h3>
 
@@ -21,7 +20,7 @@ Additionally, ensure that an 'img' folder exists there.
 <h3>Usage</h3>
 
 <pre>
-  graph(result, params, plot.bathy = TRUE)
+  graph(result, params, showPlots, plot.bathy = TRUE)
 </pre>
 
 
@@ -37,6 +36,11 @@ of a successfull call to run() or sensorFun().</p>
 <td>
 <p>A dictionary of parameters, see
 PARAMETER_DESCRIPTIONS.html for more info.</p>
+</td></tr>
+<tr valign="top"><td><code>showPlots</code></td>
+<td>
+<p>If TRUE plots are shown on the screen,
+if FALSE plots are stored in the img folder.</p>
 </td></tr>
 <tr valign="top"><td><code>plot.bathy</code></td>
 <td>

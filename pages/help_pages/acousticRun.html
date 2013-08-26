@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Design network with the provided parameters.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="R.css">
+</head><body>
+
+<table width="100%" summary="page for acousticRun"><tr><td>acousticRun</td><td align="right">R Documentation</td></tr></table>
+
+<h2>Design network with the provided parameters.</h2>
+
+<h3>Description</h3>
+
+<p>This is the main routine that calls several sub-routines
+when designing the network. First the input parameters
+are checked for validity and default values are assigned
+if input values are missing. Then bathymetry is loaded
+and the fish distribution generated. Then the goodness
+grid (sumGrid) is calculated depending on the design
+parameters (this is the heavy part). When the sumGrid is
+finished sensors can be placed optimally and stats and
+figures generated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+  acousticRun(params, showPlots = FALSE, debug = FALSE,
+    opt = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>params</code></td>
+<td>
+<p>A dictionary of parameters, see
+PARAMETER_DESCRIPTIONS.html for more info.</p>
+</td></tr>
+<tr valign="top"><td><code>showPlots</code></td>
+<td>
+<p>If TRUE plots are shown on the screen,
+if FALSE plots are stored in the img folder.</p>
+</td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
+<tr valign="top"><td><code>opt</code></td>
+<td>
+<p>If TRUE use vectorized R commands (faster).</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>A dictionary of return objects, see
+RETURN_DESCRIPTIONS.html for more info.
+</p>
+
+
+</body></html>
