@@ -1,61 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>Acoustic Function Descriptions</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta name="description" content="">
-		<meta name="author" content="">
-		
-		<!-- Le styles -->
-		<link href="../css/bootstrap.css" rel="stylesheet">
-		<!-- link href="static/css/bootstrap-responsive.css" rel="stylesheet"> -->
-		<link href="../css/custom.css" rel="stylesheet">
-		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-		<!--[if lt IE 9]>
-		      <script src="..//js/html5shiv.js"></script>
-		    <![endif]-->
-	</head>
-	<body>
-		<div class="row-fluid">
-			<center>
-				<h2>Acoustic Function Descriptions</h2>
-			</center>
-		</div>
-		<div class="row-fluid">
-			<div class="span4">
-				<h2>Acoustic Functions</h2>
-				<ul id=menu-list>
-					
-				</ul>
-			</div>
-			<div id="help-content" class="span8">
-				
-			</div>
-		</div>
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-		<script src="../js/bootstrap.js"></script>
-		<script src="../js/sprintf.js"></script>
-		<script>
-			$.get("help_pages/index.xml", function(data) {
-				var xml = $($.parseXML(data));
-				var toRet = "";
-				//var template = "<li><a id=\'%s\' href=\'help_pages/%s.html\'>%s</a></li>";
-				var template = "<li><a id=\'%s\' href=\'#' onclick=\"showMore(\'%s\')\">%s</a></li>";
-				xml.find('Names').find('Name').each(function() {
-					var val = $(this).text();
-					if(val != "") {
-						toRet += sprintf(template, val,val,val);
-					}
-				});
-				$("#menu-list").html(toRet);
-			}, 'text');
+<div class="row-fluid">
+<center>
+	<h2>Acoustic Function Descriptions</h2>
+</center>
+</div>
+<div class="row-fluid">
+	<div class="span4">
+		<ul id="menu-list">
 			
-			function showMore(fcn) {
-				$.get("help_pages/index.xml", function(data) {
-					$("#help-content").load("help_pages/" + fcn + ".html");
-				});
-			}
-		</script>
-	</body>
-</html>
+		</ul>
+	</div>
+	<div id="help-content" class="span8">
+	</div>
+	<script>
+		$.get("help_pages/index.xml", function(data) {
+			var xml = $($.parseXML(data));
+			var toRet = "";
+			//var template = "<li><a id=\'%s\' href=\'help_pages/%s.html\'>%s</a></li>";
+			var template = "<li><a id=\'%s\' href=\'#' onclick=\"showMore(\'%s\')\">%s</a></li>";
+			xml.find('Names').find('Name').each(function() {
+				var val = $(this).text();
+				if(val != "") {
+					toRet += sprintf(template, val,val,val);
+				}
+			});
+			$("#menu-list").html(toRet);
+		}, 'text');
+		
+		function showMore(fcn) {
+			$.get("help_pages/index.xml", function(data) {
+				$("#help-content").load("help_pages/" + fcn + ".html");
+			});
+		}
+	</script>
+	</div>

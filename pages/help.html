@@ -1,0 +1,24 @@
+<div>
+	<h2>Help Topics:</h2>
+	<ul>
+		<li><a href="#" onclick="paramDesc()">Parameter Descriptions</a></li>
+		<li><a href="#">User Guide</a></li>
+		<li><a href="#" onclick="methodDesc()">Developer Guide</a></li>
+		<li><a href="#" onclick="lInstall()">Setting Up A Local Instance on Your Computer</a></li>
+		<li><a href="#" onclick="sInstall()">Setting Up A Cloud-Based Instance on Amazon Web Services</a></li>
+	</ul>
+	<script>
+	function paramDesc() {
+		$("#content").load("parameter_descriptions.html");
+	}
+	function methodDesc() {
+		$("#content").load("method_descriptions.html");
+	}
+	function lInstall() {
+		$("#content").load("local_install.html");
+	}
+	function sInstall() {
+		$("#content").load("server_install.html");
+	}
+	</script>
+</div>

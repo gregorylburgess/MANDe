@@ -1,28 +1,31 @@
-		<div class="navbar navbar-inverse navbar-fixed-top">
-			<div class="navbar-inner">
-				<div class="container-fluid">
-					<button type="button" class="btn btn-navbar" data-toggle="collapse"
-						data-target=".nav-collapse">
-						<span class="icon-bar"></span> <span class="icon-bar"></span> <span
-							class="icon-bar"></span>
-					</button>
-					<a id="brand" class="brand">Acoustic Web App</a>
-					<div class="nav-collapse collapse">
-						<ul class="nav">
-							<li class="active"><a href="" onClick="home()">Home</a></li>
-							<li><a href="#about" onClick="about()">About</a></li>
-							<li><a href="https://github.com/gregorylburgess/acoustic-deploy/wiki/Home">Help</a></li>
-							</ul>
-					</div>
-					<!--/.nav-collapse -->
-				</div>
+<div class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container-fluid">
+			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span> <span class="icon-bar"></span> <span
+					class="icon-bar"></span>
+			</button>
+			<a id="brand" class="brand">Acoustic Web App</a>
+			<div class="nav-collapse collapse">
+				<ul class="nav">
+					<li class="active"><a href="#" onClick="home()">Home</a></li>
+					<li><a href="#about" onClick="about()">About</a></li>
+					<li><a href="#help" onClick="help()">Help</a></li>
+				</ul>
 			</div>
+			<!--/.nav-collapse -->
 		</div>
+	</div>
+
 <script>
 function about() {
 	$("#content").load("about.html");
+}
+function help() {
+	$("#content").load("help.html");
 }
 function home() {
 	$("#content").load("form.html");
 }
 </script>
+</div>

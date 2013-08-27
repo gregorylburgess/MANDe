@@ -13,3 +13,4 @@ cd acoustic-deploy
 sudo R CMD INSTALL --configure-args="-with-netcdf-include=/usr/include/ -with-netcdf-lib=/usr/lib/" ncdf_1.6.6.tar.gz
 sudo Rscript scripts/install.R
 sudo mkdir img
+sudo mkdir txt
