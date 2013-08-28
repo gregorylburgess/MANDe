@@ -161,12 +161,12 @@ Your browser doesn't support iframes.
 			
 			toRet += "<h3>Graphs:</h4>";
 			for(key in filenames) {
-				//if(key.indexOf(".txt") != -1)) {
+				if(filenames[key].indexOf(".png") != -1) {
 					toRet += "<image src=\"../" + filenames[key] + "\"></image>";
-				//}
-				//if(key.indexOf(".zip") != -1)) {
-				//	toRet += "<a href=\"" + filenames[key] + "\">Download a zipped copy of all results</a>";
-				//}
+				}
+				if(filenames[key].indexOf(".zip") != -1) {
+					toRet += "<a href=\"../" + filenames[key] + "\">Download a zipped copy of all results</a>";
+				}
 			}
 			
 			toRet += "</br><center><button type=\"submit\" class=\"btn btn-danger\" onClick=\"location.reload()\"> < Back</button></center>";

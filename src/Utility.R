@@ -1069,7 +1069,11 @@ offset= function(point){
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return A dictionary containing the filenames of the generated images.
 graph = function(result, params, showPlots, plot.bathy=TRUE) {
-        if(!showPlots) dir.create("img")
+        if(!showPlots) {
+			if(!file.exists("img")) {
+				dir.create("img")
+			}
+		}
 	## Plotting
 	graphics.off()
 	filenames = {}
@@ -1080,9 +1084,8 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## Write results to a text file
 	filename = sprintf("txt/%g.txt", time)
 	file.create(filename)
-	sink(filename)
-	print(result)
-	unlink(filename)
+	capture.output(print(result), file=filename)
+	filenames$txt = filename
 	
 	## BGrid
 	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
@@ -1133,7 +1136,11 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         }
         plotUniqueRR(result)
 	if(!showPlots) dev.off()
-
+	
+	filename = paste("zip/", time, ".zip", sep="")
+	zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
+	filenames$zip = filename
+	
 	return(filenames)
 }
 

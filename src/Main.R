@@ -140,7 +140,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
 	    params$dpsd <- 2
 	}
-	return(acousticRun(params, showPlots, debug, opt))
+	return(acousticRun(params, showPlots=FALSE, debug, opt))
 }
 
 #acousticTest( bias=1)
