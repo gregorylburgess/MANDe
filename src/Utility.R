@@ -20,8 +20,9 @@ library('rjson')
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
+#' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, opt=FALSE) {
+sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, opt=FALSE, save.inter=FALSE) {
     if (debug) {
         cat("\n[sensorFun]\n")
         print("bGrid")
@@ -32,6 +33,9 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
         print("params")
         print(params)
     }
+
+    ## This is used to collect intermediary grids (warning: may use up memory)
+    if(save.inter) inter = list()
     
     sensorList = {}
     dims = dim(fGrid)
@@ -42,8 +46,10 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
     # calculate the sumGrid
     grids = sumGridFun(grids, range, bias, params, debug, opt)
     sumGrid = grids$sumGrid
+    if(save.inter) inter[[1]] = grids
     # for each sensor, find a good placement
     for (i in 1:numSensors) {
+
         # find the max location 
         maxLoc = which.max(grids$sumGrid)
         # Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
@@ -71,8 +77,16 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
             grids = updateFGrid(maxLoc,grids,params,debug,opt)
             grids = sumGridFun(grids, range, bias, params, debug, opt)
         }
+        if(save.inter){
+          ## Save intermediary grids
+          inter[[i+1]] = grids
+        }
     }
-    return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid))
+    if(save.inter){
+        return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid, inter=inter))
+    }else{
+        return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid))
+    }
 }
 
 
@@ -253,6 +267,13 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE) {
     ## For more general information about how the convolution operation is defined google it! wikipedia has a decent explanation.
     grids$sumGrid = conv.2D(tempGrid,kernel,kernel)
 
+    ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
+    sensorDepth = grids$bGrid$bGrid + params$sensorElevation
+    ## Calculate a matrix where TRUE values indicate that a grid cell could contain a sensor below the surface
+    belowSurf = sensorDepth < 0
+    ## Set the goodness to zero in cells where a sensor would not be below the surface (it would stick out of the water)
+    grids$sumGrid[!belowSurf] = 0
+    
     if(debug){
         cat("\n[sumGrid.sumSimple.opt]\n")
         print("grids")
@@ -323,7 +344,6 @@ sumGrid.sumBathy = function (grids, range, shapeFcn="shape.t",
 #' @param opt Tells the program to use vectorized R commands.
 #' @return Returns the grids parameter, with an updated sumGrid.
 sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
-
     nr = dim(grids$bGrid$bGrid)[1]
     nc = dim(grids$bGrid$bGrid)[2]
     ## Calculate the number of cells in the bGrid
@@ -336,7 +356,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
     rng = round(params$range)
     ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
     sensorDepth = bG + params$sensorElevation
-    ## Calculate a matrix where grid cells containing TRUE values would containg a sensor below the surface
+    ## Calculate a matrix where TRUE values indicate that a grid cell could contain a sensor below the surface
     belowSurf = sensorDepth < 0
     ## Create a matrix where land cells have value TRUE
     land = bG >= 0
@@ -345,7 +365,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
     usefGrid = params$bias==3
     for(c in 1:nc){
         comp = c/nc
-        print(sprintf("completed:%g", comp))
+        print(sprintf("LOS progress: %g", comp))
         ## Column indices
         cind = max(c(1,c-rng)):min(c(nc,c+rng))
         for(r in 1:nr){
@@ -1082,15 +1102,20 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         ylab = 'y dir'
 
 	## Write results to a text file
+        ## MWP: this is a start, but we probably don't want to just dump everything into a text file, at least if we do we need to document what everything is. Instead we should write the statistics and the sensor location in a nicely formatted text file using the cat or perhaps write.table command.
+        if(!file.exists("txt")) {
+          dir.create("txt")
+          print("Creating directory: txt")
+        }
 	filename = sprintf("txt/%g.txt", time)
 	file.create(filename)
 	capture.output(print(result), file=filename)
 	filenames$txt = filename
 	
 	## BGrid
-	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
 	if(!showPlots){
-            png(filenames$bGrid)
+          filenames$bGrid = sprintf("img/bGrid-%g.png", time)
+          png(filenames$bGrid)
         }else{
             dev.new()
         }
@@ -1098,9 +1123,9 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 	
 	## FGrid
-	filenames$fGrid = sprintf("img/fGrid-%g.png", time)
 	if(!showPlots){
-            png(filenames$fGrid)
+          filenames$fGrid = sprintf("img/fGrid-%g.png", time)
+          png(filenames$fGrid)
         }else{
             dev.new()
         }
@@ -1108,9 +1133,9 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 	
 	## SumGrid
-	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
 	if(!showPlots){
-            png(filenames$sumGrid)
+          filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
+          png(filenames$sumGrid)
         }else{
             dev.new()
         }
@@ -1118,8 +1143,8 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 	
 	## Acoustic Coverage
-	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
 	if(!showPlots){
+            filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
             png(filenames$acousticCoverage)
         }else{
             dev.new()
@@ -1128,16 +1153,21 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 
         ## Unique Recovery Rate
-	filenames$recoveryRates = sprintf("img/recoveryRates-%g.png", time)
 	if(!showPlots){
+            filenames$recoveryRates = sprintf("img/recoveryRates-%g.png", time)
             png(filenames$recoveryRates)
         }else{
             dev.new()
         }
         plotUniqueRR(result)
 	if(!showPlots) dev.off()
-	
+
+        ## Zip file
 	filename = paste("zip/", time, ".zip", sep="")
+        if(!file.exists("zip")) {
+          dir.create("zip")
+          print("Creating directory: zip")
+        }
 	zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
 	filenames$zip = filename
 	
@@ -1154,29 +1184,39 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 #' @param main Set title of plot.
 #' @param xlab Set label of x axis.
 #' @param ylab Set label of y axis.
-#' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
+#' @param plot.bathy Specifies whether bathymetry contour lines should be added to plots.
+#' @param plot.sensors Specifies if sensors should be added to plot.
 #' @return Nothing.
-plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE){
+plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE){
+    ## n is number of colors in palette
+    n = 24
+    col = heat.colors(n)
     if(type=='bGrid'){
+        col = colorRampPalette(c("darkviolet","navy","white"))(n)
         grid = result$bGrid$bGrid
     }
     if(type=='fGrid'){
+        col = colorRampPalette(c("white","lightseagreen","mediumvioletred"))(n)
         grid = result$fGrid
     }
     if(type=='sumGrid'){
+        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$sumGrid
     }
     if(type=='acousticCoverage'){
+        col = colorRampPalette(c("white","black","red"))(n)
         grid = result$stats$acousticCoverage
     }
     ## Plot the actual grid as an image
-    image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab)
+    image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col)
     if(plot.bathy) {
         ## Add bathymetry contour
         contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
     }
-    ## Add sensors and their numbers
-    plotSensors(result)
+    if(plot.sensors){
+        ## Add sensors and their numbers
+        plotSensors(result)
+    }
 }
 
 
@@ -1223,7 +1263,7 @@ plotUniqueRR = function(result){
 #' @param circlty Line type for circles.
 #' @return Nothing.
 plotSensors = function(result,circles=TRUE,circlty=3){
-  ns = length(result$sensors)
+  ns = dim(result$stats$sensorMat)[1]
   ## Radius of circle
   r = result$params$detectionRange
   ## Radian values for a full circle
@@ -1507,12 +1547,13 @@ checkParams = function(params) {
     
     # Fish Modeling
     if(!('fishmodel' %in% names)) {
+        print("Movement model defaults to RW")
         params$fishmodel = 'rw'
     }	else {
-		if(params$fishmodel == "True") {
+		if(params$fishmodel == "True" | params$fishmodel == "ou") {
 			params$fishmodel = 'ou'
 		}
-		if(params$fishmodel == "False") {
+		if(params$fishmodel == "False" | params$fishmodel == "rw") {
 			params$fishmodel = 'rw'
 		}
 		params$fishmodel = as.character(params$fishmodel)

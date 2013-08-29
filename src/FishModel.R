@@ -14,6 +14,7 @@ fish <- function(params, bGrid) {
     switch(params$fishmodel,
             ## Random walk case
             rw={ 
+                print("Using RW model")
                 fGrid <- matrix(1,rows,cols)
                 if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
                     print('RW: Using vertical habitat to calculate fGrid')
@@ -21,7 +22,8 @@ fish <- function(params, bGrid) {
                 }
             },
             ## Ornstein-Uhlenbeck case
-            ou={ 
+            ou={
+                print("Using OU model")
                 mux <- min(bGrid$x) + diff(range(bGrid$x))*params$mux
                 muy <- min(bGrid$y) + diff(range(bGrid$y))*params$muy
                 varx <- params$ousdx^2

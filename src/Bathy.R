@@ -14,34 +14,29 @@
 #' @return A BGrid based on the parameters given.  If an error occurs, a default grid is provided.
 getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, seriesName, debug=FALSE) {
 	if (file.exists(as.character(inputFile))) {
-		
-		if(inputFileType == "netcdf" && require(ncdf)){
-					library(ncdf)
-		            ## open the netCDF file
-		            ncdfObj = open.ncdf(inputFile)
-		            
-		            ## grab a slice (in grid form)
-		            bGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), 
-		                    count=c( XDist, YDist))
+            if(inputFileType == "netcdf" && require(ncdf)){
+                library(ncdf)
+                ## open the netCDF file
+                ncdfObj = open.ncdf(inputFile)
+                ## grab a slice (in grid form)
+                bGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
 	    }
-		else if(inputFileType == "arcgis" && require(sp) && require(rgdal) && require(raster)){
-					library(sp)
-					library(raster)
-					library(rgdal)
-			        #For an arc/grid inputFile is the folder!:
-			        bGrid = raster(inputFile)
-    	}
-		else if(inputFileType == "asc") {
-					load(inputFile)
-					bGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
-		}
-		else {
-			bGrid = simulateBGrid(XDist,YDist)
-		}
-	}
-	else {
-		print("File not found.")
-		bGrid = simulateBGrid(XDist,YDist)
+   	    else if(inputFileType == "arcgis" && require(sp) && require(rgdal) && require(raster)){
+                library(sp)
+                library(raster)
+                library(rgdal)
+                ## For an arc/grid inputFile is the folder!:
+                bGrid = raster(inputFile)
+            }
+	    else if(inputFileType == "asc") {
+                load(inputFile)
+                bGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
+            } else {
+                bGrid = simulateBGrid(XDist,YDist)
+            }
+	} else {
+            print("Bathymetry file not found.")
+            bGrid = simulateBGrid(XDist,YDist)
 	}
 
         ## Quick fix to get rid of NA in bGrid, should probably be interpolated (or something)

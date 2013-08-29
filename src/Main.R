@@ -18,9 +18,10 @@ source('src/Utility.R')
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt If TRUE use vectorized R commands (faster).
+#' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE){
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.inter=FALSE){
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
@@ -44,13 +45,15 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE){
     fGrid = fish(params, bGrid)
 
     ## Find good sensor placements
-    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt)
+    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt, save.inter=save.inter)
 
     ## Stat analysis of proposed setup.
     statDict = getStats(params, bGrid, fGrid, sensors, debug, opt)
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params)
+    if(save.inter) results$inter = sensors$inter
+    
     ## Graph results and make data file.
     results$filenames = graph(results,params,showPlots)
 	
@@ -112,17 +115,17 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	## Choose random walk type movement model
 	params$fishmodel <- 'rw'
 	if(params$fishmodel == 'ou'){
-		## OU parameter: center of home range
-		params$mux <- 0.7 ## Proportion of x scale
-		params$muy <- 0.5 ## Proportion of y scale
+            ## OU parameter: center of home range
+            params$mux <- 0.7 ## Proportion of x scale
+            params$muy <- 0.5 ## Proportion of y scale
 		
-		## ----- OU: Home range shape and size parameters: -----
-		## SD of home range in x direction, sdx > 0 in meters
-		params$ousdx <- 25
-		## SD of home range in y direction, sdy > 0 in meters
-		params$ousdy <- 25
-		## Correlation between directions, -1 < cor < 1
-		params$oucor <- 0.7
+            ## ----- OU: Home range shape and size parameters: -----
+            ## SD of home range in x direction, sdx > 0 in meters
+            params$ousdx <- 25
+            ## SD of home range in y direction, sdy > 0 in meters
+            params$ousdy <- 25
+            ## Correlation between directions, -1 < cor < 1
+            params$oucor <- 0.7
 	}
 	## Apply vertical habitat range?
 	vHabitatRange = TRUE
