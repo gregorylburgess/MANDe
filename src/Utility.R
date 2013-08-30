@@ -1186,13 +1186,15 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 #' @param ylab Set label of y axis.
 #' @param plot.bathy Specifies whether bathymetry contour lines should be added to plots.
 #' @param plot.sensors Specifies if sensors should be added to plot.
+#' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
-plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE){
+plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,...){
     ## n is number of colors in palette
     n = 24
     col = heat.colors(n)
     if(type=='bGrid'){
-        col = colorRampPalette(c("darkviolet","navy","white"))(n)
+        ##col = colorRampPalette(c("darkviolet","navy","white"))(n)
+        col = colorRampPalette(c("navy","white"))(n)
         grid = result$bGrid$bGrid
     }
     if(type=='fGrid'){
@@ -1208,7 +1210,7 @@ plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRU
         grid = result$stats$acousticCoverage
     }
     ## Plot the actual grid as an image
-    image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col)
+    image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col,...)
     if(plot.bathy) {
         ## Add bathymetry contour
         contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
@@ -1271,9 +1273,8 @@ plotSensors = function(result,circles=TRUE,circlty=3){
   ## Cols
   sensx = result$bGrid$x[result$stats$sensorMat[1:ns, 2]]
   ## Rows
-  sensy = result$bGrid$y[result$stats$sensorMat[1:ns, 1]] 
-  points(sensx,sensy,pch=21,bg='blue',cex=3)
-  text(sensx,sensy,1:ns,col='white')
+  sensy = result$bGrid$y[result$stats$sensorMat[1:ns, 1]]
+  ## Plot sensor range as circles
   if(circles){
     for(i in 1:ns){
       X = r*cos(a) + sensx[i]
@@ -1281,6 +1282,9 @@ plotSensors = function(result,circles=TRUE,circlty=3){
       lines(X,Y,lty=circlty)
     }
   }
+  ## Plot sensor locations
+  points(sensx,sensy,pch=21,bg='blue',cex=3)
+  text(sensx,sensy,1:ns,col='white')
 }
 
 
