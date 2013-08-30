@@ -44,7 +44,7 @@ if (status == 0) {
 					)
 			)
 	)
-	while (TRUE) Sys.sleep(24 * 60 * 60)
+	#while (TRUE) Sys.sleep(24 * 60 * 60)
 }
 
 # If we get here then the web server didn't start up properly

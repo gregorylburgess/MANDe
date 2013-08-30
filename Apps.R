@@ -1,6 +1,4 @@
 #' Defines handlers for Rook URIs.
-#' 
-#' 
 source("src/Main.R")
 library("rjson")
 
@@ -10,9 +8,13 @@ library("rjson")
 query <- function(env) {
 	req = Rook::Request$new(env)
 	res = Rook::Response$new()
-	params = parseJSON(req$params())
-	results=acousticRun(params)
-	res$write(toJSON(results, method="C"))
+	cmd = paste("Rscript Wrapper.R", req$params, sep="")
+	# Asynchronous call to run the program
+	system(cmd, intern = FALSE,
+			ignore.stdout = FALSE, ignore.stderr = FALSE,
+			wait = FALSE, input = NULL, show.output.on.console = TRUE,
+			minimized = FALSE, invisible = TRUE)
+	res$write("{\"status\":\"wait\"}")
 	res$finish()
 }
 

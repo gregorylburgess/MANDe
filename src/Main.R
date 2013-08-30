@@ -21,6 +21,7 @@ source('src/Utility.R')
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE){
+	print("Recievd job")
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
@@ -85,6 +86,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	params$userEmail = "epy00n@hotmail.com"
 	
 	## Sensor variables
+	params$timestamp = -1
 	params$numSensors = 4
 	params$bias = bias
 	params$sensorElevation <- 1
@@ -143,4 +145,4 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	return(acousticRun(params, showPlots=FALSE, debug, opt))
 }
 
-#acousticTest( bias=1)
+#acousticTest(bias=1, showPlots=FALSE)

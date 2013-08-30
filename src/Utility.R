@@ -1069,7 +1069,12 @@ offset= function(point){
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return A dictionary containing the filenames of the generated images.
 graph = function(result, params, showPlots, plot.bathy=TRUE) {
+	time = "1"
         if(!showPlots) {
+			if('timestamp' %in%  names(params)) {
+				print("Using timestamp")
+				time = params$timestamp
+			}
 			if(!file.exists("img")) {
 				dir.create("img")
 			}
@@ -1077,18 +1082,19 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## Plotting
 	graphics.off()
 	filenames = {}
-	time = as.numeric(Sys.time()) %% 1
         xlab = 'x dir'
         ylab = 'y dir'
-
-	## Write results to a text file
-	filename = sprintf("txt/%g.txt", time)
-	file.create(filename)
-	capture.output(print(result), file=filename)
-	filenames$txt = filename
-	
+		## Write results to a text file
+		filename = sprintf("txt/%s.txt", time)
+		file.create(filename)
+		jsonFile = sprintf("txt/%s.json", time)
+		file.create(jsonFile)
+		
+		cat(toJSON(result), file=jsonFile, append=FALSE)
+		capture.output(print(result), file=filename)
+		filenames$txt = filename
 	## BGrid
-	filenames$bGrid = sprintf("img/bGrid-%g.png", time)
+	filenames$bGrid = sprintf("img/bGrid-%s.png", time)
 	if(!showPlots){
             png(filenames$bGrid)
         }else{
@@ -1098,7 +1104,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 	
 	## FGrid
-	filenames$fGrid = sprintf("img/fGrid-%g.png", time)
+	filenames$fGrid = sprintf("img/fGrid-%s.png", time)
 	if(!showPlots){
             png(filenames$fGrid)
         }else{
@@ -1108,7 +1114,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 	
 	## SumGrid
-	filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
+	filenames$sumGrid = sprintf("img/sumGrid-%s.png", time)
 	if(!showPlots){
             png(filenames$sumGrid)
         }else{
@@ -1118,7 +1124,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 	
 	## Acoustic Coverage
-	filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
+	filenames$acousticCoverage = sprintf("img/acousticCoverage-%s.png", time)
 	if(!showPlots){
             png(filenames$acousticCoverage)
         }else{
@@ -1128,7 +1134,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 
         ## Unique Recovery Rate
-	filenames$recoveryRates = sprintf("img/recoveryRates-%g.png", time)
+	filenames$recoveryRates = sprintf("img/recoveryRates-%s.png", time)
 	if(!showPlots){
             png(filenames$recoveryRates)
         }else{
@@ -1140,7 +1146,6 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	filename = paste("zip/", time, ".zip", sep="")
 	zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
 	filenames$zip = filename
-	
 	return(filenames)
 }
 
