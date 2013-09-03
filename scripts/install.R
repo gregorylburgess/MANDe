@@ -1,10 +1,11 @@
 args <- commandArgs(trailingOnly = TRUE)
-dependencies = c("rjson", 
-                  "Rook", 
-                   "mvtnorm", 
-                   "sp", 
-                   "rgdal", 
-                   "raster")
+dependencies = c("multicore",
+				 "mvtnorm", 
+				 "raster",
+				 "rgdal",
+				 "rjson", 
+                 "Rook", 
+                 "sp")
 if (length(args) > 0 && tolower(args[1]) == "uninstall") {
     print("Uninstalling R packages")
     uninstall.packages(dependencies)
