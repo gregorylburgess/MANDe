@@ -1078,21 +1078,19 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 			if(!file.exists("img")) {
 				dir.create("img")
 			}
+			if(!file.exists("txt")) {
+				dir.create("txt")
+			}
+			if(!file.exists("zip")) {
+				dir.create("zip")
+			}
 		}
 	## Plotting
 	graphics.off()
 	filenames = {}
         xlab = 'x dir'
         ylab = 'y dir'
-		## Write results to a text file
-		filename = sprintf("txt/%s.txt", time)
-		file.create(filename)
-		jsonFile = sprintf("txt/%s.json", time)
-		file.create(jsonFile)
 		
-		cat(toJSON(result), file=jsonFile, append=FALSE)
-		capture.output(print(result), file=filename)
-		filenames$txt = filename
 	## BGrid
 	filenames$bGrid = sprintf("img/bGrid-%s.png", time)
 	if(!showPlots){
@@ -1143,9 +1141,27 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         plotUniqueRR(result)
 	if(!showPlots) dev.off()
 	
+	## Write results to a text file
+	filename = sprintf("txt/%s.txt", time)
+	file.create(filename)
+	capture.output(print(result), file=filename)
+	filenames$txt = filename
+	
+	# Zip the text results and image files
 	filename = paste("zip/", time, ".zip", sep="")
 	zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
 	filenames$zip = filename
+	
+	result$filenames = filenames
+	result$bGrid = NULL
+	result$fGrid = NULL
+	result$sumGrid = NULL
+	result$acousticCoverage = NULL
+	# Write results to a json file
+	jsonFile = sprintf("txt/%s.json", time)
+	file.create(jsonFile)
+	cat(toJSON(result), file=jsonFile, append=FALSE)
+	
 	return(filenames)
 }
 

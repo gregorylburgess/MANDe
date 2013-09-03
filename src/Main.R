@@ -21,7 +21,6 @@ source('src/Utility.R')
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE){
-	print("Recievd job")
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
@@ -44,28 +43,24 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE){
     ## Calculate fish grid
     fGrid = fish(params, bGrid)
 
-    ## Find good sensor placements
+    ## Find sensor placements
     sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt)
-
+	
+	print("getting stats")
     ## Stat analysis of proposed setup.
     statDict = getStats(params, bGrid, fGrid, sensors, debug, opt)
+	
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params)
+	
+	print("making graphs")
     ## Graph results and make data file.
     results$filenames = graph(results,params,showPlots)
 	
     endTime = Sys.time()
     results$runTime = endTime - startTime
-    ## Email results
-    if("userEmail" %in% names(params)) {
-        from = "acousticwebapp@gmail.com"
-        to = params$userEmail
-        subject <- "Acoustic webapp results"
-        body <- results                    
-        mailControl=list(smtpServer="smtp.gmail.com")
-	##sendmail(from=from,to=to,subject=subject,msg=body,control=mailControl)
-    }
+	
     return(results)
 }
 
@@ -145,4 +140,4 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	return(acousticRun(params, showPlots=FALSE, debug, opt))
 }
 
-#acousticTest(bias=1, showPlots=FALSE)
+acousticTest(bias=1, showPlots=FALSE)

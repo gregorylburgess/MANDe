@@ -1,6 +1,9 @@
 #' Defines handlers for Rook URIs.
+#' 
+#' 
 source("src/Main.R")
 library("rjson")
+library("multicore")
 
 #' The main function that calls the webapp with parameters
 #' @param env The Rook environment object.
@@ -8,13 +11,9 @@ library("rjson")
 query <- function(env) {
 	req = Rook::Request$new(env)
 	res = Rook::Response$new()
-	cmd = paste("Rscript Wrapper.R", req$params, sep="")
-	# Asynchronous call to run the program
-	system(cmd, intern = FALSE,
-			ignore.stdout = FALSE, ignore.stderr = FALSE,
-			wait = FALSE, input = NULL, show.output.on.console = TRUE,
-			minimized = FALSE, invisible = TRUE)
-	res$write("{\"status\":\"wait\"}")
+	params = parseJSON(req$params())
+	parallel(acousticRun(params))
+	res$write("processing")
 	res$finish()
 }
 
@@ -22,7 +21,7 @@ query <- function(env) {
 #' @param params A JSON string without the outter curly braces.
 #' @return an R dictionary containing the key/value pairs given.
 parseJSON <- function(params) {
-	params = as.character(paste("{",params,"}", sep=""))
+	params = paste("{",params,"}", sep="")
 	parser = newJSONParser()
 	parser$addData(params)
 	return(parser$getObject())
