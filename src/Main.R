@@ -49,25 +49,21 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.in
 
     ## Stat analysis of proposed setup.
     statDict = getStats(params, bGrid, fGrid, sensors, debug, opt)
+	
     ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
     results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params)
-    if(save.inter) results$inter = sensors$inter
+
+    if(save.inter) {
+		results$inter = sensors$inter
+	}
     
     ## Graph results and make data file.
     results$filenames = graph(results,params,showPlots)
 	
     endTime = Sys.time()
     results$runTime = endTime - startTime
-    ## Email results
-    if("userEmail" %in% names(params)) {
-        from = "acousticwebapp@gmail.com"
-        to = params$userEmail
-        subject <- "Acoustic webapp results"
-        body <- results                    
-        mailControl=list(smtpServer="smtp.gmail.com")
-	##sendmail(from=from,to=to,subject=subject,msg=body,control=mailControl)
-    }
+	
     return(results)
 }
 
@@ -88,6 +84,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	params$userEmail = "epy00n@hotmail.com"
 	
 	## Sensor variables
+	params$timestamp = -1
 	params$numSensors = 4
 	params$bias = bias
 	params$sensorElevation <- 1

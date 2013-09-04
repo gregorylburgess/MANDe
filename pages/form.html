@@ -10,6 +10,7 @@ Your browser doesn't support iframes.
 </div>
 	<script type="text/javascript">
 		var form = "";
+		var timestamp = -1;
 		$.get("Form.xml", function(data) {
 			var xml = $($.parseXML(data));
 			xml.find('Group').each(function() {
@@ -94,7 +95,9 @@ Your browser doesn't support iframes.
 		
 		
 		function submitForm() {
+		    timestamp = new Date().getTime();
 			var dic = "";
+			//Gather field values
 			$.get("Form.xml", function(data) {
 				var xml = $($.parseXML(data));
 				xml.find('Group').each(function() {
@@ -125,19 +128,47 @@ Your browser doesn't support iframes.
 						}
 					});
 				});
-				// cutoff the last comma
-				dic = dic.substring(0, dic.length - 1);
+				//Add a timestamp
+				dic += "\"timestamp\":\"" + timestamp + "\"";
 				
+				// Actually submit the form
 				$.ajax({
 					url: '../../query', 
 					data: dic,
-					success: parseResponse,
+					success: waitForData,
 				});
 			}, "text");
 		}
 	
+		function waitForData(data) {
+			var filename = "../txt/" + timestamp + ".json";
+			var exists = UrlExists(filename);
+			var waitLoop = setInterval(
+				function(){ 
+					exists = UrlExists(filename);
+					if (exists) {
+							clearInterval(waitLoop);
+						  $.ajax({
+                dataType: "json",
+                url: filename,
+                success: function (data) {
+                            parseResponse(data);
+                          }
+              });
+					}
+				}, 
+			 5000);
+		}
+		
+		function UrlExists(url) {
+		    var http = new XMLHttpRequest();
+		    http.open('GET', url, false);
+		    http.send();
+		    return http.status!=404;
+		}
+		
 		function parseResponse(data) {
-			data = $.parseJSON(data);
+			//data = $.parseJSON(data);
 			toRet = "<div class=\"span1\"></div>";
 			toRet += "<div class=\"span10\"><h1>Results:</h1>";
 			//Grab important keys
@@ -173,5 +204,6 @@ Your browser doesn't support iframes.
 			toRet += "</div><div class=\"span1\"></span>";
 			$('#content').html(toRet);
 		}
+
 	</script>
 </div>

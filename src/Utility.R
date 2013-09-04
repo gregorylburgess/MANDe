@@ -1089,28 +1089,27 @@ offset= function(point){
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return A dictionary containing the filenames of the generated images.
 graph = function(result, params, showPlots, plot.bathy=TRUE) {
+	time = "1"
         if(!showPlots) {
+			if('timestamp' %in%  names(params)) {
+				print("Using timestamp")
+				time = params$timestamp
+			}
 			if(!file.exists("img")) {
 				dir.create("img")
+			}
+			if(!file.exists("txt")) {
+				dir.create("txt")
+			}
+			if(!file.exists("zip")) {
+				dir.create("zip")
 			}
 		}
 	## Plotting
 	graphics.off()
 	filenames = {}
-	time = as.numeric(Sys.time()) %% 1
         xlab = 'x dir'
         ylab = 'y dir'
-
-	## Write results to a text file
-        ## MWP: this is a start, but we probably don't want to just dump everything into a text file, at least if we do we need to document what everything is. Instead we should write the statistics and the sensor location in a nicely formatted text file using the cat or perhaps write.table command.
-        if(!file.exists("txt")) {
-          dir.create("txt")
-          print("Creating directory: txt")
-        }
-	filename = sprintf("txt/%g.txt", time)
-	file.create(filename)
-	capture.output(print(result), file=filename)
-	filenames$txt = filename
 	
 	## BGrid
 	if(!showPlots){
@@ -1161,8 +1160,14 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         }
         plotUniqueRR(result)
 	if(!showPlots) dev.off()
-
-        ## Zip file
+	
+	## Write results to a text file
+	filename = sprintf("txt/%s.txt", time)
+	file.create(filename)
+	capture.output(print(result), file=filename)
+	filenames$txt = filename
+	
+	# Zip the text results and image files
 	filename = paste("zip/", time, ".zip", sep="")
         if(!file.exists("zip")) {
           dir.create("zip")
@@ -1170,6 +1175,16 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         }
 	zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
 	filenames$zip = filename
+	
+	result$filenames = filenames
+	result$bGrid = NULL
+	result$fGrid = NULL
+	result$sumGrid = NULL
+	result$acousticCoverage = NULL
+	# Write results to a json file
+	jsonFile = sprintf("txt/%s.json", time)
+	file.create(jsonFile)
+	cat(toJSON(result), file=jsonFile, append=FALSE)
 	
 	return(filenames)
 }

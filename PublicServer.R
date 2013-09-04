@@ -1,19 +1,14 @@
 library('Rook')
 source('Apps.R')
 
-myPort <- 80
+myPort <- 8004
 myInterface <- "0.0.0.0"
 status <- -1
 
-# R 2.15.1 uses .Internal, but the next release of R will use a .Call.
-# Either way it starts the web server.
-if (as.integer(R.version[["svn rev"]]) > 59600) {
-	status <- .Call(tools:::startHTTPD, myInterface, myPort)
-} else {
-	status <- .Internal(startHTTPD(myInterface, myPort))
-}
 
+status <- .Call(tools:::startHTTPD, myInterface, myPort)
 if (status == 0) {
+	print("Trying to Start Server...")
 	unlockBinding("httpdPort", environment(tools:::startDynamicHelp))
 	assign("httpdPort", myPort, environment(tools:::startDynamicHelp))
 	
@@ -44,8 +39,13 @@ if (status == 0) {
 					)
 			)
 	)
-	while (TRUE) Sys.sleep(24 * 60 * 60)
+	print("Server is Running!")
+	while(TRUE) Sys.sleep(1)
+	#message("Press Return To Stop Server")
+	#invisible(readLines("stdin", n=1))
+	#rook$stop()
+	return(rook)
 }
 
 # If we get here then the web server didn't start up properly
-warning("Oops! Couldn't start Rook app")
+warning(paste("Oops! Couldn't start Rook app, status = ", status, sep=""))
