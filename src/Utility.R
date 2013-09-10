@@ -1092,8 +1092,8 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	time = "1"
         if(!showPlots) {
 			if('timestamp' %in%  names(params)) {
-				print("Using timestamp")
-				time = params$timestamp
+				# Prevent R from using scientific notation (messes up filenames on windows)
+				time = as.numeric(params$timestamp)
 			}
 			if(!file.exists("img")) {
 				dir.create("img")
@@ -1113,7 +1113,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## BGrid
 	if(!showPlots){
-          filenames$bGrid = sprintf("img/bGrid-%g.png", time)
+          filenames$bGrid = paste("img/bGrid-", time, ".png", sep="")
           png(filenames$bGrid)
         }else{
             dev.new()
@@ -1123,7 +1123,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## FGrid
 	if(!showPlots){
-          filenames$fGrid = sprintf("img/fGrid-%g.png", time)
+          filenames$fGrid = paste("img/fGrid-", time, ".png", sep="")
           png(filenames$fGrid)
         }else{
             dev.new()
@@ -1133,7 +1133,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## SumGrid
 	if(!showPlots){
-          filenames$sumGrid = sprintf("img/sumGrid-%g.png", time)
+          filenames$sumGrid = paste("img/sumGrid-", time, ".png", sep="")
           png(filenames$sumGrid)
         }else{
             dev.new()
@@ -1143,7 +1143,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## Acoustic Coverage
 	if(!showPlots){
-            filenames$acousticCoverage = sprintf("img/acousticCoverage-%g.png", time)
+            filenames$acousticCoverage = paste("img/acousticCoverage-", time, ".png", sep="")
             png(filenames$acousticCoverage)
         }else{
             dev.new()
@@ -1153,16 +1153,16 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 
         ## Unique Recovery Rate
 	if(!showPlots){
-            filenames$recoveryRates = sprintf("img/recoveryRates-%g.png", time)
+            filenames$recoveryRates = paste("img/recoveryRates-", time, ".png", sep="")
             png(filenames$recoveryRates)
         }else{
             dev.new()
         }
         plotUniqueRR(result)
 	if(!showPlots) dev.off()
-	
+
 	## Write results to a text file
-	filename = sprintf("txt/%s.txt", time)
+	filename = paste("txt/", time, ".txt", sep="")
 	file.create(filename)
 	capture.output(print(result), file=filename)
 	filenames$txt = filename
@@ -1185,7 +1185,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	jsonFile = sprintf("txt/%s.json", time)
 	file.create(jsonFile)
 	cat(toJSON(result), file=jsonFile, append=FALSE)
-	
+	print(filenames)
 	return(filenames)
 }
 

@@ -1,18 +1,5 @@
 <?xml version="1.0"?>
 <Groups>
-	<Group id="Notification Options">
-		<Fields>
-			<Field id="userEmail" label="User Email" type="text" toolTip="If you provide an email address, we will notify you when your job has finished processing.  This is useful for long requests.">example@mailservice.com</Field>			
-		</Fields>
-		<Fields>
-			<Field id="opt" label="Use Optimized R?" type="select" toolTip="Directive to use R code.">		
-				<Options>
-					<Option label="Use Optimized R">TRUE</Option>
-					<Option label="Use Unoptimized R">FALSE</Option>
-				</Options>
-			</Field>	
-		</Fields>
-	</Group>
 	<Group id="Fish Model Variables">
 		<Fields>
 			<Field id="fishmodel"  label="Fish Model Algorithm"  type="toggle"  toolTip="The algorithm to apply for fish movement.">

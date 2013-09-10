@@ -4,7 +4,7 @@
 	</div>
 </div>
 <div class="span8">
-<iframe src="parameter_descriptions.html" frameBorder="0">
+<iframe id= "desc" src="parameter_descriptions.html" frameBorder="0">
 Your browser doesn't support iframes.
 </iframe>
 </div>
@@ -18,7 +18,9 @@ Your browser doesn't support iframes.
 				var groupID = "";
 				var id = $(this).attr("id");
 				form += "<h3>" + id + "</h3>";
-				
+				if(id == "Bathymetry Variables") {
+					form += "<iframe id=\"grid\" src=\"grid2.html\"></iframe>"
+				}
 				//Access field tags
 				$(this).find('Fields').find('Field').each(function() {
 					id = $(this).attr("id");
@@ -128,9 +130,18 @@ Your browser doesn't support iframes.
 						}
 					});
 				});
+				
+				//Read the Bathy Variables
+				var iframeContent = $('iframe').contents();
+				var names = ["north", "south", "east", "west"];
+				
+				for (i=0; i < names.length; i++) {
+					var value = $("[name=\'" + names[i] + "\']", iframeContent).val();
+					dic += "\"" + names[i] + "\":\"" + value + "\",";
+				}
+
 				//Add a timestamp
 				dic += "\"timestamp\":\"" + timestamp + "\"";
-				
 				// Actually submit the form
 				$.ajax({
 					url: '../../query', 
@@ -196,7 +207,7 @@ Your browser doesn't support iframes.
 					toRet += "<image src=\"../" + filenames[key] + "\"></image>";
 				}
 				if(filenames[key].indexOf(".zip") != -1) {
-					toRet += "<a href=\"../" + filenames[key] + "\">Download a zipped copy of all results</a>";
+					toRet += "</br></br></br><a href=\"../" + filenames[key] + "\">Download a zipped copy of all results</a>";
 				}
 			}
 			

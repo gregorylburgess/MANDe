@@ -1,0 +1,48 @@
+
+body {
+	margin-left: -10px;
+	margin-top: -10px;
+	color: #fff;
+	
+}
+#gridPreviewFrame{
+	
+	width:290px;
+	height:150px;
+	border:1px solid #cccccc;
+	padding:1px;
+}
+
+#gridPreviewFrame #mapPreview{
+	width:276px;
+	height:146px;	
+	
+}
+
+.top{
+	display: block;
+	text-align:center;
+	margin:auto;
+	align:center;
+}
+
+input{
+	border:1px solid #cccccc;
+	margin:2px;	
+}
+
+input:focus{
+	border:1px solid #006996;
+	box-shadow:0 1px 2px rgba(0, 0, 0, 0.3) inset;
+	background-color:#f6f6f6;	
+}
+
+
+input.button:hover{
+	border:1px solid #006996;
+	box-shadow:0 1px 2px rgba(0, 0, 0, 0.3) inset;	
+}
+
+#latlonSubset {
+    display: block;
+    margin: auto;

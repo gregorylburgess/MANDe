@@ -1,7 +1,7 @@
 library('Rook')
 source('Apps.R')
 
-myPort <- 8004
+myPort <- 80
 myInterface <- "0.0.0.0"
 status <- -1
 

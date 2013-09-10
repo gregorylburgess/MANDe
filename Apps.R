@@ -3,7 +3,6 @@
 #' 
 source("src/Main.R")
 library("rjson")
-library("multicore")
 
 #' The main function that calls the webapp with parameters
 #' @param env The Rook environment object.
@@ -12,8 +11,17 @@ query <- function(env) {
 	req = Rook::Request$new(env)
 	res = Rook::Response$new()
 	params = parseJSON(req$params())
-	parallel(acousticRun(params))
-	res$write("processing")
+	# Try and run an asynchrynous request if multicore is present
+	if(require('multicore')) {
+		library('multicore')
+		parallel(acousticRun(params))
+		res$write("processing")
+	}
+	# Run a serial request otheriwse.
+	else {
+		acousticRun(params)
+		res$write("finished")
+	}
 	res$finish()
 }
 
