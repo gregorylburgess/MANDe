@@ -1090,19 +1090,20 @@ offset= function(point){
 #' @return A dictionary containing the filenames of the generated images.
 graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	time = "1"
+	path = ""
         if(!showPlots) {
 			if('timestamp' %in%  names(params)) {
 				# Prevent R from using scientific notation (messes up filenames on windows)
 				time = as.numeric(params$timestamp)
 			}
-			if(!file.exists("img")) {
-				dir.create("img")
+			if(!file.exists(paste(path,"img", sep=""))) {
+				dir.create(paste(path,"img", sep=""))
 			}
-			if(!file.exists("txt")) {
-				dir.create("txt")
+			if(!file.exists(paste(path,"txt", sep=""))) {
+				dir.create(paste(path,"txt", sep=""))
 			}
-			if(!file.exists("zip")) {
-				dir.create("zip")
+			if(!file.exists(paste(path,"zip", sep=""))) {
+				dir.create(paste(path,"zip", sep=""))
 			}
 		}
 	## Plotting
@@ -1113,7 +1114,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## BGrid
 	if(!showPlots){
-          filenames$bGrid = paste("img/bGrid-", time, ".png", sep="")
+          filenames$bGrid = paste(path, "img/bGrid-", time, ".png", sep="")
           png(filenames$bGrid)
         }else{
             dev.new()
@@ -1123,7 +1124,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## FGrid
 	if(!showPlots){
-          filenames$fGrid = paste("img/fGrid-", time, ".png", sep="")
+          filenames$fGrid = paste(path, "img/fGrid-", time, ".png", sep="")
           png(filenames$fGrid)
         }else{
             dev.new()
@@ -1133,7 +1134,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## SumGrid
 	if(!showPlots){
-          filenames$sumGrid = paste("img/sumGrid-", time, ".png", sep="")
+          filenames$sumGrid = paste(path, "img/sumGrid-", time, ".png", sep="")
           png(filenames$sumGrid)
         }else{
             dev.new()
@@ -1143,7 +1144,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	
 	## Acoustic Coverage
 	if(!showPlots){
-            filenames$acousticCoverage = paste("img/acousticCoverage-", time, ".png", sep="")
+            filenames$acousticCoverage = paste(path, "img/acousticCoverage-", time, ".png", sep="")
             png(filenames$acousticCoverage)
         }else{
             dev.new()
@@ -1153,7 +1154,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 
         ## Unique Recovery Rate
 	if(!showPlots){
-            filenames$recoveryRates = paste("img/recoveryRates-", time, ".png", sep="")
+            filenames$recoveryRates = paste(path, "img/recoveryRates-", time, ".png", sep="")
             png(filenames$recoveryRates)
         }else{
             dev.new()
@@ -1162,17 +1163,13 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 
 	## Write results to a text file
-	filename = paste("txt/", time, ".txt", sep="")
+	filename = paste(path, "txt/", time, ".txt", sep="")
 	file.create(filename)
 	capture.output(print(result), file=filename)
 	filenames$txt = filename
 	
 	# Zip the text results and image files
-	filename = paste("zip/", time, ".zip", sep="")
-        if(!file.exists("zip")) {
-          dir.create("zip")
-          print("Creating directory: zip")
-        }
+	filename = paste(path, "zip/", time, ".zip", sep="")
 	zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
 	filenames$zip = filename
 	
@@ -1182,7 +1179,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	result$sumGrid = NULL
 	result$acousticCoverage = NULL
 	# Write results to a json file
-	jsonFile = sprintf("txt/%s.json", time)
+	jsonFile = paste(path, "txt/", time, ".json", sep="")
 	file.create(jsonFile)
 	cat(toJSON(result), file=jsonFile, append=FALSE)
 	print(filenames)
