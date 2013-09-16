@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="height:100%">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<title>SOEST - Main Hawaiian Islands Multibeam Synthesis - Version 19</title>
+		<link href="../css/gmap.css" rel="stylesheet"></link>
+		<script type="text/javascript" src="../js/jquery.min.js"></script>
+		<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAADTY4AUADYNw05lDErspiNBQs6HdvP9cpa-rchpzqmH8MyWKTbRSOuFVN3ArmrJNfSsGVI04ThhwEEQ" type="text/javascript"></script>
+		<script type="text/javascript">
+		    //<![CDATA[
+		    // ============================================================
+		    function CustomGetTileUrl(a,b)
+		    {
+		        if ( b == 7 && a.x >= 6 && a.x <= 9 && a.y >= 54 && a.y <= 57 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        else if ( b == 8 && a.x >= 12 && a.x <= 19 && a.y >= 109 && a.y <= 115 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        else if ( b == 9 && a.x >= 25 && a.x <= 38 && a.y >= 219 && a.y <= 231 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        else if ( b == 10 && a.x >= 51 && a.x <= 76 && a.y >= 438 && a.y <= 462 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        else if ( b == 11 && a.x >= 102 && a.x <= 153 && a.y >= 877 && a.y <= 925 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        else if ( b == 12 && a.x >= 204 && a.x <= 307 && a.y >= 1754 && a.y <= 1851 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        else if ( b == 13 && a.x >= 409 && a.x <= 614 && a.y >= 3508 && a.y <= 3703 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        else if ( b == 14 && a.x >= 819 && a.x <= 1228 && a.y >= 7016 && a.y <= 7406 )
+		        {
+		            return "http://www.soest.hawaii.edu//hmrg//multibeam//Version19_WWW//Z" + b + "/" + a.y + "/" + a.x + ".png"; 
+		        }
+		        return G_NORMAL_MAP.getTileLayers()[0].getTileUrl(a,b);
+		    }
+		
+		
+		    // ugly hack to restrict the map control to use approrpiate zoom levels only
+		    GMapType.prototype.getMinimumResolution = function(latlng) {
+		        return 5;
+		      }
+		    GMapType.prototype.getMaximumResolution = function(latlng) {
+		        return 14;
+		      }
+		
+		    // ============================================================
+		    function load()
+		    {
+		        if (GBrowserIsCompatible())
+		        {
+		            var map = new GMap2(document.getElementById("map"));
+		            $('#map').append("<div id=\"value\"></div>");
+		            
+		            GEvent.addListener(map, "mousemove", function(event) {
+		            	$("#value").html(event.lat().toFixed(3) +", "+event.lng().toFixed(3));
+		            	});
+		            // Make the terrain layer available
+		            map.addMapType(G_PHYSICAL_MAP);
+		            // Setup the map options
+		            map.addControl(new GLargeMapControl());
+		            //map.addControl(new GHierarchicalMapTypeControl());
+		            //map.addControl(new GOverviewMapControl());
+		            map.addControl(new GScaleControl());
+		            map.enableScrollWheelZoom();
+		            map.enableContinuousZoom();
+		            // Create the copyright collection
+		            var copyCollection = new GCopyrightCollection("<div id=\"vbg\"><div id=\"value\"></div></div>");
+		            var copyright = new GCopyright(1, new GLatLngBounds(new GLatLng(16.6361919, -163.1250000), new GLatLng(24.5271348, -151.8750000)), 0, "School of Ocean and Earth Science and Technology");
+		            copyCollection.addCopyright(copyright);
+		
+		            // Setup the tile layers
+		            var tilelayers = new Array();
+		            tilelayers[0] = G_SATELLITE_MAP.getTileLayers()[0];
+		            tilelayers[1] = new GTileLayer(copyCollection, 7, 14 );
+		            tilelayers[1].getTileUrl = CustomGetTileUrl
+		            tilelayers[1].getOpacity = function () {return 1.00;};//of the non transparent part
+		            tilelayers[1].isPng = function() {return true;}; 
+		
+		            // Setup the options for our map layer
+		            var GMapTypeOptions = new Object();
+		            GMapTypeOptions.minResolution = 5;
+		            GMapTypeOptions.maxResolution = 14;
+		            GMapTypeOptions.errorMessage = "No map data available";
+		
+		            // Create our custom map layer
+		            var custommap = new GMapType(tilelayers, new GMercatorProjection(22), "SOEST Multibeam Synthesis - Version 19", GMapTypeOptions);
+		            custommap.getTextColor = function() {return "#000000";};
+		            map.addMapType(custommap);
+		            map.setCenter( new GLatLng(21.8476588, -157.5000000), 9, custommap );
+		        }
+		    }
+		    //]]>
+	    </script>
+	</head>
+	<body onload="load()" onunload="GUnload()" style="height: 100%; margin: 0">
+		<div id="map" style="width: 100%; height: 100%; margin: 0px 0px 0px 0px; float: middle; z-index= 1;"></div>
+
+	</body>
+</html>

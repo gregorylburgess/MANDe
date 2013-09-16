@@ -11,6 +11,7 @@ body {
     background-image: -webkit-gradient(linear, 0% 0%, 0% 95%, from(#333), to(#000));
 }
 
+
 .btn-success {
 	width: 15%;
 	min-width: 100px;
@@ -73,8 +74,8 @@ body {
 }
 
 #grid {
-	height: 262px;
-	width: 282px;
+	height: 300px;
+	width: 100%;;
 	display: block;
 	margin: auto;
 	margin-bottom: 15px;

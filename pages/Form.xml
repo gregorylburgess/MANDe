@@ -91,7 +91,6 @@
 			</Field>
 			<Field id="inputFileType"  label="Input File Type"  type="select"  toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS, NetCDF, and ASC.">
 				<Options>
-					<Option label="ASC">asc</Option>
 					<Option label="ArcGIS">arcgis</Option>
 					<Option label="NetCDF">netcdf</Option>
 				</Options>
