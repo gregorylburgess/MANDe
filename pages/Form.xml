@@ -86,7 +86,27 @@
 
 	<Group id="Bathymetry Variables">
 		<Fields>
-			<Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
+			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your area of interest.">
+			
+			</Field>
+			<Field id="south" label="Southern Grid Boundary" type="text" toolTip="The Southeren Latitude boundary for your area of interest.">
+			
+			</Field>
+			<Field id="west" label="Western Grid Boundary" type="text" toolTip="The Westeren Longitude boundary for your area of interest.">
+			
+			</Field>
+			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your area of interest.">
+			
+			</Field>
+			<Field id="resolution" label="Grid Resolution" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting '50 meter cells' will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
+				<Options>
+					<Option label="50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
+					<Option label="1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
+				</Options>
+			</Field>
+			<!--  Local File support -->
+			<!--  uncomment if you want to use local files -->
+			<!-- Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
 				src/palmyrabath.RData
 			</Field>
 			<Field id="inputFileType"  label="Input File Type"  type="select"  toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS, NetCDF, and ASC.">
@@ -112,7 +132,7 @@
 			</Field>
 			<Field id="YDist"  label="Y Axis Length"  type="text"  toolTip="Specifies how far the area of interest extends along the Y axis.">
 				300
-			</Field>
+			</Field-->
 		</Fields>
 	</Group>
 

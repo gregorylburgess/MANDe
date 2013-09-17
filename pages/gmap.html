@@ -64,7 +64,7 @@
 		            $('#map').append("<div id=\"value\"></div>");
 		            
 		            GEvent.addListener(map, "mousemove", function(event) {
-		            	$("#value").html(event.lat().toFixed(3) +", "+event.lng().toFixed(3));
+		            	$("#value").html("Lat:" + event.lat().toFixed(3) + ", Lon: "+event.lng().toFixed(3));
 		            	});
 		            // Make the terrain layer available
 		            map.addMapType(G_PHYSICAL_MAP);
