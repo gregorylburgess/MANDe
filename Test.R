@@ -2,7 +2,7 @@ source('src/Utility.R')
 source('src/Bathy.R')
 
 
-cells=1
+cells=50
 myn = 21.923
 myw= -158.869
 mys=19.974
@@ -103,3 +103,5 @@ if( length(errors) > 0 ){
 	dev.off()
 	print("Done")
 }
+
+

@@ -90,16 +90,106 @@ Your browser doesn't support iframes.
 				});
 			});
 			form += "</br><center><button type=\"submit\" class=\"btn btn-success\" "
-			+ "onClick=\"submitForm()\">Submit</button></center>";
+			+ "onClick=\"validate()\">Submit</button></center>";
 			$("#theForum").append(form);
 			$(".link").tooltip();
 		}, 'text');
 		
 		
+		function validate() {
+			var errors = "";
+			var res = $("#resolution option:selected").text();
+			var cells = 0;
+			var dpc = 0;
+			var n=0;
+			var s=0;
+			var e=0;
+			var w = 0;
+			var noffset=0;
+			var woffset=0;
+			
+			if (res == "50 meter cells") {
+				cells = 50;
+			}
+			if (res == "1 km cells") {
+				cells = 1000;
+			}
+			//Get user values
+			var myn = parseFloat($("#north").val());
+			var mys = parseFloat($("#south").val());
+			var mye = parseFloat($("#east").val());
+			var myw = parseFloat($("#west").val());
+			
+			//Data for the 50m dataset
+			if(cells == 50){
+				dpc = 0.0005;
+				n = 24;
+				s = 18;
+				e = -154;
+				w = -161;
+				noffset = 0;
+				woffset = 0;
+			}
+			
+			//Data for the 1km dataset
+			if (cells == 1000){
+				//These are the reported limit values for the himbsyn 1km bathy file
+				dpc = 0.01;
+				n = 24.5;
+				s = 17.5
+				e = -154.5;
+				w = -161.5;
+				//These are the emprical corrections we found
+				noffset = .55;
+				woffset = .45;
+			}
+			
+			myn += noffset;
+			mys += noffset;
+			myw += woffset;
+			mye += woffset;
+			
+			if(myn > n) {
+				errors += "Northern value" + myn + "must be between " + s + "and " + (n - noffset) + ".\n";
+			}
+			if(mys < s) {
+				errors += "Southern value" + mys + "must be between " + s + "and " + (n - noffset) + ".\n";
+			}
+			if(mye >= e) {
+				errors += "Eastern value " + mye + "must be between " + w + "and " + (e - woffset) + ".\n";
+			}
+			if(myw <= w) {
+				errors += "Western value " + myw + "must be between " + w +  "and " + (e - woffset) + ".\n";	
+			}
+			if(myn<=mys) {
+				errors +=  "Northern value (" + myn + ") must be greater than Southern Value (" + mys+ ").\n";
+			}
+			if(mye<=myw) {
+				errors +=  "Western value (" + myw +") must be less than Eastern Value (" + mye + ").\n";
+			}
+			if( errors.length > 0 ){
+				alert(errors);
+			}
+			else {
+				startX = parseInt((myw-w)/dpc);
+				XDist = parseInt((mye-myw)/dpc);
+				startY = parseInt((mys-s)/dpc);
+				YDist = parseInt((myn-mys)/dpc);
+				var dict = "\"startX\":\"" + startX + "\",";
+				dict += "\"startY\":\"" + startY + "\",";
+				dict += "\"XDist\":\"" + XDist + "\",";
+				dict += "\"YDist\":\"" + YDist + "\",";
+				dict += "\"inputFile\":\"" + $("#resolution").val() + "\",";
+				dict += "\"inputFileType\":\"netcdf\",";
+				dict += "\"seriesName\":\"z\",";
+				dict += "\"cellSize\":\"" + cells + "\",";
+				submitForm(dict);
+			}
+		}
 		
-		function submitForm() {
+		function submitForm(dict) {
 		    timestamp = new Date().getTime();
-			var dic = "";
+			var dic = dict;
 			//Gather field values
 			$.get("Form.xml", function(data) {
 				var xml = $($.parseXML(data));
@@ -132,14 +222,6 @@ Your browser doesn't support iframes.
 					});
 				});
 				
-				//Read the Bathy Variables
-				var iframeContent = $('iframe').contents();
-				var names = ["north", "south", "east", "west"];
-				
-				for (i=0; i < names.length; i++) {
-					var value = $("[name=\'" + names[i] + "\']", iframeContent).val();
-					dic += "\"" + names[i] + "\":\"" + value + "\",";
-				}
 
 				//Add a timestamp
 				dic += "\"timestamp\":\"" + timestamp + "\"";
