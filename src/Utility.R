@@ -134,7 +134,7 @@ updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
   ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
   dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
   ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-  pctviz = calc.percent.viz(loc$r,loc$c,rind,cind,bG,land,sensorDepth,dpflag,params)
+  pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, bG, land, sensorDepth, dpflag, params, debug)
   ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
   ## Initialize
   testmap = matrix(0,rows,cols)
@@ -376,7 +376,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
                 ## Row indices
                 rind = max(c(1,r-rng)):min(c(nr,r+rng))
                 ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at (r,c)
-                pV = calc.percent.viz(r,c,rind,cind,bG,land,sensorDepth[r,c],dpflag,params)
+                pV = calc.percent.viz(r, c, rind, cind, bG, land, sensorDepth[r,c], dpflag, params, debug)
                 ## Calculate the detection function value at all grid points
                 probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
                 ## If bias == 3 include the fGrid in the calculations, if not just use bathymetry and detection function
@@ -410,6 +410,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 #' @param bGrid A valid bGrid.
 #' @param land Matrix containing logicals (TRUE = land cell) indicating wheter a cell 
 #' in the bGrid is a land cell.
+#' @param debug If enabled, turns on debug printing (console only).
 #' @param sensorDepth Depth of sensor in current cell.
 #' @param dpflag If TRUE depth preference is used meaning that the percentage of visible 
 #' fish is calculated, if FALSE visible water column is calculated.
@@ -418,10 +419,13 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 #' the percentage fish/signals visible in the surrounding cells, inds contains the linear
 #' indices in the bGrid to which the visibilities pertain, dists contains the distance
 #' from the current cell to each of the returned cells as given by inds.
-calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
+calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, params, debug=FALSE){
+	if(TRUE){
+		print("[calc.percent.viz]")
+		print(sprintf("point: (%g,%G)",r,c))
+	}
     rows = dim(bGrid)[1]
     cols = dim(bGrid)[2]
-    ng = rows*cols
     nr = rows
 
     ## Find rows and columns for relevant cells
@@ -429,74 +433,83 @@ calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
     cvec = sort(rep(cind,length(rind)))
     ## Remove self cell
     tmp = which(!(rvec==r & cvec==c))
+	print(tmp)
     rvec = rvec[tmp]
     cvec = cvec[tmp]
+	print(rvec)
+	print(cvec)
     ## Translate from row col index to to single index
-    inds = sub2ind(rvec,cvec,nr) 
-    ninds = length(inds)
+    linearIndex = sub2ind(rvec,cvec,nr) 
+    linearIndexLength = length(linearIndex)
     ## Calculate distances from the current cell to the surrounding cells within range
     ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
-    disttmp = sort(sqrt((r-rvec)^2 + (c-cvec)^2),decreasing=TRUE,index=TRUE)
+	## sort() returns two items, x and ix;  ix is the index of x in the sorted array.
+    disttmp = sort(sqrt((r-rvec)^2 + (c-cvec)^2), decreasing=TRUE, index=TRUE)
+	print("Disttmp")
+	print(disttmp)
     ## Save actual distances in the dists vector
     dists = disttmp$x
     ## Get depths at the sorted cells by using disttmp$ix, which contains the sorted indices
-    depths = bGrid[inds[disttmp$ix]]
+    depths = bGrid[linearIndex[disttmp$ix]]
     ## Calculate the line of sight slopes to each of the sorted cells
     slopes = (depths-sensorDepth)/dists
     ## Create a vector, which can be used to easily map an index in the sorted vector to an index in the rind by cind matrix
-    ibig2ismall = rep(0,ng)
-    ibig2ismall[inds[disttmp$ix]] = 1:ninds
+    ibig2ismall = rep(0, rows*cols)
+    ibig2ismall[linearIndex[disttmp$ix]] = 1:linearIndexLength
 
     ## Initialize vizDepths vector, this will be filled with visible depths below
     ## Assign small negative number to avoid problem with being exactly at the surface in pnorm
-    vizDepths = rep(-1e-4,ninds)
+    vizDepths = rep(-1e-4,linearIndexLength)
     ## Initialize the remaining vector, which contains the indices of the cells for which the vizDepth has not yet been calculated
-    remaining = 1:ninds
+    remaining = 1:linearIndexLength
 
     ## Calculate visible depths as long as uncalculated cells remain
     while(length(remaining)>0){
         ## Since cells are sorted by decreasing distance taking the first index of remaining always gives the farthest uncalculated cell
-        ii = remaining[1]
-        ## Find the indices of the cells within the line of sight from r,c to ii, losinds are indices of big grid
-        losinds = getCells.opt(list(r=r,c=c),list(r=rvec[disttmp$ix[ii]],c=cvec[disttmp$ix[ii]]), debug=FALSE, nr)
+        targetCell = remaining[1]
+        ## Find the indices of the cells within the line of sight from r,c to targetCell, loslinearIndex are indices of big grid
+        cells = getCells.opt(list(r=r,c=c),list(r=rvec[disttmp$ix[targetCell]],c=cvec[disttmp$ix[targetCell]]), debug, nr)
+		if (is.na(cells)) {
+			remaining = remaining[-1]
+		}
         ## Get indices in small sorted vector (not whole grid)
-        is = ibig2ismall[losinds]
+		sortedIndexes = ibig2ismall[cells]
         ## Sort the distances within LOS
-        d2 = sort(dists[is],index=TRUE)
+        d2 = sort(dists[sortedIndexes],index=TRUE)
         ## Find indices of obstacles (land areas) in LOS. If LOS is blocked by land don't calculate for cells behind.
-        blocks = land[losinds[d2$ix]]
+        blocks = land[cells[d2$ix]]
         
         if(any(blocks, na.rm=TRUE)){
             if(!all(blocks)){
                 ## Find indices that are not blocked
-                indsNoBlock = 1:(min(which(blocks))-1)
+                linearIndexNoBlock = 1:(min(which(blocks))-1)
             }else{
-                indsNoBlock = NULL
+                linearIndexNoBlock = NULL
             }
         }else{
             ## If theres no obstacles all cells in LOS are actually visible
-            indsNoBlock = 1:length(losinds)
+            linearIndexNoBlock = 1:length(cells)
         }
 
         ## Vectorized calculation of the visible depths of the unblocked cells with LOS using the simple formula for a line y = ax + b
-        ## a is cummax(slopes[is[d2$ix[indsNoBlock]]])
+        ## a is cummax(slopes[is[d2$ix[linearIndexNoBlock]]])
         ## Here cummax ensures that the steepest slopes between the current cell (r,c) cell along the LOS is used for calculating visible depth, it is important that the slopes are sorted in order of increasing distance from current cell to target cells, this is handled by d2$ix
-        ## x is d2$x[indsNoBlock], the sorted distances from (r,c)
+        ## x is d2$x[linearIndexNoBlock], the sorted distances from (r,c)
         ## b is sensorDepth, which is the intercept of the line
-        vizDepths[is[d2$ix[indsNoBlock]]] = cummax(slopes[is[d2$ix[indsNoBlock]]])*d2$x[indsNoBlock] + sensorDepth
+        vizDepths[sortedIndexes[d2$ix[linearIndexNoBlock]]] = cummax(slopes[sortedIndexes[d2$ix[linearIndexNoBlock]]])*d2$x[linearIndexNoBlock] + sensorDepth
         ## Remove the cells from remaining for which calculations are done
-        remaining = setdiff(remaining,is)
+        remaining = setdiff(remaining, sortedIndexes)
     }
 	
     ## Visible depths above water not valid (assign a number a little smaller than zero [just below surface])      
     vizDepths[vizDepths>0] = -1e-4
     ## Find indices that are not land cells
-    indsNotLand = depths<0
+    linearIndexNotLand = depths<0
     ## if we have normal distribution data (depth preference), use it
     if(dpflag) {
         ## compute % fish visible from sensor to target cell
         ## calculate the mean fish depth in all cells
-        mean = depths[indsNotLand] + params$depth_off_bottom
+        mean = depths[linearIndexNotLand] + params$depth_off_bottom
         ## Values above water are set to be at the surface
         mean[mean>0] = 0
         ## Save SD in sd for prettier code
@@ -506,17 +519,17 @@ calc.percent.viz = function(r,c,rind,cind,bGrid,land,sensorDepth,dpflag,params){
         ## Cumulative probability below surface
         psurf = pnorm(0,mean=mean,sd=sd)
         ## Calculate the percentage of visible fish (the area under the visible part of the normal curve)
-        percentVisibility = psurf - pnorm(vizDepths[indsNotLand],mean=mean,sd=sd)
+        percentVisibility = psurf - pnorm(vizDepths[linearIndexNotLand],mean=mean,sd=sd)
         ## Probability within available water (from bottom to surface), if this value is different from 1 it means that the vertical fish distribution extends below the bottom and/or above the surface, in which case we need to normalise the probability between bottom and surface so it sums to one.
-        areaToCorrectFor = psurf - pnorm(depths[indsNotLand],mean=mean,sd=sd)
+        areaToCorrectFor = psurf - pnorm(depths[linearIndexNotLand],mean=mean,sd=sd)
         ## Correct for the distribution extending out of bounds
         percentVisibility = percentVisibility/areaToCorrectFor
     }else{
         ## if we don't have normal distribution data, assume equal distribution
         ## compute % visibility (of water column height) from sensor to target cell
-        percentVisibility = vizDepths[indsNotLand] / depths[indsNotLand]
+        percentVisibility = vizDepths[linearIndexNotLand] / depths[linearIndexNotLand]
     }
-    return(list(percentVisibility=percentVisibility,dists=dists[indsNotLand],inds=inds[disttmp$ix[indsNotLand]]))
+    return(list(percentVisibility=percentVisibility,dists=dists[linearIndexNotLand],linearIndex=linearIndex[disttmp$ix[linearIndexNotLand]]))
 }
 
 
@@ -678,7 +691,7 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
         ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
         dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
         ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, bGrid, land, sensorDepth, dpflag, params)
+        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, bGrid, land, sensorDepth, dpflag, params, debug)
         ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
         ## Initialize
         testmap = matrix(0,rows,cols)
@@ -988,8 +1001,20 @@ getCells=function(startingCell, targetCell, debug=FALSE) {
 #' (not row and col) of cells in the bGrid crossed by a beam from the starting
 #' cell to the target cell. If nr == NULL a matrix with a row column and a col
 #' column is returned.
-getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
-    if(!(startingCell$ r== targetCell$r && startingCell$c == targetCell$c)){
+getCells.opt = function(startingCell, targetCell, debug=TRUE, nr=NULL) {
+	if(debug) {
+		print("[getCells.opt]")
+		print("Starting Cell:")
+		print(startingCell)
+		print("Target Cell:")
+		print(targetCell)
+	}
+	print(startingCell)
+	print(targetCell)
+	if(is.na(startingCell) || is.na(targetCell) || length(targetCell$c) == 0 || length(targetCell$r) == 0) {
+		return(NA)
+	}
+    if (!(startingCell$r == targetCell$r && startingCell$c == targetCell$c)) {
         ## Offset starting and target cells
         sC = offset(startingCell)
         tC = offset(targetCell)
@@ -1018,7 +1043,9 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
                 cols = c(cols,cols[inds])
             }
             ## Convert to linear (not row col) indices in the bGrid
-            if(!is.null(nr)) biginds = sub2ind(rows,cols,nr)
+            if(!is.null(nr)) {
+				biginds = sub2ind(rows,cols,nr)
+			}
         }else{
             ## If absolute slope is larger than 1 make rows act as x vals and cols as y vals
             ## Change slope accordingly
@@ -1390,7 +1417,7 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
         cind = max(c(1,c-rng)):min(c(cols,c+rng))
         rind = max(c(1,r-rng)):min(c(rows,r+rng))
         ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(ySens[i],xSens[i],rind,cind,bG,land,sensorDepth[ySens[i],xSens[i]],dpflag,params)
+        pctviz = calc.percent.viz(ySens[i], xSens[i], rind, cind, bG, land, sensorDepth[ySens[i], xSens[i]], dpflag, params, debug)
         ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
         ## Initialize
         testmap = matrix(0,rows,cols)

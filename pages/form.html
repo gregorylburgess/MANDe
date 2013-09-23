@@ -89,13 +89,28 @@ Your browser doesn't support iframes.
 					
 				});
 			});
-			form += "</br><center><button type=\"submit\" class=\"btn btn-success\" "
-			+ "onClick=\"validate()\">Submit</button></center>";
-			$("#theForum").append(form);
+			form += "</br><center><div >"
+			+ "<button type=\"submit\" class=\"btn btn-success\" "
+			+ "onClick=\"validate()\" style=\"margin-right:20px;\">Submit</button>"
+			+ "<button class=\"btn btn-danger\" onClick=\"reset()\" >"
+			+ "Reset Form</button></div></center>";
+			$("#theForum").html(form);
 			$(".link").tooltip();
+			
+			//Read cookie value if it exists
+			var cookieValue = $.cookie("acousticwebapp-data");
+			if (cookieValue != "") {
+				var dic = JSON.parse("{"+cookieValue+"}");
+				for(var key in dic) {
+					$("#" + key).val(dic[key]);
+				}
+			}
+			
 		}, 'text');
 		
+
 		
+		//Validates fields and submits the form
 		function validate() {
 			var errors = "";
 			var res = $("#resolution option:selected").text();
@@ -150,16 +165,16 @@ Your browser doesn't support iframes.
 			mye += woffset;
 			
 			if(myn > n) {
-				errors += "Northern value" + myn + "must be between " + s + "and " + (n - noffset) + ".\n";
+				errors += "Northern value " + myn + " must be between " + s + " and " + (n - noffset) + ".\n";
 			}
 			if(mys < s) {
-				errors += "Southern value" + mys + "must be between " + s + "and " + (n - noffset) + ".\n";
+				errors += "Southern value " + mys + " must be between " + s + " and " + (n - noffset) + ".\n";
 			}
 			if(mye >= e) {
-				errors += "Eastern value " + mye + "must be between " + w + "and " + (e - woffset) + ".\n";
+				errors += "Eastern value " + mye + " must be between " + w + " and " + (e - woffset) + ".\n";
 			}
 			if(myw <= w) {
-				errors += "Western value " + myw + "must be between " + w +  "and " + (e - woffset) + ".\n";	
+				errors += "Western value " + myw + " must be between " + w +  " and " + (e - woffset) + ".\n";	
 			}
 			if(myn<=mys) {
 				errors +=  "Northern value (" + myn + ") must be greater than Southern Value (" + mys+ ").\n";
@@ -187,6 +202,7 @@ Your browser doesn't support iframes.
 			}
 		}
 		
+		//Submits the form
 		function submitForm(dict) {
 		    timestamp = new Date().getTime();
 			var dic = dict;
@@ -225,6 +241,9 @@ Your browser doesn't support iframes.
 
 				//Add a timestamp
 				dic += "\"timestamp\":\"" + timestamp + "\"";
+				
+				//write a cookie
+				$.cookie("acousticwebapp-data", dic);
 				// Actually submit the form
 				$.ajax({
 					url: '../../query', 
@@ -234,6 +253,7 @@ Your browser doesn't support iframes.
 			}, "text");
 		}
 	
+		//Waits until the job has been finished by trying to load a <timestamp>.json file 
 		function waitForData(data) {
 			var filename = "../txt/" + timestamp + ".json";
 			var exists = UrlExists(filename);
@@ -254,6 +274,7 @@ Your browser doesn't support iframes.
 			 5000);
 		}
 		
+		//Checks for the existance of a URL
 		function UrlExists(url) {
 		    var http = new XMLHttpRequest();
 		    http.open('GET', url, false);
@@ -261,6 +282,7 @@ Your browser doesn't support iframes.
 		    return http.status!=404;
 		}
 		
+		//Parses a json file and writes them to the page
 		function parseResponse(data) {
 			//data = $.parseJSON(data);
 			toRet = "<div class=\"span1\"></div>";
@@ -299,5 +321,10 @@ Your browser doesn't support iframes.
 			$('#content').html(toRet);
 		}
 
+		//Resets the form
+		function reset() {
+			$.removeCookie('acousticwebapp-data');
+			location.reload();
+		}
 	</script>
 </div>

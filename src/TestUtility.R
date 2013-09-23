@@ -140,7 +140,9 @@ TestUtility.getCells <- function(opt=FALSE) {
 	optLabel = ""
 
     if(opt){
-        cells = (getCells.opt(startCell, endCell))
+        cells = (getCells.opt(startCell, endCell, debug=TRUE))
+		colnames(cells) <- c("x","y")
+		cells = as.data.frame(cells)
     }else{
         cells = (getCells(startCell, endCell))
     }
@@ -152,6 +154,7 @@ TestUtility.getCells <- function(opt=FALSE) {
     if (dim(cells)[1] > 5) {
 		warning("[getCells]: FAIL: too many results, duplicates exist!")
     }
+	print(cells)
     for (point in points) {
         if(dim(subset(cells, x==point$x & y==point$y))[1] != 1) {
 			warning(sprintf("[getCells]: FAIL: (%g,%g) missing or duplicate! ",point$x,point$y))
@@ -164,8 +167,8 @@ TestUtility.getCells <- function(opt=FALSE) {
 }
 
 
-Test.sumGrid.sumSimple()
-TestUtility.sumGrid()
+#Test.sumGrid.sumSimple()
+#TestUtility.sumGrid()
 TestUtility.getCells()
 TestUtility.getCells(opt=TRUE)
-TestUtility.suppress.scale()
+#TestUtility.suppress.scale()
