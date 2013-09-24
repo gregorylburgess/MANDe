@@ -47,6 +47,20 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
     grids = sumGridFun(grids, range, bias, params, debug, opt)
     sumGrid = grids$sumGrid
     if(save.inter) inter[[1]] = grids
+	
+	# place user-defined sensors, and down weigh them
+	if("sSensorList" %in% names(params) && length(params$userSensorList) > 0) {
+		len = length(params$userSensorList)
+		for(i in 1:len) {
+			loc = params$userSensorList[[i]]
+			# invert the incoming r/c values
+			placement = list(c=loc$r, r=loc$c)
+			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, opt, debug)
+			sensorList = c(sensorList, list(placement))
+		}
+		
+	}
+	
     # for each sensor, find a good placement
     for (i in 1:numSensors) {
 
@@ -61,22 +75,11 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
         maxLoc = list(c=c,r=r)
         print(paste('Placed sensor',i))
         ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
+		
         # append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
         # down-weigh all near-by cells to discourage them from being chosen by the program
-        if(params$suppressionFcn != 'detection.function.exact'){
-          ##print('NOT using detection.function.exact')
-          if(opt){
-            grids$sumGrid = suppress.opt(grids$sumGrid, dim(fGrid), maxLoc, params, bGrid$bGrid, debug)
-          }else{
-            grids$sumGrid = suppress(grids$sumGrid, dim(fGrid), maxLoc, params$suppressionFcn, 
-                                    params$suppressionRange, params$minsuppressionValue, 
-                                    params$maxsuppressionValue, params, debug)
-          }
-        }else{
-            grids = updateFGrid(maxLoc,grids,params,debug,opt)
-            grids = sumGridFun(grids, range, bias, params, debug, opt)
-        }
+		grids = sensorFun.suppressHelper(maxLoc, grids, range, bias, params, opt, debug)
         if(save.inter){
           ## Save intermediary grids
           inter[[i+1]] = grids
@@ -89,6 +92,23 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
     }
 }
 
+sensorFun.suppressHelper = function(loc, grids, range, bias, params, opt=FALSE, debug=FALSE) {
+	print(loc)
+	if(params$suppressionFcn != 'detection.function.exact'){
+		##print('NOT using detection.function.exact')
+		if(opt){
+			grids$sumGrid = suppress.opt(grids$sumGrid, dim(grids$fGrid), loc, params, grids$bGrid$bGrid, debug)
+		}else{
+			grids$sumGrid = suppress(grids$sumGrid, dim(grids$fGrid), loc, params$suppressionFcn, 
+					params$suppressionRange, params$minsuppressionValue, 
+					params$maxsuppressionValue, params, debug)
+		}
+	}else{
+		grids = updateFGrid(loc,grids,params,debug,opt)
+		grids = sumGridFun(grids, range, bias, params, debug, opt)
+	}
+	return(grids)
+}
 
 #' @title Updates the FGrid after each sensor is placed to reflect which areas that are already covered by sensors.
 #' @description When a sensor is placed the FGrid must be updated to reflect where unique signals are emitted.
@@ -1539,7 +1559,18 @@ checkParams = function(params) {
     }	else {
 		params$seriesName = as.character(params$seriesName)
 	}
-
+	if('userSensorList' %in% names) {
+		rawPointList = strsplit(params$userSensorList,",")[[1]]
+		points = {}
+		for(i in 1:floor(length(rawPointList)/2)) {
+			point = list(r=as.numeric(rawPointList[2]), c=as.numeric(rawPointList[1]))
+			points = c(points, list(point))
+			rawPointList = rawPointList[-2]
+			rawPointList = rawPointList[-1]
+		}
+		params$sensorList = points
+		print(points)
+	}
     # Shape Function Defaults
     if(!('shapeFcn' %in% names)) {
         params$shapeFcn = "shape.gauss"

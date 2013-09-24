@@ -57,6 +57,9 @@
 	</Group>
 	<Group id="Sensor Variables">
 		<Fields>
+			<Field id="userSensorList" label="User-Specified Sensors" type="text" toolTip="These sensors are placed and down-weighed before running the program.  Useful for including already existing sensors, or forcing the placement of a few sensors.  Do not include these sensors in the sensor count below.  Provide sensor locations as a string in the format: sensor1_X, sensor1_Y, sensor2_X, sensor2_Y where sensor_k_X is the X cell index of sensor k, and sensor_k_Y is the Y cell index of sensor k.">
+				5,5,10,10,15,15,20,20,30,30,40,40
+			</Field>
 			<Field id="numSensors" label="Number of Sensors to Use" type="text" toolTip="The number of sensors you wish to place.">
 				10
 			</Field>
