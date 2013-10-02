@@ -297,6 +297,12 @@ Your browser doesn't support iframes.
 			toRet += "<h3>Parameters:</h4>";
 			for(key in params) {
 				toRet += "<b>" + key + "</b>" + ": " + params[key] + "</br>";
+				if (key == "sensorList") {
+					toRet += "<b>" + key + "</b>" + ": ";
+					for(var i=0;i<params.sensorList.length;i++) {
+						toRet += "(" + params.sensorList[i].c + "," + params.sensorList[i].r + ") ";
+						}
+				}
 			}
 			
 			toRet += "<h3>Stats:</h4>";

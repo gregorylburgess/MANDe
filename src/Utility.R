@@ -44,15 +44,19 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
     grids = list("bGrid" = bGrid, "fGrid"=fGrid)
     
     # calculate the sumGrid
+	print("Calculating SumGrid")
     grids = sumGridFun(grids, range, bias, params, debug, opt)
     sumGrid = grids$sumGrid
     if(save.inter) inter[[1]] = grids
 	
+	print("Suppressing user sensors")
 	# place user-defined sensors, and down weigh them
-	if("sSensorList" %in% names(params) && length(params$userSensorList) > 0) {
-		len = length(params$userSensorList)
+	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
+		len = length(params$sensorList)
 		for(i in 1:len) {
-			loc = params$userSensorList[[i]]
+			loc = params$sensorList[[i]]
+			print("loc")
+			print(loc)
 			# invert the incoming r/c values
 			placement = list(c=loc$r, r=loc$c)
 			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, opt, debug)
@@ -61,9 +65,9 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 		
 	}
 	
+	print("Placing sensors")
     # for each sensor, find a good placement
     for (i in 1:numSensors) {
-
         # find the max location 
         maxLoc = which.max(grids$sumGrid)
         # Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
