@@ -52,8 +52,8 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 	print("Suppressing user sensors")
 	# place user-defined sensors, and down weigh them
 	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
-		len = length(params$sensorList)
-		for(i in 1:len) {
+		i = length(params$sensorList)
+		while(i > 0) {
 			loc = params$sensorList[[i]]
 			print("loc")
 			print(loc)
@@ -61,13 +61,15 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 			placement = list(c=loc$r, r=loc$c)
 			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, opt, debug)
 			sensorList = c(sensorList, list(placement))
+			i = i - 1
 		}
 		
 	}
 	
 	print("Placing sensors")
     # for each sensor, find a good placement
-    for (i in 1:numSensors) {
+	i = numSensors
+	while(i > 0) {
         # find the max location 
         maxLoc = which.max(grids$sumGrid)
         # Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
@@ -77,7 +79,7 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
             r=rows
         }
         maxLoc = list(c=c,r=r)
-        print(paste('Placed sensor',i))
+        print(paste('Placed sensor',numSensors-i+1))
         ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
 		
         # append maxLoc to the sensor list.
@@ -86,8 +88,9 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 		grids = sensorFun.suppressHelper(maxLoc, grids, range, bias, params, opt, debug)
         if(save.inter){
           ## Save intermediary grids
-          inter[[i+1]] = grids
+          inter[[numSensors-i+1+1]] = grids
         }
+		i = i - 1
     }
     if(save.inter){
         return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid, inter=inter))
@@ -1213,30 +1216,39 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         plotUniqueRR(result)
 	if(!showPlots) dev.off()
 
+	filenames = writeFiles(filenames, result, path, time, TRUE)
+	
+	print(filenames)
+	return(filenames)
+}
+
+writeFiles = function(filenames, result, path, time, zip=TRUE) {
 	## Write results to a text file
 	filename = paste(path, "txt/", time, ".txt", sep="")
 	file.create(filename)
 	capture.output(print(result), file=filename)
 	filenames$txt = filename
 	
-	# Zip the text results and image files
-	filename = paste(path, "zip/", time, ".zip", sep="")
-	zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
-	filenames$zip = filename
+	# If true, write a zipped copy of files
+	if (zip) {
+		# Zip the text results and image files
+		filename = paste(path, "zip/", time, ".zip", sep="")
+		zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
+		filenames$zip = filename
+	}
 	
-	result$filenames = filenames
+	# result$filenames = filenames
 	result$bGrid = NULL
 	result$fGrid = NULL
 	result$sumGrid = NULL
 	result$acousticCoverage = NULL
+	
 	# Write results to a json file
 	jsonFile = paste(path, "txt/", time, ".json", sep="")
 	file.create(jsonFile)
 	cat(toJSON(result), file=jsonFile, append=FALSE)
-	print(filenames)
 	return(filenames)
 }
-
 #' @title Plots the grid specified by the input type.
 #' @description In addition to the grid itself sensor locations are also plotted along
 #' with numbers indicating the order in which sensors were placed. Furthermore, bathymetry
@@ -1339,10 +1351,12 @@ plotSensors = function(result,circles=TRUE,circlty=3){
   sensy = result$bGrid$y[result$stats$sensorMat[1:ns, 1]]
   ## Plot sensor range as circles
   if(circles){
-    for(i in 1:ns){
-      X = r*cos(a) + sensx[i]
-      Y = r*sin(a) + sensy[i]
+	i = ns
+    while(i > 0){
+      X = r*cos(a) + sensx[ns-i+1]
+      Y = r*sin(a) + sensy[ns-i+1]
       lines(X,Y,lty=circlty)
+	  i = i - 1
     }
   }
   ## Plot sensor locations
@@ -1382,7 +1396,9 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     sumGridSupp = sensors$sumGridSupp
     sensorList = sensors$sensorList
     ## Calculate locations of projected sensors
-    for (i in 1:(numProj-numSensors)) { 
+	ns = numProj-numSensors
+	i = ns
+    while (i > 0) { 
       ## find the max location 
       maxLoc = which.max(sumGridSupp)
       ## Switch the row/col vals since R references Grid coords differently
@@ -1402,13 +1418,17 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
           params$suppressionRange, params$minsuppressionValue, 
           params$maxsuppressionValue, params, debug)
       }
+	  i = i - 1
     }
 
     xSens = rep(0,numProj)
     ySens = rep(0,numProj)
-    for(i in 1:numProj){
-        xSens[i] = sensorList[[i]]$c
-        ySens[i] = sensorList[[i]]$r
+	i = numProj
+    while(i > 0){
+		k = numProj-i+1
+        xSens[k] = sensorList[[k]]$c
+        ySens[k] = sensorList[[k]]$r
+		i = i - 1
     }
     
     ## Distance maps (the distance from any grid cell to a receiver)
@@ -1417,14 +1437,22 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     X = matrix(rep(1:cols,rows),rows,cols,byrow=TRUE)
     Y = matrix(rep(1:rows,cols),rows,cols,byrow=FALSE)
     dimap = array(0,dim=c(rows,cols,numProj))
-    for(i in 1:numProj) {
+	i = numProj
+    while(i > 0) {
+		k = numProj-i+1
 		## Distance to receiver
-		dimap[,,i] = sqrt( (X-xSens[i])^2 + (Y-ySens[i])^2 )
+		dimap[,,k] = sqrt( (X-xSens[k])^2 + (Y-ySens[k])^2 )
+		i = i - 1
 	}
     
     ## Horizontal detection maps using detection function
     demap = array(0,dim=c(rows,cols,numProj))
-    for(i in 1:numProj) demap[,,i] = do.call(params$shapeFcn, list(dimap[,,i], params))
+	i = numProj
+	while(i > 0) {
+		k = numProj-i+1
+		demap[,,k] = do.call(params$shapeFcn, list(dimap[,,k], params))
+		i = i - 1
+	} 
 
     ## Incorporate vertical detection probability using line of sight
     if(params$bias!=1){
@@ -1435,13 +1463,15 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
       sensorDepth = bG + params$sensorElevation
       ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
       dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
-      for(i in 1:numProj){
-        r = ySens[i]
-        c = xSens[i]
+	  i = numProj
+	  while(i > 0) {
+	    k = numProj-i+1
+        r = ySens[k]
+        c = xSens[k]
         cind = max(c(1,c-rng)):min(c(cols,c+rng))
         rind = max(c(1,r-rng)):min(c(rows,r+rng))
         ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(ySens[i], xSens[i], rind, cind, bG, land, sensorDepth[ySens[i], xSens[i]], dpflag, params, debug)
+        pctviz = calc.percent.viz(ySens[k], xSens[k], rind, cind, bG, land, sensorDepth[ySens[k], xSens[k]], dpflag, params, debug)
         ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
         ## Initialize
         testmap = matrix(0,rows,cols)
@@ -1450,22 +1480,26 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
         ## 100% detected in self cell
         testmap[r,c] = 1
         ## Update demap (detection map)
-        demap[,,i] = demap[,,i] * testmap
+        demap[,,k] = demap[,,k] * testmap
+		i = i - 1
       }
     }
 
     ## Coverage map
     cover = matrix(1,rows,cols)
     uniqRRs = rep(0,numProj)
-    for(i in 1:numProj){
-        r = ySens[i]
-        c = xSens[i]
+	i = numProj
+	while(i > 0) {
+		k = numProj-i+1
+        r = ySens[k]
+        c = xSens[k]
         cind = max(c(1,c-rng)):min(c(cols,c+rng))
         rind = max(c(1,r-rng)):min(c(rows,r+rng))
         ## Probability of no detection
-        cover[rind,cind] = cover[rind,cind] * (1 - demap[rind,cind,i]) 
+        cover[rind,cind] = cover[rind,cind] * (1 - demap[rind,cind,k]) 
         covertmp = 1-cover
-        uniqRRs[i] = sum(covertmp * fGrid)
+        uniqRRs[k] = sum(covertmp * fGrid)
+		i = i - 1
     }
     duniqRRs = diff(c(0,uniqRRs))
     ##print(uniqRRs)
@@ -1488,9 +1522,12 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
 
     ## Calculate distance matrix needed to calculate sparsity
     distVec = rep(0,numSensors)
-    for(i in 1:numSensors){
-        dists = sqrt((bGrid$x[xSens[srt$ix[i]]]-bGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (bGrid$y[ySens[srt$ix[i]]]-bGrid$y[ySens[srt$ix[1:numSensors]]])^2)
-        distVec[i] = min(dists[dists>0])
+	i = numProj
+	while(i > 0) {
+		k = numProj-i+1
+        dists = sqrt((bGrid$x[xSens[srt$ix[k]]]-bGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (bGrid$y[ySens[srt$ix[k]]]-bGrid$y[ySens[srt$ix[1:numSensors]]])^2)
+        distVec[k] = min(dists[dists>0])
+		i = i - 1
     }
     ## a is the median of the distances between the receivers
     a = median(distVec)
@@ -1523,15 +1560,22 @@ checkParams = function(params) {
 		}
 	}
     if(!('numSensors' %in% names)) {
-        write("Error: 'numSensors' is required", stderr())
+        params$numSensors = 0
     }
+	if(params$numSensors < 0) {
+		params$numSensors = 0
+	}
     if(!('bias' %in% names)) {
-        write("Error: 'bias' value is required.")
+        bias=1
     }
+	if(!(params$bias %in% c(1,2,3))) {
+		printError("Error: Bias value must be 1, 2, or 3.")
+	}
 	if('dp' %in% names  && !('inputFile' %in% names)) {
-		write("Error: Using dp option without a known input file may be bad!.
+		printError("Error: Using dp option without a known input file may be bad!.
 				For example, if the generated habitat grid contains no cells near
-				the depth specified, no fish will be generated.", stderr())
+				the depth specified, no fish will be generated.")
+		stop()
 	}
 
     # Bathymetry defaults
@@ -1540,9 +1584,9 @@ checkParams = function(params) {
     }
     if(('inputFileType' %in% names)) {
         params$inputFileType = as.character(params$inputFileType)
-    }   else {
-                params$inputFileType = 'custom'
-        }
+    } else {
+            params$inputFileType = 'custom'
+    }
     if(!('cellSize' %in% names)) {
         params$cellSize = 1
     }
@@ -1553,10 +1597,10 @@ checkParams = function(params) {
         params$startY = 1
     }
     if(!('XDist' %in% names)) {
-        params$XDist = 21
+        params$XDist = 20
     }
     if(!('YDist' %in% names)) {
-        params$YDist = 21
+        params$YDist = 20
     }
     if(!('seriesName' %in% names)) {
         params$seriesName = 'z'
@@ -1564,16 +1608,23 @@ checkParams = function(params) {
 		params$seriesName = as.character(params$seriesName)
 	}
 	if('userSensorList' %in% names) {
-		rawPointList = strsplit(params$userSensorList,",")[[1]]
+		cleaned = gsub("\\s", "", params$userSensorList)
+		rawPointList = strsplit(cleaned, ",")[[1]]
 		points = {}
-		for(i in 1:floor(length(rawPointList)/2)) {
+		len = floor(length(rawPointList)/2)
+		i=0
+		while(i > len) {
 			point = list(r=as.numeric(rawPointList[2]), c=as.numeric(rawPointList[1]))
 			points = c(points, list(point))
 			rawPointList = rawPointList[-2]
 			rawPointList = rawPointList[-1]
+			len = len -1
 		}
 		params$sensorList = points
 		print(points)
+		if(!(params$numSensors + length(points) > 0)) {
+			printError("ERROR: No sensors specified.")
+		}
 	}
     # Shape Function Defaults
     if(!('shapeFcn' %in% names)) {
@@ -1730,4 +1781,13 @@ sub2ind = function(row, col, dims){
 plotIntersect = function(n, rate, col=1, lty=1){
   lines(rep(n, 2), c(0, rate), col=col, lty=lty)
   lines(c(0, n), rep(rate, 2), col=col, lty=lty)
+}
+
+#' @title Prints errors.
+#'
+#' @param msg The message to print.
+#' @return The passed message.
+printError = function(msg) {
+	print(msg)
+	stop(msg)
 }

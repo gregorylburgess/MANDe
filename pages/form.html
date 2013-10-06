@@ -292,9 +292,19 @@ Your browser doesn't support iframes.
 			sensors = data['sensors'];
 			stats = data['stats'];
 			filenames = data['filenames'];
+			errors = data['errors']
+			err = false;
 			
+			if(errors!=null) {
+				err = true;
+				toRet += "<h3>Errors:</h3>";
+				toRet += "<h4>The program encountered errors and was unable to complete your request.</h4>";
+				for(key in errors) {
+					toRet += "<b>" + key + "</b>" + ": " + params[key] + "</br>";
+				}
+			}
 			//Re-Print params
-			toRet += "<h3>Parameters:</h4>";
+			toRet += "<h3>Parameters:</h3>";
 			for(key in params) {
 				toRet += "<b>" + key + "</b>" + ": " + params[key] + "</br>";
 				if (key == "sensorList") {
@@ -305,23 +315,24 @@ Your browser doesn't support iframes.
 				}
 			}
 			
-			toRet += "<h3>Stats:</h4>";
-			for(key in stats) {
-				if(key != "acousticCoverage") {
-					toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
+			if(!err) {
+				toRet += "<h3>Stats:</h4>";
+				for(key in stats) {
+					if(key != "acousticCoverage") {
+						toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
+					}
+				}
+				
+				toRet += "<h3>Graphs:</h4>";
+				for(key in filenames) {
+					if(filenames[key].indexOf(".png") != -1) {
+						toRet += "<image src=\"../" + filenames[key] + "\"></image>";
+					}
+					if(filenames[key].indexOf(".zip") != -1) {
+						toRet += "</br></br></br><a href=\"../" + filenames[key] + "\">Download a zipped copy of all results</a>";
+					}
 				}
 			}
-			
-			toRet += "<h3>Graphs:</h4>";
-			for(key in filenames) {
-				if(filenames[key].indexOf(".png") != -1) {
-					toRet += "<image src=\"../" + filenames[key] + "\"></image>";
-				}
-				if(filenames[key].indexOf(".zip") != -1) {
-					toRet += "</br></br></br><a href=\"../" + filenames[key] + "\">Download a zipped copy of all results</a>";
-				}
-			}
-			
 			toRet += "</br><center><button type=\"submit\" class=\"btn btn-danger\" onClick=\"location.reload()\"> < Back</button></center>";
 			toRet += "</div><div class=\"span1\"></span>";
 			$('#content').html(toRet);

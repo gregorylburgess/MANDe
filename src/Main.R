@@ -6,6 +6,7 @@ source('src/FishModel.R')
 source('src/Utility.R')
 #' @include src/Utility.R
 
+gErrors = {}
 #' @name acousticRun
 #' @title Design network with the provided parameters.
 #' @description This is the main routine that calls several sub-routines when designing the network.
@@ -26,45 +27,73 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.in
     if(debug) {
         cat("\n[acousticRun]\n")
     }
-    params = checkParams(params)
-
-    ## Create/Load the Bathy grid for the area of interest
-    bGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
-            params$XDist, params$YDist, params$seriesName, debug)
-    bGrid = list("bGrid"=bGrid, "cellRatio"=params$cellSize)
-    ## Convert parameter values from meters to number of grid cell 
-    params = convertMetersToGrid(params,bGrid)
-    ## Specify a standard scale of x and y axes if previously undefined
-    if(!("x" %in% names(bGrid))) {
-		bGrid$x = (1:dim(bGrid$bGrid)[1])*params$cellSize 
-	}
-    if(!("y" %in% names(bGrid))) {
-		bGrid$y = (1:dim(bGrid$bGrid)[2])*params$cellSize
-	}
-    ## Calculate fish grid
-    fGrid = fish(params, bGrid)
-
-    ## Find good sensor placements
-    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt, save.inter=save.inter)
-
-    ## Stat analysis of proposed setup.
-    statDict = getStats(params, bGrid, fGrid, sensors, debug, opt)
 	
-    ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
-    results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
-            "stats" = statDict, "params"=params)
 
-    if(save.inter) {
-		results$inter = sensors$inter
-	}
-    
-    ## Graph results and make data file.
-    results$filenames = graph(results,params,showPlots)
+	bGrid = {}
+	fGrid = {}
+	sumGrid = {}
+	sensors = {}
+	sensors$sumGrid = {}
+	sensors$sensorList = {}
+	statDict = {}
+	results = {}
 	
-    endTime = Sys.time()
-    results$runTime = endTime - startTime
+	tryCatch({
+	    params = checkParams(params)
 	
-    return(results)
+	    ## Create/Load the Bathy grid for the area of interest
+	    bGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
+	            params$XDist, params$YDist, params$seriesName, debug)
+	    bGrid = list("bGrid"=bGrid, "cellRatio"=params$cellSize)
+	    ## Convert parameter values from meters to number of grid cell 
+	    params = convertMetersToGrid(params,bGrid)
+	    ## Specify a standard scale of x and y axes if previously undefined
+	    if(!("x" %in% names(bGrid))) {
+			bGrid$x = (1:dim(bGrid$bGrid)[1])*params$cellSize 
+		}
+	    if(!("y" %in% names(bGrid))) {
+			bGrid$y = (1:dim(bGrid$bGrid)[2])*params$cellSize
+		}
+	    ## Calculate fish grid
+	    fGrid = fish(params, bGrid)
+	
+	    ## Find good sensor placements
+	    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt, save.inter=save.inter)
+	
+	    ## Stat analysis of proposed setup.
+	    statDict = getStats(params, bGrid, fGrid, sensors, debug, opt)
+		
+		## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
+		results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
+				"stats" = statDict, "params"=params, "errors"=errors)
+		
+		if(save.inter) {
+			results$inter = sensors$inter
+		}
+		
+		## Graph results and make data file.
+		results$filenames = graph(results,params,showPlots)
+		
+		endTime = Sys.time()
+		results$runTime = endTime - startTime
+		return(results)
+		
+	}, warning = function(w) {
+		print("Warning")
+		print(w)
+		appendError(w, toString(params$timestamp))
+	}, error = function(e) {
+		print("Error")
+		print(e)
+		appendError(e, toString(params$timestamp))
+	}, finally = function(e){})
+	print(gErrors)
+	results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
+			"stats" = statDict, "params"=params, "errors"=gErrors[as.numeric(params$timestamp)])
+	print("Writing Files")
+	filenames = writeFiles(filenames={}, results, path="", as.numeric(params$timestamp), zip=FALSE)
+	print(filenames)
+	return(results)
 }
 
 #' @name acousticTest
@@ -144,3 +173,6 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 }
 
 #acousticTest( bias=1)
+appendError = function(msg, time) {
+	gErrors[time] <<- c(gErrors[time], msg)
+}
