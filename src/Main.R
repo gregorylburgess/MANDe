@@ -6,7 +6,7 @@ source('src/FishModel.R')
 source('src/Utility.R')
 #' @include src/Utility.R
 
-gErrors = {}
+
 #' @name acousticRun
 #' @title Design network with the provided parameters.
 #' @description This is the main routine that calls several sub-routines when designing the network.
@@ -28,7 +28,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.in
         cat("\n[acousticRun]\n")
     }
 	
-
+	gErrors <<- {}
 	bGrid = {}
 	fGrid = {}
 	sumGrid = {}
@@ -37,6 +37,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.in
 	sensors$sensorList = {}
 	statDict = {}
 	results = {}
+	filenames = {}
 	
 	tryCatch({
 	    params = checkParams(params)
@@ -65,7 +66,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.in
 		
 		## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
 		results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
-				"stats" = statDict, "params"=params, "errors"=errors)
+				"stats" = statDict, "params"=params, "errors"=gErrors[toString(params$timestamp)])
 		
 		if(save.inter) {
 			results$inter = sensors$inter
@@ -78,21 +79,20 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.in
 		results$runTime = endTime - startTime
 		return(results)
 		
-	}, warning = function(w) {
-		print("Warning")
-		print(w)
-		appendError(w, toString(params$timestamp))
 	}, error = function(e) {
 		print("Error")
 		print(e)
 		appendError(e, toString(params$timestamp))
 	}, finally = function(e){})
-	print(gErrors)
+	
+	# only params and errors should actually have values
 	results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
-			"stats" = statDict, "params"=params, "errors"=gErrors[as.numeric(params$timestamp)])
-	print("Writing Files")
-	filenames = writeFiles(filenames={}, results, path="", as.numeric(params$timestamp), zip=FALSE)
+			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=gErrors[toString(params$timestamp)])
+	
+	# writeFiles returns json and txt file locations
+	filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), zip=FALSE)
 	print(filenames)
+
 	return(results)
 }
 

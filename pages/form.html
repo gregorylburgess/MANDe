@@ -286,7 +286,7 @@ Your browser doesn't support iframes.
 		function parseResponse(data) {
 			//data = $.parseJSON(data);
 			toRet = "<div class=\"span1\"></div>";
-			toRet += "<div class=\"span10\"><h1>Results:</h1>";
+			toRet += "<div class=\"span10\">";
 			//Grab important keys
 			params = data["params"];
 			sensors = data['sensors'];
@@ -297,11 +297,12 @@ Your browser doesn't support iframes.
 			
 			if(errors!=null) {
 				err = true;
-				toRet += "<h3>Errors:</h3>";
-				toRet += "<h4>The program encountered errors and was unable to complete your request.</h4>";
+				toRet += "<font color=\"red\"><h2>Error!</h2>";
+				toRet += "<h3>The program encountered errors and was unable to complete your request.</h3>";
 				for(key in errors) {
-					toRet += "<b>" + key + "</b>" + ": " + params[key] + "</br>";
+					toRet += "<b>Error:</b>" + ": " + errors[parseFloat(key)] + "</br>";
 				}
+				toRet += "</font>"
 			}
 			//Re-Print params
 			toRet += "<h3>Parameters:</h3>";
@@ -316,7 +317,7 @@ Your browser doesn't support iframes.
 			}
 			
 			if(!err) {
-				toRet += "<h3>Stats:</h4>";
+				toRet += "</br><h1>Results:</h1></br><h3>Stats:</h4>";
 				for(key in stats) {
 					if(key != "acousticCoverage") {
 						toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";

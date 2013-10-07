@@ -1217,11 +1217,11 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	if(!showPlots) dev.off()
 
 	filenames = writeFiles(filenames, result, path, time, TRUE)
-	
 	print(filenames)
 	return(filenames)
 }
 
+#' Adds txt and zip file paths to the filenames attribute, then writes a json file.
 writeFiles = function(filenames, result, path, time, zip=TRUE) {
 	## Write results to a text file
 	filename = paste(path, "txt/", time, ".txt", sep="")
@@ -1237,7 +1237,8 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
 		filenames$zip = filename
 	}
 	
-	# result$filenames = filenames
+	# Append the new txt and zip file locations, and clear all the old data from the result set.
+	result$filenames = filenames
 	result$bGrid = NULL
 	result$fGrid = NULL
 	result$sumGrid = NULL
@@ -1575,7 +1576,6 @@ checkParams = function(params) {
 		printError("Error: Using dp option without a known input file may be bad!.
 				For example, if the generated habitat grid contains no cells near
 				the depth specified, no fish will be generated.")
-		stop()
 	}
 
     # Bathymetry defaults
@@ -1612,13 +1612,15 @@ checkParams = function(params) {
 		rawPointList = strsplit(cleaned, ",")[[1]]
 		points = {}
 		len = floor(length(rawPointList)/2)
-		i=0
-		while(i > len) {
+		i=len
+		print("Precheck")
+		while(i > 0) {
+			print(i)
 			point = list(r=as.numeric(rawPointList[2]), c=as.numeric(rawPointList[1]))
 			points = c(points, list(point))
 			rawPointList = rawPointList[-2]
 			rawPointList = rawPointList[-1]
-			len = len -1
+			i = i -1
 		}
 		params$sensorList = points
 		print(points)
