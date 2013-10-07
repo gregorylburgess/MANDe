@@ -55,8 +55,6 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 		i = length(params$sensorList)
 		while(i > 0) {
 			loc = params$sensorList[[i]]
-			print("loc")
-			print(loc)
 			# invert the incoming r/c values
 			placement = list(c=loc$r, r=loc$c)
 			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, opt, debug)
@@ -229,7 +227,7 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE, opt=FALSE) {
         }
     }
     else {
-        write("ERROR: Invalid Bias", stderr())
+        stop("ERROR: Invalid Bias")
     }   
 }
 
@@ -447,7 +445,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
 #' indices in the bGrid to which the visibilities pertain, dists contains the distance
 #' from the current cell to each of the returned cells as given by inds.
 calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, params, debug=FALSE){
-	if(TRUE){
+	if(debug){
 		print("[calc.percent.viz]")
 		print(sprintf("point: (%g,%G)",r,c))
 	}
@@ -1028,7 +1026,7 @@ getCells=function(startingCell, targetCell, debug=FALSE) {
 #' (not row and col) of cells in the bGrid crossed by a beam from the starting
 #' cell to the target cell. If nr == NULL a matrix with a row column and a col
 #' column is returned.
-getCells.opt = function(startingCell, targetCell, debug=TRUE, nr=NULL) {
+getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
 	if(debug) {
 		print("[getCells.opt]")
 		print("Starting Cell:")
@@ -1216,7 +1214,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         plotUniqueRR(result)
 	if(!showPlots) dev.off()
 
-	filenames = writeFiles(filenames, result, path, time, TRUE)
+	filenames = writeFiles(filenames, result, path, time, zip=TRUE)
 	print(filenames)
 	return(filenames)
 }
@@ -1392,7 +1390,7 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
     rng = params$range
     
     ## Calculate the value of each sensor (as the increase in unique recoveryrate)
-    numProj = 2*numSensors
+    numProj = numSensors + params$projectedSensors
     ## sumGrid suppressed by numSensors
     sumGridSupp = sensors$sumGridSupp
     sensorList = sensors$sensorList
@@ -1560,62 +1558,77 @@ checkParams = function(params) {
 			params[name] = as.numeric(params[name])
 		}
 	}
+	# if users don't specify a number of sensors to use, use 0
     if(!('numSensors' %in% names)) {
         params$numSensors = 0
     }
+	# if users specify a negative value, set it to 0
 	if(params$numSensors < 0) {
 		params$numSensors = 0
 	}
+	
+	# if users don't specify a number of sensors to project, use 0
+	if(!('projectedSensors' %in% names)) {
+		params$projectedSensors = 0
+	}
+	# if users specify a negative value, set it to 0
+	if(params$projectedSensors < 0) {
+		params$projectedSensors = 0
+	}
+	# default to a bias of 1
     if(!('bias' %in% names)) {
         bias=1
     }
+	# if users enter an invalid bias, throw an error.
 	if(!(params$bias %in% c(1,2,3))) {
 		printError("Error: Bias value must be 1, 2, or 3.")
 	}
+	# Warn users if they use depth pref without knowing what the map looks like
 	if('dp' %in% names  && !('inputFile' %in% names)) {
 		printError("Error: Using dp option without a known input file may be bad!.
 				For example, if the generated habitat grid contains no cells near
 				the depth specified, no fish will be generated.")
 	}
-
     # Bathymetry defaults
     if(('inputFile' %in% names)) {
         params$inputFile = as.character(params$inputFile)
-    }
+    } else {
+		# default to the 1km grid
+		params$inputFile = "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd"
+	}
     if(('inputFileType' %in% names)) {
         params$inputFileType = as.character(params$inputFileType)
     } else {
-            params$inputFileType = 'custom'
+            params$inputFileType = 'ncdf'
     }
     if(!('cellSize' %in% names)) {
-        params$cellSize = 1
+        params$cellSize = 1000
     }
     if(!('startX' %in% names)) {
-        params$startX = 1
+        params$startX = 308
     }
     if(!('startY' %in% names)) {
-        params$startY = 1
+        params$startY = 452
     }
     if(!('XDist' %in% names)) {
-        params$XDist = 20
+        params$XDist = 50
     }
     if(!('YDist' %in% names)) {
-        params$YDist = 20
+        params$YDist = 50
     }
     if(!('seriesName' %in% names)) {
         params$seriesName = 'z'
     }	else {
 		params$seriesName = as.character(params$seriesName)
 	}
+	# if params$userSensorList exists, clean it and parse it into params$sensorList
 	if('userSensorList' %in% names) {
 		cleaned = gsub("\\s", "", params$userSensorList)
 		rawPointList = strsplit(cleaned, ",")[[1]]
 		points = {}
 		len = floor(length(rawPointList)/2)
 		i=len
-		print("Precheck")
 		while(i > 0) {
-			print(i)
 			point = list(r=as.numeric(rawPointList[2]), c=as.numeric(rawPointList[1]))
 			points = c(points, list(point))
 			rawPointList = rawPointList[-2]
@@ -1623,18 +1636,19 @@ checkParams = function(params) {
 			i = i -1
 		}
 		params$sensorList = points
-		print(points)
+		# if no sensors were specified, throw an error!
 		if(!(params$numSensors + length(points) > 0)) {
 			printError("ERROR: No sensors specified.")
 		}
 	}
     # Shape Function Defaults
+	# Currently, only gauss is defined.
     if(!('shapeFcn' %in% names)) {
         params$shapeFcn = "shape.gauss"
         params$detectionRange = 3*params$cellSize
         params$peak = 0.98
     }	else {
-		params$shapeFcn = "shape.gauss" ##as.character(params$shapeFcn) ## Always use Gauss for simplicity
+		params$shapeFcn = "shape.gauss" ##as.character(params$shapeFcn) 
 	}
 	##if(!('range' %in% names)) {
 	##	params$range = 3*params$sd
@@ -1751,10 +1765,18 @@ conv.2D = function(mat, kx, ky){
   dimmat = dim(mat)
   ## Initialize return matrix
   matout = matrix(0, dimmat[1], dimmat[2])
+  x = dimmat[1]
+  y = dimmat[2]
   ## Convolve in x-direction
-  for(i in 1:dimmat[1]) matout[i,] = conv.1D(mat[i,],kx)
+  for(i in 1:dimmat[1]) {
+	  matout[i,] = conv.1D(mat[i,],kx)
+	  print(i/(2*x))
+  }
   ## Convolve in y-direction (important to use matout here)
-  for(i in 1:dimmat[2]) matout[,i] = conv.1D(matout[,i],ky)
+  for(i in 1:dimmat[2]) {
+	  matout[,i] = conv.1D(matout[,i],ky)
+	  print(i/(2*x) + .5)
+  }
   return(matout)
 }
 

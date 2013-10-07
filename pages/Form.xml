@@ -63,6 +63,9 @@
 			<Field id="numSensors" label="Number of Sensors to Use" type="text" toolTip="The number of sensors you wish to place.">
 				10
 			</Field>
+			<Field id="projectedSensors" label="Number of Sensors to Project" type="text" toolTip="The number of theoretical sensors to place.  These sensors will be placed in addition to any sensors specified above.  This option lets you see what adding more sensors to your setup does to your recovery rate.">
+				0
+			</Field>
 			<Field id="bias" label="'Goodness' Algorithm" type="select" toolTip="Determines how the program determines the goodness of a cell.  A value of 1 bases goodness on fish presence, regardless of bathymetry.  A value of 2 bases goodness on bathymetric visibility, regardless of fish presence  A value of 3 bases goodness on the number of visible fish (both fish habitat and bathymetry).">
 				<Options>
 					<Option label="1">1</Option>
@@ -82,7 +85,7 @@
 				.98
 			</Field>
 			<Field id="detectionRange"  label="Detection Range"  type="text"  toolTip="The distance in meters from the sensor where the chance of detecting a signal is 0.05.">
-				13
+				4000
 			</Field>		
 		</Fields>
 	</Group>
