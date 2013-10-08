@@ -22,7 +22,7 @@ source('src/Utility.R')
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=FALSE, save.inter=FALSE){
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=TRUE, save.inter=FALSE){
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")

@@ -241,9 +241,10 @@ Your browser doesn't support iframes.
 
 				//Add a timestamp
 				dic += "\"timestamp\":\"" + timestamp + "\"";
-				
+				//alert("127.0.0.1/custom/status?\"timestamp\":\"" + timestamp + "\"");
 				//write a cookie
 				$.cookie("acousticwebapp-data", dic);
+				
 				// Actually submit the form
 				$.ajax({
 					url: '../../query', 
@@ -255,10 +256,13 @@ Your browser doesn't support iframes.
 	
 		//Waits until the job has been finished by trying to load a <timestamp>.json file 
 		function waitForData(data) {
+			$('#content').load("progress_bar.html");
 			var filename = "../txt/" + timestamp + ".json";
 			var exists = UrlExists(filename);
 			var waitLoop = setInterval(
 				function(){ 
+					//Update the progress bar...
+					updateProgress();
 					exists = UrlExists(filename);
 					if (exists) {
 							clearInterval(waitLoop);
@@ -274,6 +278,21 @@ Your browser doesn't support iframes.
 			 5000);
 		}
 		
+		//Updates the progress bar
+		function updateProgress() {
+			//Ask the server how far along it is
+			var dataString = "\"timestamp\":\"" + timestamp + "\"";
+			$.ajax({
+                dataType: "json",
+                url: "../../status",
+                data: dataString,
+                success: function (data) {
+                	var value = parseFloat(data) * 100;
+                	var strVal = value + "%";
+                	document.getElementById('progressBar').style.width= strVal
+                          }
+              });
+		}
 		//Checks for the existance of a URL
 		function UrlExists(url) {
 		    var http = new XMLHttpRequest();

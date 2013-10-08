@@ -22,7 +22,7 @@ library('rjson')
 #' @param opt Tells the program to use vectorized R commands.
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, opt=FALSE, save.inter=FALSE) {
+sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, opt=TRUE, save.inter=FALSE) {
     if (debug) {
         cat("\n[sensorFun]\n")
         print("bGrid")
@@ -77,7 +77,6 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
             r=rows
         }
         maxLoc = list(c=c,r=r)
-        print(paste('Placed sensor',numSensors-i+1))
         ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
 		
         # append maxLoc to the sensor list.
@@ -97,8 +96,7 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
     }
 }
 
-sensorFun.suppressHelper = function(loc, grids, range, bias, params, opt=FALSE, debug=FALSE) {
-	print(loc)
+sensorFun.suppressHelper = function(loc, grids, range, bias, params, opt=TRUE, debug=FALSE) {
 	if(params$suppressionFcn != 'detection.function.exact'){
 		##print('NOT using detection.function.exact')
 		if(opt){
@@ -127,7 +125,7 @@ sensorFun.suppressHelper = function(loc, grids, range, bias, params, opt=FALSE, 
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return Returns the grids parameter, with an updated FGrid.
-updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
+updateFGrid = function(loc,grids,params,debug=FALSE,opt=TRUE){
   if(debug){
       cat("\n[updateFGrid]\n")
       print("loc")
@@ -190,7 +188,7 @@ updateFGrid = function(loc,grids,params,debug=FALSE,opt=FALSE){
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return Returns the grids parameter, with an updated sumGrid.
-sumGridFun = function (grids, range, bias, params, debug=FALSE, opt=FALSE) {
+sumGridFun = function (grids, range, bias, params, debug=FALSE, opt=TRUE) {
     if (debug) {
         cat("\n[sumGrid]\n")
         print("bGrid")
@@ -201,6 +199,7 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE, opt=FALSE) {
         print("params")
         print(params)
     }
+	status[toString(params$timestamp)] <<- 0
     #Fish
     if (bias == 1) {
         if(opt){
@@ -290,7 +289,7 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE) {
     tempGrid = get(key, grids)
     ## Do convolution. This operation is identical to the for loop in sumGrid.sumSimple
     ## For more general information about how the convolution operation is defined google it! wikipedia has a decent explanation.
-    grids$sumGrid = conv.2D(tempGrid,kernel,kernel)
+    grids$sumGrid = conv.2D(tempGrid,kernel,kernel, params$timestamp)
 
     ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
     sensorDepth = grids$bGrid$bGrid + params$sensorElevation
@@ -368,7 +367,7 @@ sumGrid.sumBathy = function (grids, range, shapeFcn="shape.t",
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param opt Tells the program to use vectorized R commands.
 #' @return Returns the grids parameter, with an updated sumGrid.
-sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
+sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=TRUE) {
     nr = dim(grids$bGrid$bGrid)[1]
     nc = dim(grids$bGrid$bGrid)[2]
     ## Calculate the number of cells in the bGrid
@@ -391,6 +390,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
     for(c in 1:nc){
         comp = c/nc
         print(sprintf("LOS progress: %g", comp))
+		status[toString(params$timestamp)] <<- comp
         ## Column indices
         cind = max(c(1,c-rng)):min(c(nc,c+rng))
         for(r in 1:nr){
@@ -411,7 +411,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE,opt=FALSE) {
             }
         }
     }
-    
+	status[toString(params$timestamp)] <<- 1
     grids$sumGrid = sumGrid
     if(debug){
         cat("\n[sumGrid.sumBathy.opt]\n")
@@ -458,11 +458,11 @@ calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, 
     cvec = sort(rep(cind,length(rind)))
     ## Remove self cell
     tmp = which(!(rvec==r & cvec==c))
-	print(tmp)
+	#print(tmp)
     rvec = rvec[tmp]
     cvec = cvec[tmp]
-	print(rvec)
-	print(cvec)
+	#print(rvec)
+	#print(cvec)
     ## Translate from row col index to to single index
     linearIndex = sub2ind(rvec,cvec,nr) 
     linearIndexLength = length(linearIndex)
@@ -470,8 +470,8 @@ calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, 
     ## This sorts after dist so longest dists are calculated first, then shorter ones might not be needed since they are already calculated for a long dist
 	## sort() returns two items, x and ix;  ix is the index of x in the sorted array.
     disttmp = sort(sqrt((r-rvec)^2 + (c-cvec)^2), decreasing=TRUE, index=TRUE)
-	print("Disttmp")
-	print(disttmp)
+	#print("Disttmp")
+	#print(disttmp)
     ## Save actual distances in the dists vector
     dists = disttmp$x
     ## Get depths at the sorted cells by using disttmp$ix, which contains the sorted indices
@@ -1034,8 +1034,6 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
 		print("Target Cell:")
 		print(targetCell)
 	}
-	print(startingCell)
-	print(targetCell)
 	if(is.na(startingCell) || is.na(targetCell) || length(targetCell$c) == 0 || length(targetCell$r) == 0) {
 		return(NA)
 	}
@@ -1378,7 +1376,7 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @param opt Tells the program to use vectorized R commands.
 #' @return A dictionary of statistical values containing the keys: "delta", "sensorMat"         
 #' "uniqRRs", "acousticCoverage", "absRecoveryRate", "uniqRecoveryRate".
-getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=FALSE) {
+getStats = function(params, bGrid, fGrid, sensors, debug=FALSE, opt=TRUE) {
 	if(debug) {
 		print("[getstats]")
 	}
@@ -1637,7 +1635,7 @@ checkParams = function(params) {
 		}
 		params$sensorList = points
 		# if no sensors were specified, throw an error!
-		if(!(params$numSensors + length(points) > 0)) {
+		if(!(params$numSensors + length(points) + params$projectedSensors  > 0)) {
 			printError("ERROR: No sensors specified.")
 		}
 	}
@@ -1760,23 +1758,25 @@ conv.1D = function(fun, kern){
 #' @param mat Matrix containing values to perform convolution operation on
 #' @param kx Convolution kernel in x direction
 #' @param ky Convolution kernel in y direction
+#' @param timestamp A timestamp reference for status updates.
 #' @return A matrix containing the result of the convolution operation with same dimensions as mat.
-conv.2D = function(mat, kx, ky){
+conv.2D = function(mat, kx, ky, timestamp=1){
   dimmat = dim(mat)
   ## Initialize return matrix
   matout = matrix(0, dimmat[1], dimmat[2])
   x = dimmat[1]
   y = dimmat[2]
   ## Convolve in x-direction
-  for(i in 1:dimmat[1]) {
+  for(i in 1:x) {
 	  matout[i,] = conv.1D(mat[i,],kx)
-	  print(i/(2*x))
+	  status[toString(timestamp)] <<- (i/(2*x))
   }
   ## Convolve in y-direction (important to use matout here)
-  for(i in 1:dimmat[2]) {
+  for(i in 1:y) {
 	  matout[,i] = conv.1D(matout[,i],ky)
-	  print(i/(2*x) + .5)
+	  status[toString(timestamp)] <<- (i/(2*x) + .5)
   }
+  status[toString(timestamp)] <<- 1
   return(matout)
 }
 
@@ -1814,4 +1814,8 @@ plotIntersect = function(n, rate, col=1, lty=1){
 printError = function(msg) {
 	print(msg)
 	stop(msg)
+}
+
+checkStatus = function(id) {
+	return(status[toString(id)])
 }

@@ -2,6 +2,7 @@
 #' 
 #' 
 source("src/Main.R")
+#' @include src/Main.R
 library("rjson")
 
 #' The main function that calls the webapp with parameters
@@ -22,6 +23,18 @@ query <- function(env) {
 		acousticRun(params)
 		res$write("finished")
 	}
+	res$finish()
+}
+
+#' Returns the status of a particular request
+#' @param env The Rook environment object.
+#' @return none.
+getStatus <- function(env) {
+	req = Rook::Request$new(env)
+	res = Rook::Response$new()
+	params = parseJSON(req$params())
+	jobStatus = checkStatus(toString(params$timestamp))
+	res$write(jobStatus)
 	res$finish()
 }
 

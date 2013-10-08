@@ -20,7 +20,7 @@ if (status == 0) {
 	# application if you like
 	rook$add(name="base", Redirect$new("/../static/pages/index.html"))
 	rook$add(query, name="query")
-	
+	rook$add(getStatus, name="status")
 	## Define static content that should be exposed via url
 	rook$add(name="static", 
 			Builder$new( 
