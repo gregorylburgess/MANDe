@@ -18,11 +18,10 @@ source('src/Utility.R')
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @param opt If TRUE use vectorized R commands (faster).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=TRUE, save.inter=FALSE){
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
@@ -59,10 +58,10 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=TRUE, save.int
 	    fGrid = fish(params, bGrid)
 	
 	    ## Find good sensor placements
-	    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, opt, save.inter=save.inter)
+	    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, save.inter=save.inter)
 	
 	    ## Stat analysis of proposed setup.
-	    statDict = getStats(params, bGrid, fGrid, sensors, debug, opt)
+	    statDict = getStats(params, bGrid, fGrid, sensors, debug)
 		
 		## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
 		results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
@@ -103,10 +102,9 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, opt=TRUE, save.int
 #' @param bias Choose between bias 1 (fish only), 2 (shadowing only) or 3 (fish and shadowing).
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @param opt If TRUE use vectorized R commands (faster).
 #' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
 #' @export
-acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
+acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	#### TEST RUN
 	params = list()
 	#notification option
@@ -169,7 +167,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE, opt=TRUE) {
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
 	    params$dpsd <- 2
 	}
-	return(acousticRun(params, showPlots=FALSE, debug, opt))
+	return(acousticRun(params, showPlots=FALSE, debug))
 }
 
 #acousticTest( bias=1)
