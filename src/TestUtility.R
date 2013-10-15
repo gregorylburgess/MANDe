@@ -1,6 +1,11 @@
 rm(list=ls()) 
 source("src/Utility.R")
 
+#todo
+#calc.percent.viz
+#check Params
+#update fGrid
+
 r=7
 c=5
 
@@ -93,35 +98,6 @@ s3 = matrix(c(0, 8.94867932186257, 10.8651924679732, 12.7817056140838, 14.698218
 #' 
 #' @return N/A
 #' @export
-TestUtility.zeroOut <- function () {
-    params = resetParams()
-    dims = dim(fGrid)
-    loc = list(r=dims[1], c=dims[2])
-    value = 0
-    # zeroing out the grid around the bottom right corner
-    # should result in the bottom two cells being '0'
-    solGrid = matrix(c(1,2,3,0,0,6,7,8,0,0),
-            nrow=r, 
-            ncol=c)
-    
-    fGrid = zeroOut(fGrid, dims, loc, range, value)
-    if (isTRUE(all.equal(fGrid, solGrid))) {
-        print("[zeroOut: %s]: Pass")
-    }
-    else {
-		stop(sprintf("[zeroOut: %s]: FAIL",i))
-        print("solGrid:")
-        print(solGrid)
-        print("result:")
-        print(fGrid)
-    }
-}
-
-
-#' Tests the zeroOut function and the getArea function.
-#' 
-#' @return N/A
-#' @export
 TestUtility.suppress.scale <- function() {
     tests = list(
         list(d=0, min=.25, max=.75, ans=.25),
@@ -155,41 +131,160 @@ TestUtility.suppress.scale <- function() {
 #' @return N/A
 #' @export
 TestUtility.getCells <- function() {
+	grids = resetGrids()
     params = resetParams()
-    startCell = list(r=1,c=1)
-    endCell = list(r=5,c=2)
-	optLabel = ""
-
-    cells = (getCells.opt(startCell, endCell, debug=FALSE))
-	colnames(cells) <- c("x","y")
-	cells = as.data.frame(cells)
-    points = list(  list(x=1,y=2),
-                    list(x=1,y=3),
-                    list(x=2,y=3),
-                    list(x=2,y=4),
-                    list(x=2,y=5))
-    if (dim(cells)[1] > 5) {
-		stop("[getCells]: FAIL: too many results, duplicates exist!")
-    }
-	print(cells)
-    for (point in points) {
-        if(dim(subset(cells, x==point$x & y==point$y))[1] != 1) {
-			stop(sprintf("[getCells]: FAIL: (%g,%g) missing or duplicate! ",point$x,point$y))
-        }
-    }
-    print(sprintf("[getCells.opt]: Pass"))
+	cells = {}
+	# Test the conditions where slope is negative, positive, infinite, and the start and end cells are the same.
+    startCells = list(
+					list(r=1,c=1),
+					list(r=1,c=1),
+					list(r=5,c=2)
+				)
+				
+    endCells = list(
+					list(r=5,c=2),
+					list(r=1,c=1),
+					list(r=1,c=1)
+				)
+				
+	points = list(  
+					matrix(c(1,1,2,2,2,2,3,3,4,5),
+							nrow=5, 
+							ncol=2
+				 	),
+					NULL,
+					matrix(c(1,1,1,2,2,1,2,3,3,4),
+							nrow=5, 
+							ncol=2
+				)
+			)
+	#call getCells.opt()
+	for (i in 1:length(startCells)) {
+	    result = (getCells.opt(startCells[[i]], endCells[[i]], debug=FALSE))
+			#validate result size
+			if(length(points[[i]]) != length(result)) {
+				print("Expected:")
+				print(points[[i]])
+				print("Recieved")
+				print(result)
+				stop(sprintf("[getCells %g]: FAIL: missing or duplicate cells! ", i))
+			}
+			# validate result content
+			for(point in points[i]) {
+				if(length(which(result[,1]==point[,1] & result[,2]==point[,2])) == 1) {
+					print("Expected:")
+					print(point)
+					print("Recieved")
+					print(result)
+					stop(sprintf("[getCells %g]: FAIL: missing cells! ", i))
+				}
+			}
+	}
+	print("[getCells.opt]: Pass")
 }
 
+#' Tests the getArea function.
+#' 
+#' @param opt If TRUE, tests the vectorized version, else tests the unvectorized version.
+#' @return N/A
+#' @export
+TestUtility.getArea = function () {
+	grid = matrix(c(1:100),nrow=20,ncol=5)
+	dims = dim(grid)
+	
+	vals = list(# top left corner, bottom Right corner, top right corner, bottom left corner, center
+				list(loc=(list(r=1,c=1)), range=1), 
+				list(loc=(list(r=20,c=5)), range=1),
+				list(loc=(list(r=1,c=5)), range=1),
+				list(loc=(list(r=20,c=1)), range=1),
+				list(loc=(list(r=10,c=3)), range=1)
+		
+			)
+	sols = list(
+				list(rs=1, re=2, cs=1, ce=2),
+				list(rs=19, re=20, cs=4, ce=5),
+				list(rs=1, re=2, cs=4, ce=5),
+				list(rs=19, re=20, cs=1, ce=2),
+				list(rs=9, re=11, cs=2, ce=4)
+			)
+	i = 1
+	for (test in vals) {
+		result = getArea(test$loc, dims, test$range, debug=FALSE)
+		for(key in names(sols[[i]])) {
+			if(result[[key]] != sols[[i]][[key]]) {
+				print("Expected:")
+				print(sols[[i]])
+				print("Recieved:")
+				print(result)
+				stop("[TestUtility.getArea: FAIL")
+			}
+		}
+		i = i + 1
+	}
+	print("[getArea]: Pass")
+}
+
+#' Tests the getArea function.
+#' 
+#' @param opt If TRUE, tests the vectorized version, else tests the unvectorized version.
+#' @return N/A
+#' @export
+TestUtility.offset = function() {
+	vals = list(
+			list(r=1,c=1), 
+			list(r=-1,c=1),
+			list(r=1,c=-1),
+			list(r=-1,c=-1),
+			list(r=0,c=0)
+	)
+	
+	sols = list(
+			list(r=.5,c=.5), 
+			list(r=-.5,c=.5),
+			list(r=.5,c=-.5),
+			list(r=-.5,c=-.5),
+			list(r=.5,c=.5)
+	)
+	i = 1
+	for (test in vals) {
+		result = offset(test)
+		for(key in names(sols[[i]])) {
+			if(result[[key]] != sols[[i]][[key]]) {
+				print("Expected:")
+				print(sols[[i]])
+				print("Recieved:")
+				print(result)
+				stop(sprintf("[TestUtility.offset %i]: FAIL",i))
+			}
+		}
+		i = i + 1
+	}
+	print("[offset]: Pass")
+}
+
+TestUtility.calc.percent.viz = function() {
+	#Result has the following keys: percentVisibility, dists, linearIndex
+	result = calc.percent.viz(r, c, rind, cind, bG, land, sensorDepth[r,c], dpflag, params, debug)
+}
+
+#' Runs a battery of tests.
+#' 
+#' @param opt If TRUE, tests the vectorized version, else tests the unvectorized version.
+#' @return N/A
+#' @export
 runTests = function () {
 	TestUtility.sumGrid()
 	TestUtility.getCells()
-TestUtility.suppress.scale()
+	TestUtility.suppress.scale()
+	TestUtility.getArea()
+	TestUtility.offset()
 }
 
+
+#Executes the tests, and stops if an error occurs
 tryCatch({
 	runTests()
 }, error = function(e) {
 	traceback()
-	print("Error")
 	print(e)
 	}, finally = function(e){})

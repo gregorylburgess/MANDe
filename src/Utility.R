@@ -189,15 +189,12 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE) {
         print("params")
         print(params)
     }
-	print("before")
 	status [toString(params$timestamp)] <<- 0
-	print("After")
 	#Fish
     if (bias == 1) {
 		if(debug) {
 			print("bias=1; Calling sumGrid.sumSimple")
 		}
-		print("Calling bias1")
         return(sumGrid.sumSimple.opt(grids, "fGrid", params, debug))
     }
     #Bathy
@@ -467,44 +464,6 @@ calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, 
     return(list(percentVisibility=percentVisibility, dists=dists[linearIndexNotLand], linearIndex=linearIndex[disttmp$ix[linearIndexNotLand]]))
 }
 
-#' @title Suppress when a sensor is placed.
-#' @description Suppresses the values of cells around a sensor using a specified suppressionFunction.
-#' 
-#' @param sumGrid A valid SumGrid.
-#' @param dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
-#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
-#' @param suppressionFcn The shape function that describes the attenuation of a sensor.  See ShapeFunctions.R for a list of supported functions.
-#' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
-#' @param minsuppressionValue The minimum allowable value to return.
-#' @param maxsuppressionValue The maximum allowable value to return (also the return value for suppression.static()).
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
-#' @param debug If enabled, turns on debug printing (console only).
-#' @return Returns a suppressed sumGrid.
-suppress = function(sumGrid, dims, loc, suppressionFcn, suppressionRange,
-                    minsuppressionValue, maxsuppressionValue, params, debug=FALSE) {
-    if(debug) {
-        cat("\n[suppress]\n")
-        print(sprintf("suppressionFcn: %s", suppressionFcn))
-        print(sprintf("loc: (%g,%g)",loc$c,loc$r))
-        print("sumGrid")
-        print(sumGrid)
-    }
-    vals = getArea(loc, dims, suppressionRange)
-    mini = vals$rs
-    maxi = vals$re
-    minj = vals$cs
-    maxj = vals$ce
-    for (i in mini:maxi) {
-        for (j in minj:maxj) {
-                    dist = sqrt((loc$c - j)^2 + (loc$r - i)^2)
-					sumGrid[i,j] = sumGrid[i,j] * do.call(suppressionFcn, list(dist, suppressionRange, 
-                                        minsuppressionValue, maxsuppressionValue, params, debug))
-            }
-    }
-    return(sumGrid)
-}
-
-
 #' @title Suppresses the values of cells around a sensor using a specified suppressionFunction.
 #' @description This is an optimized version, which uses vectorization.
 #' 
@@ -670,7 +629,7 @@ getArea=function(loc, dims, range, debug=FALSE) {
 }
 
 #' @title Returns the cells crossed by a beam from the starting cell to the target cell.
-#' @description This is an optimized using vectorization. Returns the cells crossed by a beam from the starting cell to the target cell.
+#' @description This is an optimized using vectorization. Returns the cells crossed by a beam from the starting cell to the target cell. Note that the starting cell is omitted from the result set.
 #' 
 #' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
 #' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
@@ -687,8 +646,15 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
 		print(startingCell)
 		print("Target Cell:")
 		print(targetCell)
+		print(is.na(startingCell))
+		print(is.na(targetCell))
+		print(length(targetCell$c) == 0)
+		print(length(targetCell$r) == 0)
 	}
-	if(is.na(startingCell) || is.na(targetCell) || length(targetCell$c) == 0 || length(targetCell$r) == 0) {
+	if(is.na(startingCell) || is.na(targetCell) || 
+			length(targetCell$c) == 0 || length(targetCell$r) == 0 || 
+			length(startingCell$c) == 0 || length(startingCell$r) == 0) {
+		print("something is null")
 		return(NA)
 	}
     if (!(startingCell$r == targetCell$r && startingCell$c == targetCell$c)) {
@@ -701,6 +667,15 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
         ## Note: this is a slope in the horizontal not vertial plane
         ## rows act as y vals, cols act as x vals
         a = (tC$r-sC$r)/(tC$c-sC$c)
+		if(abs(a)== Inf) {
+			if(a>0) {
+				a = 999999
+			}
+			else {
+				a = -999999
+			}
+		}
+		if(debug) print(sprintf("slope=%g",a))
         ## If absolute slope is less than 1
         if(abs(a)<=1){
             ## Intercept of beam
@@ -1371,8 +1346,7 @@ convertMetersToGrid = function(params,bGrid){
   ## Range in grid cells, used to cut out sub grids from large grid
   params$range = round(3 * params$sd)
   ## Using equation 8 in Pedersen & Weng 2013
-  params$suppressionRange = round(params$suppressionRangeFactor *
-				 params$detectionRange / cellSize) 
+  params$suppressionRange = round(params$suppressionRangeFactor * params$detectionRange / cellSize) 
   return(params)
 }
 
