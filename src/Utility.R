@@ -154,7 +154,7 @@ updateFGrid = function(loc,grids,params,debug=FALSE){
   ## Initialize
   testmap = matrix(0,rows,cols)
   ## Insert values at correct indices
-  testmap[pctviz$inds] = pctviz$percentVisibility
+  testmap[pctviz$linearIndex] = pctviz$percentVisibility
   ## 100% detected in self cell
   testmap[loc$r,loc$c] = 1
   ## Copy relevant area to dgrid1
@@ -348,7 +348,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE) {
 #' fish is calculated, if FALSE visible water column is calculated.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @return Returns a dictionary with three keys (all vectors): percentVisibility contains
-#' the percentage fish/signals visible in the surrounding cells, inds contains the linear
+#' the percentage fish/signals visible in the surrounding cells, linearIndex contains the linear
 #' indices in the bGrid to which the visibilities pertain, dists contains the distance
 #' from the current cell to each of the returned cells as given by inds.
 calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, params, debug=FALSE){
@@ -538,7 +538,7 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
         ## Initialize
         testmap = matrix(0,rows,cols)
         ## Insert values at correct indices
-        testmap[pctviz$inds] = pctviz$percentVisibility
+        testmap[pctviz$linearIndex] = pctviz$percentVisibility
         ## 100% detected in self cell
         testmap[loc$r,loc$c] = 1
         ## Copy relevant area to dgrid1
@@ -1095,7 +1095,7 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
         ## Initialize
         testmap = matrix(0,rows,cols)
         ## Insert values at correct indices
-        testmap[pctviz$inds] = pctviz$percentVisibility
+        testmap[pctviz$linearIndex] = pctviz$percentVisibility
         ## 100% detected in self cell
         testmap[r,c] = 1
         ## Update demap (detection map)
