@@ -60,4 +60,4 @@ fish <- function(params, bGrid) {
 #' and FALSE otherwise.
 verticalHabitat <- function(mindepth,maxdepth,bGrid) {
 	bGrid < mindepth & bGrid > maxdepth
-}
+} 

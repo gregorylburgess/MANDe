@@ -2,6 +2,7 @@
 source('src/ShapeFunctions.R')
 library('rjson')
 
+
 #' @name sensorFun
 #' @title Calls functions to generate a 'goodness' grid and choose sensor locations.
 #' @details Finds a "good" set of sensor placements for a given setup [bGrid, fGrid, params].
@@ -33,7 +34,7 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
         print(params)
     }
 
-    ## This is used to collect intermediary grids (warning: may use up memory)
+    ## This is used to collect intermediary grids (warning: may use up lots of memory)
     if(save.inter) inter = list()
     
     sensorList = {}
@@ -177,8 +178,9 @@ updateFGrid = function(loc,grids,params,debug=FALSE){
 #' @param range The range of the sensor in bathymetric cells.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
+#' @param silent If set to TRUE, disables status printing.
 #' @return Returns the grids parameter, with an updated sumGrid.
-sumGridFun = function (grids, range, bias, params, debug=FALSE) {
+sumGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALSE) {
     if (debug) {
         cat("\n[sumGrid]\n")
         print("bGrid")
@@ -190,19 +192,25 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE) {
         print(params)
     }
 	status [toString(params$timestamp)] <<- 0
+	bGrid = grids$bGrid$bGrid
+	# Remove all NAs from the Grids
+	bGrid[is.na(bGrid)] = 0
+	grids$bGrid$bGrid = bGrid
+	grids$fGrid[is.na(grids$fGrid)] = 0
+	
 	#Fish
     if (bias == 1) {
 		if(debug) {
 			print("bias=1; Calling sumGrid.sumSimple")
 		}
-        return(sumGrid.sumSimple.opt(grids, "fGrid", params, debug))
+        return(sumGrid.sumSimple.opt(grids, "fGrid", params, debug, silent))
     }
     #Bathy
     else if (bias == 2) {
 		if(debug) {
 			print("bias=2; Calling sumGrid.sumBathy.opt")
 		}
-        return(sumGrid.sumBathy.opt(grids, params, debug))
+        return(sumGrid.sumBathy.opt(grids, params, debug, silent))
     }
     #Combo
 	else if (bias == 3) {
@@ -210,7 +218,7 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE) {
 		if(debug) {
 			print("bias=3; Calling sumGrid.sumBathy.opt")
 		}
-        return(sumGrid.sumBathy.opt(grids, params, debug))
+        return(sumGrid.sumBathy.opt(grids, params, debug, silent))
     }
     else {
         stop("ERROR: Invalid Bias")
@@ -226,8 +234,9 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE) {
 #' @param key A key to the dictionary provided in the 'grids' parameter specifying which grid should be summed.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
+#' @param silent If set to TRUE, disables status printing.
 #' @return Returns the grids parameter, with an updated sumGrid.
-sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE) {
+sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE) {
 	
     ## Create a vector of distances to the cells that can be sensed by a sensor in the current cell
     subdists = 1:params$range
@@ -244,7 +253,14 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE) {
     tempGrid = get(key, grids)
     ## Do convolution. This operation is identical to the for loop in sumGrid.sumSimple
     ## For more general information about how the convolution operation is defined google it! wikipedia has a decent explanation.
-    grids$sumGrid = conv.2D(tempGrid,kernel,kernel, params$timestamp)
+	if(debug) {
+		print("Calling conv.2D")
+		print("tempGrid")
+		print(tempGrid)
+		print("Kernel")
+		print(kernel)
+	}
+    grids$sumGrid = conv.2D(tempGrid,kernel,kernel, params$timestamp, silent)
 
     ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
     sensorDepth = grids$bGrid$bGrid + params$sensorElevation
@@ -270,8 +286,9 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE) {
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
+#' @param silent If set to TRUE, turns off status printing.
 #' @return Returns the grids parameter, with an updated sumGrid.
-sumGrid.sumBathy.opt = function (grids, params, debug=FALSE) {
+sumGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) {
     nr = dim(grids$bGrid$bGrid)[1]
     nc = dim(grids$bGrid$bGrid)[2]
     ## Calculate the number of cells in the bGrid
@@ -293,7 +310,9 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE) {
     usefGrid = params$bias==3
     for(c in 1:nc){
         comp = c/nc
-        print(sprintf("LOS progress: %g", comp))
+		if(!silent) {
+        	print(sprintf("LOS progress: %g", comp))
+		}
 		status[toString(params$timestamp)] <<- comp
         ## Column indices
         cind = max(c(1,c-rng)):min(c(nc,c+rng))
@@ -350,11 +369,11 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE) {
 #' @return Returns a dictionary with three keys (all vectors): percentVisibility contains
 #' the percentage fish/signals visible in the surrounding cells, linearIndex contains the linear
 #' indices in the bGrid to which the visibilities pertain, dists contains the distance
-#' from the current cell to each of the returned cells as given by inds.
+#' from the current cell to each of the returned cells as given by linearIndex.
 calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, params, debug=FALSE){
 	if(debug){
 		print("[calc.percent.viz]")
-		print(sprintf("point: (%g,%G)",r,c))
+		print(sprintf("point: (%g,%g)",r,c))
 	}
     rows = dim(bGrid)[1]
     cols = dim(bGrid)[2]
@@ -401,7 +420,7 @@ calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, 
         targetCell = remaining[1]
         ## Find the indices of the cells within the line of sight from r,c to targetCell, loslinearIndex are indices of big grid
         cells = getCells.opt(list(r=r,c=c),list(r=rvec[disttmp$ix[targetCell]],c=cvec[disttmp$ix[targetCell]]), debug, nr)
-		if (is.na(cells)) {
+		if (all(is.na(cells))) {
 			remaining = remaining[-1]
 		}
         ## Get indices in small sorted vector (not whole grid)
@@ -414,7 +433,7 @@ calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, 
         if(any(blocks, na.rm=TRUE)){
             if(!all(blocks)){
                 ## Find indices that are not blocked
-                linearIndexNoBlock = 1:(min(which(blocks))-1)
+                linearIndexNoBlock = 1:(min(which(blocks), na.rm = TRUE)-1)
             }else{
                 linearIndexNoBlock = NULL
             }
@@ -899,15 +918,15 @@ plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRU
         grid = result$bGrid$bGrid
     }
     if(type=='fGrid'){
-        col = colorRampPalette(c("white","lightseagreen","mediumvioletred"))(n)
+        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
         grid = result$fGrid
     }
     if(type=='sumGrid'){
-        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
+        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
         grid = result$sumGrid
     }
     if(type=='acousticCoverage'){
-        col = colorRampPalette(c("white","black","red"))(n)
+        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
         grid = result$stats$acousticCoverage
     }
     ## Plot the actual grid as an image
@@ -937,7 +956,7 @@ plotUniqueRR = function(result){
     ## Find number of sensors for which unique recovery rate was calculated
     nsmax = length(result$stats$uniqRRs)
     ## Calculate the max value to use for the y-axis in TOP PLOT
-    ## It looks good to show 1 as the max y val, but only if we are relatively close (above 0.7)
+    ## It looks good to show 1 as the max y val, but only if we are relatively ce (above 0.7)
     ymax = ifelse(max(result$stats$uniqRRs)>0.7,1.02,max(result$stats$uniqRRs))
     ## Make two way plot
     par(mfrow=c(2,1),las=1)
@@ -1174,7 +1193,7 @@ checkParams = function(params) {
     names = names(params)
 	## Cast all possible strings to numbers (JSON makes everything strings)
 	for (name in names) {
-		if(!is.na((as.numeric(params[name])))) {
+		if(!is.na(params[name]) && is.numeric(params[name])) {
 			params[name] = as.numeric(params[name])
 		}
 	}
@@ -1380,8 +1399,9 @@ conv.1D = function(fun, kern){
 #' @param kx Convolution kernel in x direction
 #' @param ky Convolution kernel in y direction
 #' @param timestamp A timestamp reference for status updates.
+#' @param silent If set to TRUE, disables status printing.
 #' @return A matrix containing the result of the convolution operation with same dimensions as mat.
-conv.2D = function(mat, kx, ky, timestamp=1){
+conv.2D = function(mat, kx, ky, timestamp=1, silent=FALSE){
 	
   dimmat = dim(mat)
   ## Initialize return matrix
@@ -1391,7 +1411,11 @@ conv.2D = function(mat, kx, ky, timestamp=1){
   ## Convolve in x-direction
   for(i in 1:x) {
 	  matout[i,] = conv.1D(mat[i,],kx)
-	  status[toString(timestamp)] <<- (i/(2*x))
+	  pct = (i/(2*x))
+	  status[toString(timestamp)] <<- pct
+	  if(!silent) {
+		  print(sprintf("LoS Progress:%g", pct))
+	  }
   }
   ## Convolve in y-direction (important to use matout here)
   for(i in 1:y) {
@@ -1439,6 +1463,10 @@ printError = function(msg) {
 	stop(msg)
 }
 
+#' @title Returns the status of a job.
+#'
+#' @param id The id of the job to query.  This is always the associated timestamp for the job.
+#' @return The status of the job as a percentage (0<=n<=1).
 checkStatus = function(id) {
 	return(status[toString(id)])
 }
