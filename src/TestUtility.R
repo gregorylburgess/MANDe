@@ -2,8 +2,10 @@ rm(list=ls())
 source("src/Utility.R")
 
 #todo
+#-----------
 #check Params
-#update fGrid
+#suppress.opt
+#getStats
 
 #tells the program that warnings are errors
 options(warn=2)
@@ -17,7 +19,7 @@ tolerance = 1e-10
 #' 
 #' @return Returns a dictionary of reset parameters.
 #' @export
-resetParams <- function () {
+resetParams = function () {
 	return(checkParams(list(numSensors=0, shapeFcn="shape.gauss", bias=1, range=1, sd=1, peak=.75, timestamp=1)))
 	
 }
@@ -40,11 +42,11 @@ resetGrids = function () {
 	return(grids)
 }
 
-#' Tests the sumGrid function and all of its bias options.
+#'  @title Tests the sumGrid function and all of its bias options.
 #' 
 #' @return N/A
 #' @export
-TestUtility.sumGrid <- function (debug=FALSE) {
+TestUtility.sumGrid = function (debug=FALSE) {
 	sumGrid = {}
 	
 	na = matrix(rep(NA,35), nrow=r, ncol=c)
@@ -88,11 +90,7 @@ TestUtility.sumGrid <- function (debug=FALSE) {
 		# Calculate the sumgrid of the Grids provided by resetGrids() and the given bias
         sumGrid[[i]] = sumGridFun(grids, params$range, i, params, debug, silent=TRUE)$sumGrid
         # compare the results to our solGrid
-        if (isTRUE(all.equal(as.character(solGrid[[i]]), as.character(sumGrid[[i]], tolerance=tolerance)))) {
-            print(sprintf("[SumGrid:bias %g]: Pass", i))
-        }
-		# print any inconsistencies
-        else {
+        if (!isTRUE(all.equal(as.character(solGrid[[i]]), as.character(sumGrid[[i]], tolerance=tolerance)))) {
 			print("Expected:")
 			print(solGrid[[i]])
 			print("Recieved:")
@@ -114,10 +112,7 @@ TestUtility.sumGrid <- function (debug=FALSE) {
 			# call the function with obviously bad inputs
 			result = sumGridFun(grids, params$range, i, params, debug=FALSE, silent=TRUE)$sumGrid
 			# we should get back a grid of all zeroes for both cases.
-			if (isTRUE(all.equal(zero, result, tolerance=tolerance))) {
-				print(sprintf("[SumGrid:bias %g - %s ]: Pass", i, gridNames[[k]]))
-			}
-			else {
+			if (!isTRUE(all.equal(zero, result, tolerance=tolerance))) {
 				print("Expected:")
 				print(zero)
 				print("Recieved:")
@@ -126,18 +121,31 @@ TestUtility.sumGrid <- function (debug=FALSE) {
 			}
 			k = k + 1
 		}
-		
-		
     }
-
+	print("[sumGrid]: Pass")
 }
 
+TestUtility.checkStatus = function () {
+	status <<- {}
+	val = 500
+	id = "-1"
+	status[[id]] <<- val
+	result = checkStatus(id)
+	if(as.numeric(result) != val) {
+		print("Expected:")
+		print(val)
+		print("Recieved:")
+		print(result)
+		stop(sprintf("[checkStatus]: FAIL"))
+	}
+	print("[checkStatus]: Pass")
+}
 
 #' Tests the zeroOut function and the getArea function.
 #' 
 #' @return N/A
 #' @export
-TestUtility.suppress.scale <- function() {
+TestUtility.suppress.scale = function() {
     tests = list(
         list(d=0, min=.25, max=.75, ans=.25),
         list(d=100, min=.25, max=.75, ans=.75),
@@ -169,7 +177,7 @@ TestUtility.suppress.scale <- function() {
 #' @param opt If TRUE, tests the vectorized version, else tests the unvectorized version.
 #' @return N/A
 #' @export
-TestUtility.getCells <- function() {
+TestUtility.getCells = function() {
 	grids = resetGrids()
     params = resetParams()
 	cells = {}
@@ -497,7 +505,117 @@ TestUtility.calc.percent.viz = function() {
 	print("[calc.percent.viz]: Pass")
 }
 
+TestUtility.updateFGrid = function () {
+	vals = list(
+				list(r=4,c=3),
+				list(r=1,c=1),
+				list(r=7,c=1),
+				list(r=7,c=5),
+				list(r=1,c=5)
+		   )
+	sols = list(
+				c1 = matrix(c(1 , 1 , 1 , 1 , 1 , 1 , 1 , 1.00000000000000 , 1.00000000000000 ,
+							0.72409041912142 , 0.54510200521552 , 0.72409041912142 , 
+							1.00000000000000 , 1.00000000000000 , 1.00000000000000 ,
+							1.00000000000000 , 0.54510200521552 , 0.25000000000000 ,
+							0.54510200521552 , 1.00000000000000 , 1.00000000000000 ,
+							1.00000000000000 , 1.00000000000000 , 0.72409041912142 ,
+							0.54510200521552 , 0.72409041912142 , 1.00000000000000 ,
+							1.00000000000000 , 1 , 1 , 1 , 1 , 1 , 1 , 1),
+							nrow=7, 
+							ncol=5
+				),
+				c2 = matrix(c(0.25000000000000, 0.54510200521552, 1.00000000000000, 1.00000000000000,
+							1.00000000000000, 1.00000000000000, 1.00000000000000, 0.54510200521552,
+							0.72409041912142, 1.00000000000000, 1.00000000000000, 1.00000000000000,
+							1.00000000000000, 1.00000000000000, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+							1, 1, 1, 1, 1, 1, 1, 1, 1),
+							nrow=7, 
+							ncol=5
+				),
+				c3 = matrix(c(1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000,
+							1.00000000000000, 0.54510200521552, 0.25000000000000, 1.00000000000000,
+							1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000,
+							0.72409041912142, 0.54510200521552, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+							1, 1, 1, 1, 1, 1, 1, 1, 1),
+							nrow=7, 
+							ncol=5
+				),
+				c4 = matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+							1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000,
+							1.00000000000000, 0.72409041912142, 0.54510200521552, 1.00000000000000,
+							1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000,
+							0.54510200521552, 0.25000000000000),
+							nrow=7, 
+							ncol=5
+				),
+				c5 = matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+							0.54510200521552, 0.72409041912142, 1.00000000000000, 1.00000000000000,
+							1.00000000000000, 1.00000000000000, 1.00000000000000, 0.25000000000000,
+							0.54510200521552, 1.00000000000000, 1.00000000000000, 1.00000000000000,
+							1.00000000000000, 1.00000000000000),
+							nrow=7, 
+							ncol=5
+				)
+			)
+	i = 1
+	for (loc in vals) {
+		grids = resetGrids()
+		params = resetParams()
+		grids$fGrid = matrix(rep(1,35),nrow=7,ncol=5)
+		grids$bGrid$bGrid = matrix(rep(-2,35),nrow=7,ncol=5)
+		result = updateFGrid(loc, grids, params, debug=FALSE)$fGrid
+		if(!isTRUE(all.equal(result, sols[[i]], tolerance = as.numeric(tolerance)))) {
+			print("Expected:")
+			print(sols[[i]])
+			print("Recieved:")
+			print(result)
+			print("Diff:")
+			print(sols[[i]] - result)
+			#print(split(result, rep(1:ncol(result), each = nrow(result))))
+			stop(sprintf("[TestUtility.offset %i]: FAIL",i))
+		}
+		i = i + 1
+	}
+	print("[updateFGrid]: Pass")
+}
 
+
+#' Tests that the program gives lower unique recovery rates for the placement of sensors along non-optimal areas (corners, sides, overlapping). 
+#' Additionally, test projecting sensors.
+TestUtility.getStats = function () {
+	
+	params = resetParams()
+	numSensors = 0
+	params$numSensors = numSensors
+	params$detectionRange=1
+	params$suppressionRangeFactor=2
+	params$cellSize=1
+	params$projectedSensors = 0
+	range = 2
+	bias = 1
+	bGrid = {}
+	bGrid$bGrid = matrix(rep(-2,49),nrow=7,ncol=7)
+	fGrid = bGrid$bGrid + 3
+	# Test recovery rates for non-optimal placements
+	sensorLists = list(
+					list(list(r=1,c=1), list(r=7,c=7), list(r=1,c=7), list(r=7,c=1)),
+				 	list(list(r=4,c=4), list(r=3,c=4), list(r=3,c=3), list(r=4,c=3)),
+				 	list(list(r=3,c=3), list(r=5,c=5), list(r=3,c=5), list(r=5,c=3))
+		 		 )
+	vals = list()
+	# Test projection of sensors
+	sumGrid = list(
+				)
+	params = convertMetersToGrid(params)
+	for(sList in sensorLists){
+		params$sensorList = sList
+		sensors = sensorFun(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE)
+		result = getStats(params, bGrid, fGrid, sensors, debug=FALSE)
+		print(result)
+	}
+	print("[getStats]: Pass")
+}
 
 
 #' Runs a battery of tests.
@@ -512,6 +630,8 @@ runTests = function () {
 	TestUtility.getArea()
 	TestUtility.offset()
 	TestUtility.calc.percent.viz()
+	TestUtility.updateFGrid()
+	TestUtility.getStats()
 	print("SUCCESS! All Tests Pased.")
 }
 

@@ -118,7 +118,7 @@ sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated FGrid.
-updateFGrid = function(loc,grids,params,debug=FALSE){
+updateFGrid = function(loc, grids, params, debug=FALSE){
   if(debug){
       cat("\n[updateFGrid]\n")
       print("loc")
@@ -857,7 +857,9 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         }else{
             dev.new()
         }
-        plotUniqueRR(result)
+	print("[graph]")
+	print(result$stats)
+    plotUniqueRR(result)
 	if(!showPlots) dev.off()
 
 	filenames = writeFiles(filenames, result, path, time, zip=TRUE)
@@ -953,6 +955,8 @@ plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRU
 plotUniqueRR = function(result){
     ## Find number of placed sensors
     ns = length(result$sensors)
+	print(result$sensors)
+	print(ns)
     ## Find number of sensors for which unique recovery rate was calculated
     nsmax = length(result$stats$uniqRRs)
     ## Calculate the max value to use for the y-axis in TOP PLOT
@@ -986,6 +990,17 @@ plotUniqueRR = function(result){
 #' @return Nothing.
 plotSensors = function(result,circles=TRUE,circlty=3){
   ns = dim(result$stats$sensorMat)[1]
+  print("[plotSensors]")
+  print("result$stats")
+  print(result$stats)
+  #if (is.null(ns)) {
+#	  ns = matrix(result$stats$sensorMat,nrow=length(result$stats$sensorMat)/2,ncol=2)
+ # }
+  print(length(result$stats$sensorMat))
+  print(result$stats$sensorMat)
+  print(dim(result$sensorMat))
+  print("ns")
+  print(ns)
   ## Radius of circle
   r = result$params$detectionRange
   ## Radian values for a full circle
@@ -1145,7 +1160,10 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
     ## Sort list so best sensors come first
     srt = sort(duniqRRs,index=TRUE,decreasing=TRUE) 
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)
-
+	print("Smat")
+	print(numProj)
+	print(sensorMat)
+	print("smat") #epy00n
     ## Store the unsorted sensor list (this order may not have a decreasing value per sensor)
     ## That is, the sensor placed as say 10 may be better than sensor 9 (this can happen when
     ## not using detection.function.exact as suppression)
@@ -1193,8 +1211,8 @@ checkParams = function(params) {
     names = names(params)
 	## Cast all possible strings to numbers (JSON makes everything strings)
 	for (name in names) {
-		if(!is.na(params[name]) && is.numeric(params[name])) {
-			params[name] = as.numeric(params[name])
+		if(!is.na(suppressWarnings(as.numeric(params[name])))) {
+			params[name] = suppressWarnings(as.numeric(params[name]))
 		}
 	}
 	# if users don't specify a number of sensors to use, use 0
@@ -1272,11 +1290,11 @@ checkParams = function(params) {
 			points = c(points, list(point))
 			rawPointList = rawPointList[-2]
 			rawPointList = rawPointList[-1]
-			i = i -1
+			i = i - 1
 		}
 		params$sensorList = points
 		# if no sensors were specified, throw an error!
-		if(!(params$numSensors + length(points) + params$projectedSensors  > 0)) {
+		if((params$numSensors + length(points) + params$projectedSensors  <= 0)) {
 			printError("ERROR: No sensors specified.")
 		}
 	}
@@ -1353,7 +1371,7 @@ checkParams = function(params) {
 #' @param bGrid A valid bGrid.
 #' @return The 'params' parameter, populated with necessary internal variables ("sd",
 #' "suppsd", "range", "suppressionRange") with unit 'grid cells'.
-convertMetersToGrid = function(params,bGrid){
+convertMetersToGrid = function(params,bGrid=NA){
   ## Cell size in meters
   cellSize = params$cellSize
   ## Detection range with SD=1, dx=1
