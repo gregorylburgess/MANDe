@@ -105,33 +105,34 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
 #' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
 #' @export
 acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
+	status <<- {}
 	#### TEST RUN
 	params = list()
 	#notification option
-	params$userEmail = "epy00n@hotmail.com"
+	params$userEmail = "someone@mail.com"
 	
 	## Sensor variables
 	params$timestamp = -1
 	params$numSensors = 4
 	params$bias = bias
 	params$sensorElevation <- 1
-        params$shapeFcn <- 'shape.gauss'
+   		 params$shapeFcn <- 'shape.gauss'
 	params$peak=.98 
         params$detectionRange <- 25
 	
 	# BGrid Variables
-	params$inputFile = "src/palmyrabath.RData"
-	params$inputFileType = "custom"
+	params$inputFile = "src/palmyra_40m.grd"
+	params$inputFileType = "netcdf"
 	params$seriesName = 'z'
-	params$cellSize = 5 
-	params$startX = 380
-	params$XDist = 10
-	params$startY = 1250
-	params$YDist = 10
+	params$cellSize = 40 
+	params$startX = 50
+	params$XDist = 800
+	params$startY = 200
+	params$YDist = 200
 	
 	## Suppression Variables
-	params$suppressionRangeFactor = 2
-	params$suppressionFcn = "detection.function"
+	params$suppressionRangeFactor = 1
+	params$suppressionFcn = "suppression.scale"
 	## This is only relevant with suppression.scale
 	params$maxsuppressionValue = 1
 	## This is only relevant with suppression.scale
@@ -152,7 +153,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
             params$oucor <- 0.7
 	}
 	## Apply vertical habitat range?
-	vHabitatRange = TRUE
+	vHabitatRange = FALSE
 	if(vHabitatRange){
 	    ## Minimum depth (shallowest depth)
 	    params$mindepth <- -5
@@ -170,7 +171,10 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	return(acousticRun(params, showPlots=FALSE, debug))
 }
 
-#acousticTest( bias=1)
+
 appendError = function(msg, time) {
-	gErrors[time] <<- c(gErrors[time], msg)
+	print(gErrors[toString(time)])
+	gErrors[toString(time)] <<- c(gErrors[toString(time)], msg)
 }
+
+#acousticTest( bias=1)

@@ -1215,6 +1215,9 @@ checkParams = function(params) {
 			params[name] = suppressWarnings(as.numeric(params[name]))
 		}
 	}
+	if(!('timestamp' %in% names)) {
+		params$timestamp = -1
+	}
 	# if users don't specify a number of sensors to use, use 0
     if(!('numSensors' %in% names)) {
         params$numSensors = 0
@@ -1261,12 +1264,21 @@ checkParams = function(params) {
     if(!('cellSize' %in% names)) {
         params$cellSize = 1000
     }
+	if(!('detectionRange' %in% names)) {
+		params$detectionRange = 2000
+	}
+	if(params$detectionRange < params$cellSize) {
+		printError("Detection Range of a sensor must be at least a cell's width.")
+	}
     if(!('startX' %in% names)) {
         params$startX = 308
     }
     if(!('startY' %in% names)) {
         params$startY = 452
     }
+	if(params$startX < 1 || params $startY < 1) {
+		printError("BGrid x and y coordinates must be greater than 1.")
+	}
     if(!('XDist' %in% names)) {
         params$XDist = 50
     }
@@ -1294,8 +1306,8 @@ checkParams = function(params) {
 		}
 		params$sensorList = points
 		# if no sensors were specified, throw an error!
-		if((params$numSensors + length(points) + params$projectedSensors  <= 0)) {
-			printError("ERROR: No sensors specified.")
+		if((params$numSensors + length(points) + params$projectedSensors  <= 1)) {
+			printError("Please specify/allow the program to place/project a total of at least two sensors.")
 		}
 	}
     # Shape Function Defaults

@@ -108,6 +108,7 @@
 				<Options>
 					<Option label="1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
 					<Option label="50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
+					<Option label="40 meter cells">src/palmyra_40m.grd</Option>
 				</Options>
 			</Field>
 			<!--  Local File support -->

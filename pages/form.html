@@ -115,7 +115,8 @@ Your browser doesn't support iframes.
 			var errors = "";
 			var res = $("#resolution option:selected").text();
 			var cells = 0;
-			var dpc = 0;
+			var dpcR = 0;
+			var dpcC =0;
 			var n=0;
 			var s=0;
 			var e=0;
@@ -129,6 +130,9 @@ Your browser doesn't support iframes.
 			if (res == "1 km cells") {
 				cells = 1000;
 			}
+			if (res =="40 meter cells") {
+				cells = 40;
+			}
 			//Get user values
 			var myn = parseFloat($("#north").val());
 			var mys = parseFloat($("#south").val());
@@ -137,28 +141,53 @@ Your browser doesn't support iframes.
 			
 			//Data for the 50m dataset
 			if(cells == 50){
-				dpc = 0.0005;
-				n = 24;
-				s = 18;
-				e = -154;
-				w = -161;
+				//lon delta: 9.0
+				//lat delta: 8.0
+				//Row_Count: 16001     = 8/16001 = 0.00049996875
+				//Col_Count: 18001     = 9/18001 = 0.00049997222
+				dpcR = 0.00049996875;
+				dpcC = 0.00049997222;
+				
+				n = 25;
+				s = 17;
+				e = -153;
+				w = -162;
 				noffset = 0;
 				woffset = 0;
 			}
 			
 			//Data for the 1km dataset
 			if (cells == 1000){
-				//These are the reported limit values for the himbsyn 1km bathy file
-				dpc = 0.01;
-				n = 24.5;
-				s = 17.5
-				e = -154.5;
-				w = -161.5;
-				//These are the emprical corrections we found
-				noffset = .55;
-				woffset = .45;
+				//lon delta: 9.0
+				//lat delta: 8.0
+				//Row_Count: 801 = 8/801 = 0.0099875156
+				//Col_Count: 901   9/901 = 0.00998890122
+				dpcR = 0.0099875156;
+				dpcC = 0.00998890122;
+				n = 25;
+				s = 17;
+				e = -153;
+				w = -162;
+				noffset = 0;
+				woffset = 0;
 			}
-			
+			//Data for the 1km dataset
+			if (cells == 40){
+				//These are the reported limit values for the himbsyn 1km bathy file
+				//lon delta: 0.440605
+				//lat delta: 0.267529
+			    //Row_Count: 734   0.267529/734 = 0.00036448092
+			    //Column_Count: 1217  0.440605/1217 = 0.0003620419
+				dpcR = 0.00036448092;
+				dpcC = 0.0003620419;
+				n = 6.040206;
+				s = 5.772677;
+				e = -161.916751;
+				w = -162.357356;
+				//These are the emprical corrections we found
+				noffset = 0;
+				woffset = 0;
+			}
 			myn += noffset;
 			mys += noffset;
 			myw += woffset;
@@ -186,10 +215,10 @@ Your browser doesn't support iframes.
 				alert(errors);
 			}
 			else {
-				startX = parseInt((myw-w)/dpc);
-				XDist = parseInt((mye-myw)/dpc);
-				startY = parseInt((mys-s)/dpc);
-				YDist = parseInt((myn-mys)/dpc);
+				startX = parseInt((myw-w)/dpcC);
+				XDist = parseInt((mye-myw)/dpcC);
+				startY = parseInt((mys-s)/dpcR);
+				YDist = parseInt((myn-mys)/dpcR);
 				var dict = "\"startX\":\"" + startX + "\",";
 				dict += "\"startY\":\"" + startY + "\",";
 				dict += "\"XDist\":\"" + XDist + "\",";
