@@ -22,7 +22,7 @@ library('rjson')
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, save.inter=FALSE) {
+sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, silent = FALSE, save.inter=FALSE) {
     if (debug) {
         cat("\n[sensorFun]\n")
         print("bGrid")
@@ -44,12 +44,10 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
     grids = list("bGrid" = bGrid, "fGrid"=fGrid)
     
     # calculate the sumGrid
-	print("Calculating SumGrid")
-    grids = sumGridFun(grids, range, bias, params, debug)
+    grids = sumGridFun(grids, range, bias, params, debug=debug, silent=silent)
     sumGrid = grids$sumGrid
     if(save.inter) inter[[1]] = grids
 	
-	print("Suppressing user sensors")
 	# place user-defined sensors, and down weigh them
 	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
 		i = length(params$sensorList)
@@ -64,7 +62,6 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 		
 	}
 	
-	print("Placing sensors")
     # for each sensor, find a good placement
 	i = numSensors
 	while(i > 0) {
@@ -540,7 +537,7 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
       ## Save a temporary copy of params
       partmp = params
       ## Alter the SD value such that the shape function uses the suppression SD and not the detection SD since the shape function looks for the sd key
-      partmp$sd = partmp$suppsd
+      partmp$sd = partmp$suppsd 
       ## Detection fun suppression
       supgrid2 = do.call(params$shapeFcn, list(dist, partmp))
       ## If shadowing should be accounted for in the suppression
@@ -1160,10 +1157,6 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
     ## Sort list so best sensors come first
     srt = sort(duniqRRs,index=TRUE,decreasing=TRUE) 
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)
-	print("Smat")
-	print(numProj)
-	print(sensorMat)
-	print("smat") #epy00n
     ## Store the unsorted sensor list (this order may not have a decreasing value per sensor)
     ## That is, the sensor placed as say 10 may be better than sensor 9 (this can happen when
     ## not using detection.function.exact as suppression)
@@ -1267,8 +1260,8 @@ checkParams = function(params) {
 	if(!('detectionRange' %in% names)) {
 		params$detectionRange = 2000
 	}
-	if(params$detectionRange < params$cellSize) {
-		printError("Detection Range of a sensor must be at least a cell's width.")
+	if(params$detectionRange <= params$cellSize) {
+		printError("Detection Range of a sensor must greater than a cell's width.")
 	}
     if(!('startX' %in% names)) {
         params$startX = 308

@@ -100,7 +100,7 @@ Your browser doesn't support iframes.
 			//Read cookie value if it exists
 			var cookieValue = $.cookie("acousticwebapp-data");
 			if (cookieValue != "") {
-				var dic = JSON.parse("{"+cookieValue+"}");
+				var dic = JSON.parse("{" + cookieValue + "}");
 				for(var key in dic) {
 					$("#" + key).val(dic[key]);
 				}
@@ -116,13 +116,13 @@ Your browser doesn't support iframes.
 			var res = $("#resolution option:selected").text();
 			var cells = 0;
 			var dpcR = 0;
-			var dpcC =0;
-			var n=0;
-			var s=0;
-			var e=0;
+			var dpcC = 0;
+			var n = 0;
+			var s = 0;
+			var e = 0;
 			var w = 0;
-			var noffset=0;
-			var woffset=0;
+			var noffset = 0;
+			var woffset = 0;
 			
 			if (res == "50 meter cells") {
 				cells = 50;
@@ -138,15 +138,15 @@ Your browser doesn't support iframes.
 			var mys = parseFloat($("#south").val());
 			var mye = parseFloat($("#east").val());
 			var myw = parseFloat($("#west").val());
-			
+
 			//Data for the 50m dataset
 			if(cells == 50){
 				//lon delta: 9.0
 				//lat delta: 8.0
 				//Row_Count: 16001     = 8/16001 = 0.00049996875
 				//Col_Count: 18001     = 9/18001 = 0.00049997222
-				dpcR = 0.00049996875;
-				dpcC = 0.00049997222;
+				dpcR = 8/16001.0;
+				dpcC = 9/18001.0;
 				
 				n = 25;
 				s = 17;
@@ -162,8 +162,8 @@ Your browser doesn't support iframes.
 				//lat delta: 8.0
 				//Row_Count: 801 = 8/801 = 0.0099875156
 				//Col_Count: 901   9/901 = 0.00998890122
-				dpcR = 0.0099875156;
-				dpcC = 0.00998890122;
+				dpcR = 0.0099;
+				dpcC = 0.0099;
 				n = 25;
 				s = 17;
 				e = -153;
@@ -171,20 +171,18 @@ Your browser doesn't support iframes.
 				noffset = 0;
 				woffset = 0;
 			}
-			//Data for the 1km dataset
+			//Data for the palmyra dataset
 			if (cells == 40){
-				//These are the reported limit values for the himbsyn 1km bathy file
 				//lon delta: 0.440605
 				//lat delta: 0.267529
 			    //Row_Count: 734   0.267529/734 = 0.00036448092
 			    //Column_Count: 1217  0.440605/1217 = 0.0003620419
-				dpcR = 0.00036448092;
-				dpcC = 0.0003620419;
+				dpcR = 0.267529/734.0;
+				dpcC = 0.440605/1217.0;
 				n = 6.040206;
 				s = 5.772677;
 				e = -161.916751;
 				w = -162.357356;
-				//These are the emprical corrections we found
 				noffset = 0;
 				woffset = 0;
 			}
@@ -206,7 +204,7 @@ Your browser doesn't support iframes.
 				errors += "Western value " + myw + " must be between " + w +  " and " + (e - woffset) + ".\n";	
 			}
 			if(myn<=mys) {
-				errors +=  "Northern value (" + myn + ") must be greater than Southern Value (" + mys+ ").\n";
+				errors +=  "Northern value (" + myn + ") must be greater than Southern Value (" + mys + ").\n";
 			}
 			if(mye<=myw) {
 				errors +=  "Western value (" + myw +") must be less than Eastern Value (" + mye + ").\n";
@@ -214,11 +212,28 @@ Your browser doesn't support iframes.
 			if( errors.length > 0 ){
 				alert(errors);
 			}
-			else {
+			else {	
 				startX = parseInt((myw-w)/dpcC);
 				XDist = parseInt((mye-myw)/dpcC);
 				startY = parseInt((mys-s)/dpcR);
 				YDist = parseInt((myn-mys)/dpcR);
+				
+				//Parse the userSensorList
+				var userSensorList = $("#userSensors").val();
+				//Strip whitespace
+				userSensorList = userSensorList.replace(/\s/g, '');
+				//Split on commas
+				userSensorList = userSensorList.split(","); 
+				var sensorList = "";
+				for (var i=0; i<userSensorList.length/2; i++) {
+					var c = parseFloat(userSensorList[2*i]);
+					var r = parseFloat(userSensorList[2*i+1]);
+					c = Math.ceil(parseInt((c-myw)/dpcC));
+					r = Math.ceil(parseInt((r-mys)/dpcR));
+					sensorList += c + "," + r + ",";
+				}
+				sensorList = sensorList.substring(0, sensorList.length - 1);
+				
 				var dict = "\"startX\":\"" + startX + "\",";
 				dict += "\"startY\":\"" + startY + "\",";
 				dict += "\"XDist\":\"" + XDist + "\",";
@@ -227,10 +242,12 @@ Your browser doesn't support iframes.
 				dict += "\"inputFileType\":\"netcdf\",";
 				dict += "\"seriesName\":\"z\",";
 				dict += "\"cellSize\":\"" + cells + "\",";
+				dict += "\"userSensorList\":\"" + sensorList + "\",";
 				submitForm(dict);
 			}
 		}
 		
+
 		//Submits the form
 		function submitForm(dict) {
 		    timestamp = new Date().getTime();
