@@ -21,14 +21,11 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 				printError("BGrid x and y coordinates must be greater than 1.", timestamp)
 			}
             if(inputFileType == "netcdf" && require(ncdf)){
-				print("netcdf")
                 library(ncdf)
                 ## open the netCDF file
                 ncdfObj = open.ncdf(inputFile)
                 ## grab a slice (in grid form)
-				print("Loading")
                 bGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
-				print("Loaded")
 	    }
    	    else if(inputFileType == "arcgis" && require(sp) && require(rgdal) && require(raster)){
                 library(sp)

@@ -257,8 +257,6 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE)
 		print(kernel)
 	}
     grids$sumGrid = conv.2D(tempGrid,kernel,kernel, params$timestamp, silent)
-	print("sumGrid")
-	print(grids$sumGrid)
     ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
     sensorDepth = grids$bGrid$bGrid + params$sensorElevation
     ## Calculate a matrix where TRUE values indicate that a grid cell could contain a sensor below the surface
@@ -1199,92 +1197,148 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
 #' 
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @return The 'params' parameter, populated with default values where necessary.
-checkParams = function(params) {
-
+checkParams = function(params, stop=TRUE) {
     names = names(params)
 	## Cast all possible strings to numbers (JSON makes everything strings)
+	## Additionally, check for NA, NaN, +/-INF values.
 	for (name in names) {
 		if(!is.na(suppressWarnings(as.numeric(params[name])))) {
-			params[name] = suppressWarnings(as.numeric(params[name]))
+			if(!is.finite(as.numeric(params[name]))) {
+				printError(sprintf("Found NA, NaN, or +/-INF values in %s.", name), stop=stop)
+			}
+			params[name] = as.numeric(params[name])
 		}
 	}
+	# timestamp
 	if(!('timestamp' %in% names)) {
 		params$timestamp = -1
 	}
-	# if users don't specify a number of sensors to use, use 0
+	
+	# numSensors
     if(!('numSensors' %in% names)) {
         params$numSensors = 0
     }
-	# if users specify a negative value, set it to 0
-	if(params$numSensors < 0) {
-		params$numSensors = 0
+	else {
+		checkForMin("numSensors", as.numeric(params$numSensors), 0, stop)
+		params$numSensors = as.numeric(params$numSensors)
 	}
 	
-	# if users don't specify a number of sensors to project, use 0
+	# projectedSensors
 	if(!('projectedSensors' %in% names)) {
 		params$projectedSensors = 0
 	}
-	# if users specify a negative value, set it to 0
-	if(params$projectedSensors < 0) {
-		params$projectedSensors = 0
+	else {
+		checkForMin("projectedSensors", as.numeric(params$projectedSensors), 0, stop)
+		params$projectedSensors = as.numeric(params$projectedSensors)
 	}
-	# default to a bias of 1
+	
+	# bias
     if(!('bias' %in% names)) {
-        bias=1
+        params$bias = 1
     }
-	# if users enter an invalid bias, throw an error.
 	if(!(params$bias %in% c(1,2,3))) {
-		printError("Error: Bias value must be 1, 2, or 3.")
+		printError("Error: Bias value must be 1, 2, or 3.", stop)
 	}
+	
 	# Warn users if they use depth pref without knowing what the map looks like
 	if('dp' %in% names  && !('inputFile' %in% names)) {
 		printError("Error: Using dp option without a known input file may be bad!.
 				For example, if the generated habitat grid contains no cells near
-				the depth specified, no fish will be generated.")
+				the depth specified, no fish will be generated.", stop)
 	}
-    # Bathymetry defaults
+	
+    # inputFile
     if(('inputFile' %in% names)) {
         params$inputFile = as.character(params$inputFile)
-    } else {
+    }
+	else {
 		# default to the 1km grid
 		params$inputFile = "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd"
 	}
+	
+	# inputFileType
     if(('inputFileType' %in% names)) {
+		supportedFileTypes = c("netcdf", "arcgis")
+		if(!(params$inputFileType %in% supportedFileTypes)) {
+			printError("Invalid 'inputFileType' value.", stop)
+		}
         params$inputFileType = as.character(params$inputFileType)
-    } else {
+    }
+	else {
             params$inputFileType = 'ncdf'
     }
+	
+	# cellSize
     if(!('cellSize' %in% names)) {
         params$cellSize = 1000
     }
+	else {
+		checkForMin("cellSize", as.numeric(params$cellSize), 1, stop)
+		params$cellSize = as.numeric(params$cellSize)
+	}
+	
+	# detectionRange
 	if(!('detectionRange' %in% names)) {
 		params$detectionRange = 2000
 	}
-	if(params$detectionRange <= params$cellSize) {
-		printError("Detection Range of a sensor must greater than a cell's width.")
+	else {
+		checkForMin("detectionRange", as.numeric(params$detectionRange), 1, stop)
+		params$detectionRange = as.numeric(params$detectionRange)
 	}
+	if(params$detectionRange <= params$cellSize) {
+		printError("Detection Range of a sensor must greater than a cell's width.", stop)
+	}
+	
+	# startX
     if(!('startX' %in% names)) {
         params$startX = 308
     }
+	else {
+		checkForMin("startX", as.numeric(params$startX), 1, stop)
+		params$startX = as.numeric(params$startX)
+	}
+	
+	# startY
     if(!('startY' %in% names)) {
         params$startY = 452
     }
-	if(params$startX < 1 || params $startY < 1) {
-		printError("BGrid x and y coordinates must be greater than 1.")
+	else {
+		checkForMin("startY", as.numeric(params$startY), 1, stop)
+		params$startY = as.numeric(params$startY)
 	}
+	
+	if(params$startX < 1 || params $startY < 1) {
+		printError("BGrid x and y coordinates must be greater than 1.", stop)
+	}
+	
+	#XDist
     if(!('XDist' %in% names)) {
         params$XDist = 50
     }
+	else {
+		checkForMin("XDist", as.numeric(params$XDist), 1, stop)
+		params$XDist = as.numeric(params$XDist)
+	}
+	
+	#YDist
     if(!('YDist' %in% names)) {
         params$YDist = 50
     }
+	else {
+		checkForMin("YDist", as.numeric(params$YDist), 1, stop)
+		params$YDist = as.numeric(params$YDist)
+	}
+	
+	#seriesName
     if(!('seriesName' %in% names)) {
         params$seriesName = 'z'
     }	else {
 		params$seriesName = as.character(params$seriesName)
 	}
-	# if params$userSensorList exists, clean it and parse it into params$sensorList
+	
+	#userSensorList
 	if('userSensorList' %in% names) {
+		# if params$userSensorList exists, clean it and parse it into params$sensorList
 		cleaned = gsub("\\s", "", params$userSensorList)
 		rawPointList = strsplit(cleaned, ",")[[1]]
 		points = {}
@@ -1295,10 +1349,10 @@ checkParams = function(params) {
 			c = as.numeric(rawPointList[1])
 			
 			if (!(is.finite(r) && is.finite(c))) {
-				printError("A user-defined point containing NaN, NA, or Inf was found.")
+				printError("A user-defined point containing NaN, NA, or Inf was found.", stop)
 			}
 			if (r <= 0 || c <= 0) {
-				printError("A user-defined point is out of bounds.")
+				printError("A user-defined point is out of bounds.", stop)
 			}
 			point = list(r=r,c=c )
 			points = c(points, list(point))
@@ -1307,28 +1361,39 @@ checkParams = function(params) {
 			i = i - 1
 		}
 		params$sensorList = points
-		# if no sensors were specified, throw an error!
+		
+		# if not enough sensors were specified, throw an error!
 		if((params$numSensors + length(points) + params$projectedSensors  <= 1)) {
-			printError("Please specify/allow the program to place/project a total of at least two sensors.")
+			printError("Please specify/allow the program to place/project a total of at least two sensors.", stop)
 		}
 	}
-    # Shape Function Defaults
-	# Currently, only gauss is defined.
+	# if not enough sensors were specified, throw an error!
+	if((params$numSensors + params$projectedSensors  <= 1)) {
+		printError("Please specify/allow the program to place/project a total of at least two sensors.", stop)
+	}
+	
+
+    # shapeFcn
     if(!('shapeFcn' %in% names)) {
         params$shapeFcn = "shape.gauss"
         params$detectionRange = 3*params$cellSize
         params$peak = 0.98
-    }	else {
-		params$shapeFcn = "shape.gauss" ##as.character(params$shapeFcn) 
+    }	
+	else {
+		# Currently, only gauss is defined.
+		if (params$shapeFcn != "shape.gauss") {
+			printError("Currently, the only valid value for shapeFcn is 'shape.gauss'.", stop)
+		}
 	}
-	##if(!('range' %in% names)) {
-	##	params$range = 3*params$sd
-	##}
+	
+	#sensorElevation
     if(!('sensorElevation' %in% names)){
         params$sensorElevation = 1
-    }   else {
-                params$sensorElevation = as.numeric(params$sensorElevation)
-        }
+    }   
+	else {
+		checkForMin("sensorElevation", as.numeric(params$sensorElevation), 0, stop)
+		params$sensorElevation = as.numeric(params$sensorElevation)
+    }
     
     ## Calculate an approximate upper bound for suppression range
     ## First calculate the area of the study region
@@ -1346,37 +1411,58 @@ checkParams = function(params) {
     ## result in too large suppression so a trade-off is 1.5. (we could think more about this)
     maxSuppressionRangeFactor = max(c(2,1.5*requiredDetectionRange/params$detectionRange))
     
-    # Suppression Defaults
+    # SuppressionFcn
     if(!('suppressionFcn' %in% names)) {
         params$suppressionFcn = "detection.function"
-    }	else {
+    }	
+	else {
+		validFcns = c("suppression.static", "suppression.scale", "detection.function",
+					  "detection.function.shadow", "detection.function.exact")
+		if (!(as.character(params$suppressionFcn) %in% validFcns)) {
+			printError("Invalid 'suppressionFcn' value.", stop)
+		}
 		params$suppressionFcn = as.character(params$suppressionFcn)
 	}
+	
+	# SuppressionRange Factor
     if(!('suppressionRangeFactor' %in% names)) {
         params$suppressionRangeFactor = 2
-    }	else {
+    }	
+	else {
+		checkForMin("suppressionRangeFactor", as.numeric(params$suppressionRangeFactor), 0, stop)
 		params$suppressionRangeFactor = as.numeric(params$suppressionRangeFactor)
-                if(params$suppressionRangeFactor > maxSuppressionRangeFactor){
-                    params$suppressionRangeFactor = maxSuppressionRangeFactor
-                }
 	}
+    if(params$suppressionRangeFactor > maxSuppressionRangeFactor){
+        params$suppressionRangeFactor = maxSuppressionRangeFactor
+    }
     
-    # Fish Modeling
+    # FishModel
     if(!('fishmodel' %in% names)) {
         #print("Movement model defaults to RW")
         params$fishmodel = 'rw'
-    }	else {
+    }	
+	else {
+		params$fishmodel = as.character(params$fishmodel)
 		if(params$fishmodel == "True" | params$fishmodel == "ou") {
 			params$fishmodel = 'ou'
 		}
-		if(params$fishmodel == "False" | params$fishmodel == "rw") {
+		else if(params$fishmodel == "False" | params$fishmodel == "rw") {
 			params$fishmodel = 'rw'
 		}
-		params$fishmodel = as.character(params$fishmodel)
+		else {
+			printError("Invalid 'fishmodel' value.", stop)
+		}
 	}
-    
+
     return(params)
 }
+
+checkForMin = function(name, value, minVal, stop=TRUE){
+	if(value < minVal ){
+		printError(sprintf("'%s' value must be at least %g, recieved %g.", name, minVal, value), stop)
+	}
+}
+
 
 #' @title Converts input parameters from meters to grid cells.
 #' @description These are used for internal calculations and are invisible to the user.
@@ -1494,12 +1580,15 @@ plotIntersect = function(n, rate, col=1, lty=1){
 
 #' @title Prints errors.
 #'
-#' @param msg The message to print.
+#' @param msg The message to print
+#' @param stop If TRUE, stops the program.
 #' @return The passed message.
-printError = function(msg) {
+printError = function(msg, stop=TRUE) {
 	print(msg)
 	traceback()
-	stop(msg)
+	if(stop) {
+		stop(msg)
+	}
 }
 
 #' @title Returns the status of a job.

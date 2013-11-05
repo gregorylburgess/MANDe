@@ -173,8 +173,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 
 
 appendError = function(msg, time) {
+	gErrors[toString(time)] <<- msg[1]
 	print(gErrors[toString(time)])
-	gErrors[toString(time)] <<- c(gErrors[toString(time)], msg)
 }
-
 #acousticTest( bias=1)

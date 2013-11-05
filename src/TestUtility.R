@@ -1,6 +1,5 @@
 rm(list=ls()) 
 source("src/Utility.R")
-
 #todo
 #-----------
 #check Params
@@ -19,7 +18,12 @@ tolerance = 1e-10
 #' @return Returns a dictionary of reset parameters.
 #' @export
 resetParams = function () {
-	return(checkParams(list(numSensors=0, shapeFcn="shape.gauss", bias=1, range=1, sd=1, peak=.75, timestamp=1)))
+	return(list(numSensors=0, timestamp=1, projectedSensors=0, bias=1, 
+				inputFile="src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd",
+				inputFileType="ncdf", cellSize=1000, detectionRange=3000, startX=308,
+				startY=452, XDist=50, YDist=50, seriesName="z", shapeFcn="shape.gauss",
+				peak=0.75, sensorElevation=1, suppressionFcn="detection.function",
+				suppressionRangeFactor=2, fishmodel="rw", range=1, sd=1))
 	
 }
 
@@ -977,6 +981,27 @@ TestUtility.getStats = function () {
 	print("[getStats]: Pass")
 }
 
+TestUtility.checkParams = function() {
+	params = resetParams()
+	invalids = c(-1,0,1,2,"a", NA, NaN, "")
+	errors = {}
+	i=0
+	for(param in names(params)) {
+		print(names(params))
+		params = resetParams()
+		for (badVal in invalids) {
+			print(i)
+			params[param] = badVal
+			vals <- try(
+						checkParams(params=params, stop=FALSE),
+					silent=TRUE)
+			t="try-error" %in% class(t) 
+			errors = c(errors, t)
+		}
+	}
+	print("ERRORS")
+	print(errors)
+}
 
 #' Runs a battery of tests.
 #' 

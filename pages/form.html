@@ -16,102 +16,103 @@
 	</iframe>
 </div>
 <script type="text/javascript">
-	var form = "";
-	var timestamp = -1;
-	$.get("Form.xml", function(data) {
-		var xml = $($.parseXML(data));
-		xml.find('Group').each(function() {
-			//Traverse the xml tree
-			var groupID = "";
-			var id = $(this).attr("id");
-			form += "<h3>" + id + "</h3>";
-			//Access field tags
-			$(this).find('Fields').find('Field').each(function() {
-				id = $(this).attr("id");
-				var label = $(this).attr("label");
-				var type = $(this).attr("type");
-				var toolTip = $(this).attr("toolTip");
-				var value = $(this).text().replace(/\s/g, "");
-				
-				if (type == 'text') {
-					form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
+	loadForm();
+	function loadForm() {
+		var form = "";
+		var timestamp = -1;
+		$.get("Form.xml", function(data) {
+			var xml = $($.parseXML(data));
+			xml.find('Group').each(function() {
+				//Traverse the xml tree
+				var groupID = "";
+				var id = $(this).attr("id");
+				form += "<h3>" + id + "</h3>";
+				//Access field tags
+				$(this).find('Fields').find('Field').each(function() {
+					id = $(this).attr("id");
+					var label = $(this).attr("label");
+					var type = $(this).attr("type");
+					var toolTip = $(this).attr("toolTip");
+					var value = $(this).text().replace(/\s/g, "");
+					
+					if (type == 'text') {
+						form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
+							+ "<a class=\"link\" data-original-title=\"" + toolTip 
+							+ "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
+							+ "<div class=\"controls\">"
+							+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
+							+ "</div>"
+							+ "</div></a>";
+					}
+					else if (type == "select" || type == "toggle") {
+						if (type == "toggle") {
+							groupID = id;
+						}
+						form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
 						+ "<a class=\"link\" data-original-title=\"" + toolTip 
 						+ "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
-						+ "<div class=\"controls\">"
-						+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
-						+ "</div>"
-						+ "</div></a>";
-				}
-				else if (type == "select" || type == "toggle") {
-					if (type == "toggle") {
-						groupID = id;
-					}
-					form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
-					+ "<a class=\"link\" data-original-title=\"" + toolTip 
-					+ "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
-					+ "<div class=\"controls\">";
-					form += "<select id=\"" + id + "\">";
-					$(this).find("Options").find("Option").each(function() {
-						label = $(this).attr("label");
-						value = $(this).text().replace(/\s/g, "");
-						form += "<option value=\"" + value + "\">" + label + "</option>";
-					})
-					form += "</select>"
-						 + "</div>"
-						 + "</div></a>";
-
-					if (type=="toggle") {
-						form += "<div id=\"" + groupID + "-toggle\">";
-						$(this).find('Hidable').find('HField').each(function() {
-							id = $(this).attr("id");
-							var label = $(this).attr("label");
-							var type = $(this).attr("type");
-							var toolTip = $(this).attr("toolTip");
-							var value = $(this).text().replace(/\s/g, "");
-							
-							form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
-								+ "<a class=\"link\" data-original-title=\"" + toolTip
-								+ "\"><label class=\"control-label\" for=\"" + id + "\">"
-								+ label + "</label>"
-								+ "<div class=\"controls\">"
-								+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
-								+ "</div>"
-								+ "</div></a>";
-						});
-						form += "</div> </br>"
-							  + "<script>"
-							  + "$(\"#" + groupID + "\").change(function() {"
-							  + "$('#" + groupID + "-toggle').toggle(this.value == 'True');"
-						 	  + "});"
-						 	  + "$('#" + groupID + "-toggle').toggle();"
-						 	  + "<\/script>";
-						 	  
-						 	  
-					}
-				}
-				
-			});
-		});
-		form += "</br><center><div >"
-		+ "<button type=\"submit\" class=\"btn btn-success\" "
-		+ "onClick=\"validate()\" style=\"margin-right:20px;\">Submit</button>"
-		+ "<button class=\"btn btn-danger\" onClick=\"reset()\" >"
-		+ "Reset Form</button></div></center>"
-		$("#theForum").html(form);
-		$(".link").tooltip();
-		
-		//Read cookie value if it exists
-		var cookieValue = $.cookie("acousticwebapp-data");
-		if (cookieValue != "" && cookieValue != undefined) {
-			alert(cookieValue);
-			var dic = JSON.parse("{" + cookieValue + "}");
-			for(var key in dic) {
-				$("#" + key).val(dic[key]);
-			}
-		}
-		
-	}, 'text');
+						+ "<div class=\"controls\">";
+						form += "<select id=\"" + id + "\">";
+						$(this).find("Options").find("Option").each(function() {
+							label = $(this).attr("label");
+							value = $(this).text().replace(/\s/g, "");
+							form += "<option value=\"" + value + "\">" + label + "</option>";
+						})
+						form += "</select>"
+							 + "</div>"
+							 + "</div></a>";
 	
+						if (type=="toggle") {
+							form += "<div id=\"" + groupID + "-toggle\">";
+							$(this).find('Hidable').find('HField').each(function() {
+								id = $(this).attr("id");
+								var label = $(this).attr("label");
+								var type = $(this).attr("type");
+								var toolTip = $(this).attr("toolTip");
+								var value = $(this).text().replace(/\s/g, "");
+								
+								form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
+									+ "<a class=\"link\" data-original-title=\"" + toolTip
+									+ "\"><label class=\"control-label\" for=\"" + id + "\">"
+									+ label + "</label>"
+									+ "<div class=\"controls\">"
+									+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
+									+ "</div>"
+									+ "</div></a>";
+							});
+							form += "</div> </br>"
+								  + "<script>"
+								  + "$(\"#" + groupID + "\").change(function() {"
+								  + "$('#" + groupID + "-toggle').toggle(this.value == 'True');"
+							 	  + "});"
+							 	  + "$('#" + groupID + "-toggle').toggle();"
+							 	  + "<\/script>";
+							 	  
+							 	  
+						}
+					}
+					
+				});
+			});
+			form += "</br><center><div >"
+			+ "<button type=\"submit\" class=\"btn btn-success\" "
+			+ "onClick=\"validate()\" style=\"margin-right:20px;\">Submit</button>"
+			+ "<button class=\"btn btn-danger\" onClick=\"reset()\" >"
+			+ "Reset Form</button></div></center>"
+			$("#theForum").html(form);
+			$(".link").tooltip();
+			
+			//Read cookie value if it exists
+			var cookieValue = $.cookie("acousticwebapp-data");
+			if (cookieValue != "" && cookieValue != undefined) {
+				var dic = JSON.parse("{" + cookieValue + "}");
+				for(var key in dic) {
+					$("#" + key).val(dic[key]);
+				}
+			}
+			
+		}, 'text');
+	}
 
 	
 	//Validates fields and submits the form
@@ -358,8 +359,7 @@
 	//Parses a json file and writes them to the page
 	function parseResponse(data) {
 		//data = $.parseJSON(data);
-		toRet = "<div class=\"span1\"></div>";
-		toRet += "<div class=\"span10\">";
+		toRet = "<div class=\"result\">";
 		//Grab important keys
 		params = data["params"];
 		sensors = data['sensors'];
@@ -411,7 +411,7 @@
 			}
 		}
 		toRet += "</br><center><button type=\"submit\" class=\"btn btn-danger\" onClick=\"location.reload()\"> < Back</button></center>";
-		toRet += "</div><div class=\"span1\"></span>";
+		toRet += "</div>";
 		$('#content').html(toRet);
 	}
 
