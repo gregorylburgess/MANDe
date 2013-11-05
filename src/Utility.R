@@ -95,7 +95,6 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 
 sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE) {
 	if(params$suppressionFcn != 'detection.function.exact'){
-		##print('NOT using detection.function.exact')
 		grids$sumGrid = suppress.opt(grids$sumGrid, dim(grids$fGrid), loc, params, grids$bGrid$bGrid, debug)
 	}else{
 		grids = updateFGrid(loc,grids,params,debug)
@@ -258,7 +257,8 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE)
 		print(kernel)
 	}
     grids$sumGrid = conv.2D(tempGrid,kernel,kernel, params$timestamp, silent)
-
+	print("sumGrid")
+	print(grids$sumGrid)
     ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
     sensorDepth = grids$bGrid$bGrid + params$sensorElevation
     ## Calculate a matrix where TRUE values indicate that a grid cell could contain a sensor below the surface
@@ -1291,7 +1291,16 @@ checkParams = function(params) {
 		len = floor(length(rawPointList)/2)
 		i=len
 		while(i > 0) {
-			point = list(r=as.numeric(rawPointList[2]), c=as.numeric(rawPointList[1]))
+			r = as.numeric(rawPointList[2])
+			c = as.numeric(rawPointList[1])
+			
+			if (!(is.finite(r) && is.finite(c))) {
+				printError("A user-defined point containing NaN, NA, or Inf was found.")
+			}
+			if (r <= 0 || c <= 0) {
+				printError("A user-defined point is out of bounds.")
+			}
+			point = list(r=r,c=c )
 			points = c(points, list(point))
 			rawPointList = rawPointList[-2]
 			rawPointList = rawPointList[-1]
@@ -1443,7 +1452,14 @@ conv.2D = function(mat, kx, ky, timestamp=1, silent=FALSE){
   ## Convolve in y-direction (important to use matout here)
   for(i in 1:y) {
 	  matout[,i] = conv.1D(matout[,i],ky)
-	  status[toString(timestamp)] <<- (i/(2*x) + .5)
+	  pct = (i/(2*x) + .5)
+	  status[toString(timestamp)] <<- pct
+	  if(!silent) {
+		  print(sprintf("LoS Progress:%g", pct))
+	  }
+  }
+  if(!silent) {
+	  print(sprintf("LoS Progress:%g", 1))
   }
   status[toString(timestamp)] <<- 1
   return(matout)

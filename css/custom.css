@@ -41,8 +41,13 @@ body {
 }
 
 #theForum {
+	float: left;
 	max-width: 100%;
+	min-width: 400px;
 	word-wrap: break-word;
+	@media (max-width: 777px) {
+    	display: none;
+	}
 }
 
 .control-group {
@@ -71,13 +76,58 @@ body {
 #desc {
 	height: 1500px;
 	width: 100%;
+	border: 2px solid #222;
 }
 
-#grid {
+
+.formCol {
+	width: 420px;
+	display: block;
+	float: left;
+}
+
+
+.gridCol {
+	margin-left: 20px;
+	width: calc(100% - 440px);
+	display: block;
+	float: left;
+}
+
+#gridL {
 	height: 300px;
-	width: 100%;;
+	width: 417px;
+	display: block;
+	float: left;
+	margin: auto;
+	margin-bottom: 15px;
+	overflow: hidden;
+}
+
+#gridR {
+	height: 500px;
+	width: 100%;
 	display: block;
 	margin: auto;
 	margin-bottom: 15px;
 	overflow: hidden;
+
+}
+
+@media (min-width: 840px) {
+	#gridL, #maplinkL {
+   		display: none;
+	}
+}
+
+@media (max-width: 840px) {
+   	.gridCol  {
+		display: none;
+	}
+	.formCol {
+		float: none;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	
 }

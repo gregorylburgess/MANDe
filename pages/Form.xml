@@ -1,5 +1,56 @@
 <?xml version="1.0"?>
 <Groups>
+	<Group id="Bathymetry Variables">
+		<Fields>
+			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your area of interest.">
+				21.923
+			</Field>
+			<Field id="south" label="Southern Grid Boundary" type="text" toolTip="The Southeren Latitude boundary for your area of interest.">
+				21.479
+			</Field>
+			<Field id="west" label="Western Grid Boundary" type="text" toolTip="The Westeren Longitude boundary for your area of interest.">
+				-158.869
+			</Field>
+			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your area of interest.">
+				-158.316
+			</Field>
+			<Field id="resolution" label="Grid Resolution" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting '50 meter cells' will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
+				<Options>
+					<Option label="1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
+					<Option label="50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
+					<Option label="40 meter cells">src/palmyra_40m.grd</Option>
+				</Options>
+			</Field>
+			<!--  Local File support. Uncomment if you want to use local files>
+			<Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
+				src/palmyrabath.RData
+			</Field>
+			<Field id="inputFileType"  label="Input File Type"  type="select"  toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS, NetCDF, and ASC.">
+				<Options>
+					<Option label="ArcGIS">arcgis</Option>
+					<Option label="NetCDF">netcdf</Option>
+				</Options>
+			</Field>
+			<Field id="seriesName"  label="Data Series Name"  type="text"  toolTip="For ArcGIS/NetCDF, this specifies the name of the data series to use.">
+				z
+			</Field>
+			<Field id="cellSize"  label="Grid Cell Size"  type="text"  toolTip="Specifies the size of the grid cell in meters.">
+				5
+			</Field>
+			<Field id="startX"  label="Beginning X Index"  type="text"  toolTip="Specifies the starting X cell-index of the area of interest for the file chosen.">
+				500
+			</Field>
+			<Field id="XDist"  label="X Axis Length"  type="text"  toolTip="Specifies how far the area of interest extends along the X axis.">
+				300
+			</Field>
+			<Field id="startY"  label="Beginning Y Index"  type="text"  toolTip="Specifies the starting Y cell-index of the area of interest for the file chosen.">
+				500
+			</Field>
+			<Field id="YDist"  label="Y Axis Length"  type="text"  toolTip="Specifies how far the area of interest extends along the Y axis.">
+				300
+			</Field-->
+		</Fields>
+	</Group>
 	<Group id="Fish Model Variables">
 		<Fields>
 			<Field id="fishmodel"  label="Fish Model Algorithm"  type="toggle"  toolTip="The algorithm to apply for fish movement.">
@@ -89,59 +140,6 @@
 			</Field>		
 		</Fields>
 	</Group>
-
-	<Group id="Bathymetry Variables">
-		<Fields>
-			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your area of interest.">
-				21.923
-			</Field>
-			<Field id="south" label="Southern Grid Boundary" type="text" toolTip="The Southeren Latitude boundary for your area of interest.">
-				21.479
-			</Field>
-			<Field id="west" label="Western Grid Boundary" type="text" toolTip="The Westeren Longitude boundary for your area of interest.">
-				-158.869
-			</Field>
-			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your area of interest.">
-				-158.316
-			</Field>
-			<Field id="resolution" label="Grid Resolution" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting '50 meter cells' will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
-				<Options>
-					<Option label="1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
-					<Option label="50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
-					<Option label="40 meter cells">src/palmyra_40m.grd</Option>
-				</Options>
-			</Field>
-			<!--  Local File support. Uncomment if you want to use local files>
-			<Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
-				src/palmyrabath.RData
-			</Field>
-			<Field id="inputFileType"  label="Input File Type"  type="select"  toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS, NetCDF, and ASC.">
-				<Options>
-					<Option label="ArcGIS">arcgis</Option>
-					<Option label="NetCDF">netcdf</Option>
-				</Options>
-			</Field>
-			<Field id="seriesName"  label="Data Series Name"  type="text"  toolTip="For ArcGIS/NetCDF, this specifies the name of the data series to use.">
-				z
-			</Field>
-			<Field id="cellSize"  label="Grid Cell Size"  type="text"  toolTip="Specifies the size of the grid cell in meters.">
-				5
-			</Field>
-			<Field id="startX"  label="Beginning X Index"  type="text"  toolTip="Specifies the starting X cell-index of the area of interest for the file chosen.">
-				500
-			</Field>
-			<Field id="XDist"  label="X Axis Length"  type="text"  toolTip="Specifies how far the area of interest extends along the X axis.">
-				300
-			</Field>
-			<Field id="startY"  label="Beginning Y Index"  type="text"  toolTip="Specifies the starting Y cell-index of the area of interest for the file chosen.">
-				500
-			</Field>
-			<Field id="YDist"  label="Y Axis Length"  type="text"  toolTip="Specifies how far the area of interest extends along the Y axis.">
-				300
-			</Field-->
-		</Fields>
-	</Group>
-
 
 	<Group id="Suppression Variables">
 		<Fields>
