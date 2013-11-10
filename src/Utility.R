@@ -1368,7 +1368,7 @@ checkParams = function(params, stop=TRUE) {
 		}
 	}
 	# if not enough sensors were specified, throw an error!
-	if((params$numSensors + params$projectedSensors  <= 1)) {
+	else if((params$numSensors + params$projectedSensors  <= 1)) {
 		printError("Please specify/allow the program to place/project a total of at least two sensors.", stop)
 	}
 	

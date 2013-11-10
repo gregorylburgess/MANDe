@@ -115,7 +115,7 @@ body {
 }
 
 @media (min-width: 840px) {
-	#gridL, #maplinkL {
+	#gridLBox, #maplinkL {
    		display: none;
 	}
 }

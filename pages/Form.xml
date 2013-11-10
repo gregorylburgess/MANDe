@@ -2,6 +2,13 @@
 <Groups>
 	<Group id="Bathymetry Variables">
 		<Fields>
+			<Field id="resolution" label="Grid Resolution" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting '50 meter cells' will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
+				<Options>
+					<Option label="1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
+					<Option label="50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
+					<Option label="40 meter cells">src/palmyra_40m.grd</Option>
+				</Options>
+			</Field>
 			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your area of interest.">
 				21.923
 			</Field>
@@ -13,13 +20,6 @@
 			</Field>
 			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your area of interest.">
 				-158.316
-			</Field>
-			<Field id="resolution" label="Grid Resolution" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting '50 meter cells' will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
-				<Options>
-					<Option label="1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
-					<Option label="50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
-					<Option label="40 meter cells">src/palmyra_40m.grd</Option>
-				</Options>
 			</Field>
 			<!--  Local File support. Uncomment if you want to use local files>
 			<Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
@@ -109,7 +109,7 @@
 	<Group id="Sensor Variables">
 		<Fields>
 			<Field id="userSensors" label="User-Specified Sensors" type="text" toolTip="These sensors are placed and down-weighed before running the program.  Useful for including already existing sensors, or forcing the placement of a few sensors.  Do not include these sensors in the sensor count below.  Provide sensor locations as a string in the format: sensor1_X, sensor1_Y, sensor2_X, sensor2_Y where sensor_k_X is the X cell index of sensor k, and sensor_k_Y is the Y cell index of sensor k.">
-				-158.5, 21.6, -158.6, 21.7
+				1,1
 			</Field>
 			<Field id="numSensors" label="Number of Sensors to Use" type="text" toolTip="The number of sensors you wish to place.">
 				10

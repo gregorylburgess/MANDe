@@ -18,7 +18,7 @@ source('src/Utility.R')
 getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, seriesName, timestamp, debug=FALSE) {
 	if (file.exists(as.character(inputFile))) {
 			if(startX < 1 || startY < 1) {
-				printError("BGrid x and y coordinates must be greater than 1.", timestamp)
+				printError("BGrid x and y coordinates must be integers greater than 0.", timestamp)
 			}
             if(inputFileType == "netcdf" && require(ncdf)){
                 library(ncdf)

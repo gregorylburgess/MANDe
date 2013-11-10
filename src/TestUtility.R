@@ -1,8 +1,5 @@
 rm(list=ls()) 
 source("src/Utility.R")
-#todo
-#-----------
-#check Params
 
 #tells the program that warnings are errors
 options(warn=2)
@@ -1008,7 +1005,7 @@ TestUtility.checkParams = function() {
 #' @param opt If TRUE, tests the vectorized version, else tests the unvectorized version.
 #' @return N/A
 #' @export
-runTests = function () {
+runUtilityTests = function () {
 	print("--- Testing Utility Functions ---")
 	TestUtility.sumGrid()
 	TestUtility.getCells()
@@ -1026,11 +1023,11 @@ runTests = function () {
 
 #Executes the tests, and stops if an error occurs
 tryCatch({
-	runTests()
+	runUtilityTests()
 	}, warning = function(e) {
 	traceback()
-	print(e)
+	print(e[1])
 	}, error = function(e) {
 	traceback()
-	print(e)
+	print(e[1])
 	}, finally = function(e){})

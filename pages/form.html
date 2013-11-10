@@ -1,13 +1,12 @@
-
 <div class="formCol">
 	<div id="gridLBox">
 		<a id="maplinkL" href="gmap.html" target="_blank">See a fullscreen map</a>
 		<iframe id="gridL" src="gmap.html"></iframe>
-		<div id="theForum" class="form-horizontal"></div>
 	</div>
+	<div id="theForum" class="form-horizontal"></div>
 </div>
 <div class="gridCol">
-	<div id="gridLBox">
+	<div id="gridRBox">
 		<a id="maplinkR" href="gmap.html" target="_blank">See a fullscreen map</a>
 		<iframe id="gridR" src="gmap.html"></iframe>
 	</div>
@@ -16,6 +15,7 @@
 	</iframe>
 </div>
 <script type="text/javascript">
+	alert("1");
 	loadForm();
 	function loadForm() {
 		var form = "";
@@ -34,7 +34,7 @@
 					var type = $(this).attr("type");
 					var toolTip = $(this).attr("toolTip");
 					var value = $(this).text().replace(/\s/g, "");
-					
+
 					if (type == 'text') {
 						form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
 							+ "<a class=\"link\" data-original-title=\"" + toolTip 
@@ -57,11 +57,11 @@
 							label = $(this).attr("label");
 							value = $(this).text().replace(/\s/g, "");
 							form += "<option value=\"" + value + "\">" + label + "</option>";
-						})
+						});
 						form += "</select>"
 							 + "</div>"
 							 + "</div></a>";
-	
+
 						if (type=="toggle") {
 							form += "<div id=\"" + groupID + "-toggle\">";
 							$(this).find('Hidable').find('HField').each(function() {
@@ -70,7 +70,7 @@
 								var type = $(this).attr("type");
 								var toolTip = $(this).attr("toolTip");
 								var value = $(this).text().replace(/\s/g, "");
-								
+
 								form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
 									+ "<a class=\"link\" data-original-title=\"" + toolTip
 									+ "\"><label class=\"control-label\" for=\"" + id + "\">"
@@ -80,6 +80,7 @@
 									+ "</div>"
 									+ "</div></a>";
 							});
+
 							form += "</div> </br>"
 								  + "<script>"
 								  + "$(\"#" + groupID + "\").change(function() {"
@@ -87,31 +88,52 @@
 							 	  + "});"
 							 	  + "$('#" + groupID + "-toggle').toggle();"
 							 	  + "<\/script>";
-							 	  
-							 	  
 						}
 					}
-					
 				});
-			});
+			});//end xml.find(Group)
 			form += "</br><center><div >"
 			+ "<button type=\"submit\" class=\"btn btn-success\" "
 			+ "onClick=\"validate()\" style=\"margin-right:20px;\">Submit</button>"
 			+ "<button class=\"btn btn-danger\" onClick=\"reset()\" >"
-			+ "Reset Form</button></div></center>"
+			+ "Reset Form</button></div></center>";
 			$("#theForum").html(form);
 			$(".link").tooltip();
-			
+
+
+			$('#resolution').change(function () {
+				var img = "<a id=\"maplinkR\" href=\"images/Palmyra_40m.jpg\" target=\"_blank\">" +
+						  "See a fullscreen map</a><img src=\"images/Palmyra_40m.jpg\"></img>";
+						  
+				var gmap = "<a id=\"maplinkR\" href=\"gmap.html\" target=\"_blank\">" +
+						   "See a fullscreen map</a><iframe id=\"gridR\" src=\"gmap.html\"></iframe>";
+
+				var choice = $("#resolution option:selected").val();
+				//Show the Hawaii map
+				if(choice == "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd" ||
+				   choice == "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd") {
+					$('#gridLBox').html(gmap);
+					$('#gridRBox').html(gmap);
+				} 
+				//Show the Palmyra map
+				if(choice == "src/palmyra_40m.grd") {
+					$('#gridRBox').html(img);
+					$('#gridLBox').html(img);
+				} 
+			}); //end $(resolution).change
+
 			//Read cookie value if it exists
-			var cookieValue = $.cookie("acousticwebapp-data");
+			/*var cookieValue = $.cookie("acousticwebapp-data");
 			if (cookieValue != "" && cookieValue != undefined) {
-				var dic = JSON.parse("{" + cookieValue + "}");
+			if(false){
+				var dic = JSON.parse("{" + unescape(cookieValue) + "}");
 				for(var key in dic) {
 					$("#" + key).val(dic[key]);
 				}
-			}
+			}*/
 			
 		}, 'text');
+		alert("2");
 	}
 
 	
@@ -135,7 +157,7 @@
 		if (res == "1 km cells") {
 			cells = 1000;
 		}
-		if (res =="40 meter cells") {
+		if (res == "40 meter cells") {
 			cells = 40;
 		}
 		//Get user values
@@ -152,7 +174,7 @@
 			//Col_Count: 18001     = 9/18001 = 0.00049997222
 			dpcR = 8/16001.0;
 			dpcC = 9/18001.0;
-			
+
 			n = 25;
 			s = 17;
 			e = -153;
@@ -160,7 +182,7 @@
 			noffset = 0;
 			woffset = 0;
 		}
-		
+
 		//Data for the 1km dataset
 		if (cells == 1000){
 			//lon delta: 9.0
@@ -195,7 +217,7 @@
 		mys += noffset;
 		myw += woffset;
 		mye += woffset;
-		
+
 		if(myn > n) {
 			errors += "Northern value " + myn + " must be between " + s + " and " + (n - noffset) + ".\n";
 		}
@@ -218,19 +240,19 @@
 			alert(errors);
 		}
 		else {	
-			startX = parseInt((myw-w)/dpcC);
-			XDist = parseInt((mye-myw)/dpcC);
-			startY = parseInt((mys-s)/dpcR);
-			YDist = parseInt((myn-mys)/dpcR);
-			
+			var startX = parseInt((myw-w)/dpcC);
+			var XDist = parseInt((mye-myw)/dpcC);
+			var startY = parseInt((mys-s)/dpcR);
+			var YDist = parseInt((myn-mys)/dpcR);
+
 			//Parse the userSensorList
 			var userSensorList = $("#userSensors").val();
-			if (userSensorList != "") {
+			var sensorList = "";
+			if (userSensorList != "" && !(userSensorList === undefined)) {
 				//Strip whitespace
 				userSensorList = userSensorList.replace(/\s/g, '');
 				//Split on commas
 				userSensorList = userSensorList.split(","); 
-				var sensorList = "";
 				for (var i=0; i<userSensorList.length/2; i++) {
 					var c = parseFloat(userSensorList[2*i]);
 					var r = parseFloat(userSensorList[2*i+1]);
@@ -238,7 +260,7 @@
 					var tr = ((r-mys));
 					c = Math.ceil(parseInt((c-myw)/dpcC));
 					r = Math.ceil(parseInt((r-mys)/dpcR));
-					
+
 					sensorList += c + "," + r + ",";
 				}
 				sensorList = sensorList.substring(0, sensorList.length - 1);
@@ -255,7 +277,7 @@
 			submitForm(dict);
 		}
 	}
-	
+
 
 	//Submits the form
 	function submitForm(dict) {
@@ -342,10 +364,10 @@
                url: "../../status",
                data: dataString,
                success: function (data) {
-               	var value = parseFloat(data) * 100;
-               	var strVal = value + "%";
-               	document.getElementById('progressBar').style.width= strVal
-                         }
+	               	var value = parseFloat(data) * 100;
+	               	var strVal = value + "%";
+	               	document.getElementById('progressBar').style.width = strVal;
+               }
              });
 	}
 	//Checks for the existance of a URL
@@ -365,7 +387,7 @@
 		sensors = data['sensors'];
 		stats = data['stats'];
 		filenames = data['filenames'];
-		errors = data['errors']
+		errors = data['errors'];
 		err = false;
 		
 		if(errors!=null) {
@@ -375,7 +397,7 @@
 			for(key in errors) {
 				toRet += "<b>Error:</b>" + ": " + errors[parseFloat(key)] + "</br>";
 			}
-			toRet += "</font>"
+			toRet += "</font>";
 			//unset the cookie if an error occured
 			$.removeCookie('acousticwebapp-data');
 		}
