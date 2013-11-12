@@ -15,7 +15,6 @@
 	</iframe>
 </div>
 <script type="text/javascript">
-	alert("1");
 	loadForm();
 	function loadForm() {
 		var form = "";
@@ -123,17 +122,17 @@
 			}); //end $(resolution).change
 
 			//Read cookie value if it exists
-			/*var cookieValue = $.cookie("acousticwebapp-data");
-			if (cookieValue != "" && cookieValue != undefined) {
-			if(false){
-				var dic = JSON.parse("{" + unescape(cookieValue) + "}");
+			//var cookieValue = $.cookie("acousticwebapp-data");
+			/*if (cookieValue != "" && !(cookieValue == undefined)) {
+				var dic = JSON.parse("{" + cookieValue + "}");
 				for(var key in dic) {
-					$("#" + key).val(dic[key]);
+					if($("#" + key).length == 0) {
+						$("#" + key).val(dic[key]);
+					}
 				}
 			}*/
-			
+			loaded = true;
 		}, 'text');
-		alert("2");
 	}
 
 	
@@ -151,13 +150,13 @@
 		var noffset = 0;
 		var woffset = 0;
 		
-		if (res == "50 meter cells") {
+		if (res == "Hawaiian Isles: 50 meter cells") {
 			cells = 50;
 		}
-		if (res == "1 km cells") {
+		if (res == "Hawaiian Isles: 1 km cells") {
 			cells = 1000;
 		}
-		if (res == "40 meter cells") {
+		if (res == "Palmyra Atoll: 40 meter cells") {
 			cells = 40;
 		}
 		//Get user values
@@ -248,7 +247,7 @@
 			//Parse the userSensorList
 			var userSensorList = $("#userSensors").val();
 			var sensorList = "";
-			if (userSensorList != "" && !(userSensorList === undefined)) {
+			if (userSensorList != "" && !(userSensorList == undefined)) {
 				//Strip whitespace
 				userSensorList = userSensorList.replace(/\s/g, '');
 				//Split on commas
@@ -318,9 +317,8 @@
 
 			//Add a timestamp
 			dic += "\"timestamp\":\"" + timestamp + "\"";
-			//alert("127.0.0.1/custom/status?\"timestamp\":\"" + timestamp + "\"");
 			//write a cookie
-			$.cookie("acousticwebapp-data", dic);
+			//$.cookie("acousticwebapp-data", escape(dic));
 			
 			// Actually submit the form
 			$.ajax({
@@ -366,7 +364,8 @@
                success: function (data) {
 	               	var value = parseFloat(data) * 100;
 	               	var strVal = value + "%";
-	               	document.getElementById('progressBar').style.width = strVal;
+	               	//document.getElementById('progressBar').style.width = strVal;
+	               	$("#progressBar").width(strVal);
                }
              });
 	}
@@ -394,7 +393,7 @@
 			err = true;
 			toRet += "<font color=\"red\"><h2>Error!</h2>";
 			toRet += "<h3>The program encountered errors and was unable to complete your request.</h3>";
-			for(key in errors) {
+			for(var key in errors) {
 				toRet += "<b>Error:</b>" + ": " + errors[parseFloat(key)] + "</br>";
 			}
 			toRet += "</font>";
@@ -403,7 +402,7 @@
 		}
 		//Re-Print params
 		toRet += "<h3>Parameters:</h3>";
-		for(key in params) {
+		for(var key in params) {
 			toRet += "<b>" + key + "</b>" + ": " + params[key] + "</br>";
 			if (key == "sensorList") {
 				toRet += "<b>" + key + "</b>" + ": ";
@@ -416,14 +415,14 @@
 		
 		if(!err) {
 			toRet += "</br><h1>Results:</h1></br><h3>Stats:</h4>";
-			for(key in stats) {
+			for(var key in stats) {
 				if(key != "acousticCoverage") {
 					toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
 				}
 			}
 			
 			toRet += "<h3>Graphs:</h4>";
-			for(key in filenames) {
+			for(var key in filenames) {
 				if(filenames[key].indexOf(".png") != -1) {
 					toRet += "<image src=\"../" + filenames[key] + "\"></image>";
 				}
@@ -435,11 +434,5 @@
 		toRet += "</br><center><button type=\"submit\" class=\"btn btn-danger\" onClick=\"location.reload()\"> < Back</button></center>";
 		toRet += "</div>";
 		$('#content').html(toRet);
-	}
-
-	//Resets the form
-	function reset() {
-		$.removeCookie('acousticwebapp-data');
-		location.reload();
 	}
 </script>

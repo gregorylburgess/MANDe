@@ -26,7 +26,8 @@ library(roxygen2)
 # name of the package to create (Fill in whatever you want)
 packageName = "acoustic"
 # Names of source files.  These must exist in 'src/' folder of the working directory.
-files = c("Description.R","Bathy.R", 
+files = c("Description.R",
+		"Bathy.R", 
 		"FishModel.R", 
 		"Utility.R", 
 		"ShapeFunctions.R", 

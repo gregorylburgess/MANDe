@@ -52,8 +52,23 @@
 	<script src="../js/jquery.cookie.js"></script>
 	<script>
 		//Load sidebar, navbar, and form
+		console.log("loaded js");
 		$("#navbar").load("navbar.html");
 		$("#form").load("form.html");
+		console.log("loaded html");
+		function reset() {
+			$.ajax({
+				url: "../js/jquery.cookie.js",
+				dataType: "script"
+				});
+			$.removeCookie('acousticwebapp-data');
+			location.reload();
+		}
+		function cook() {
+			var cookieValue = $.cookie("acousticwebapp-data");
+			console.log(cookieValue);
+			
+		}
 	</script>
 	<script src="../js/bootstrap.js"></script>
 </body>
