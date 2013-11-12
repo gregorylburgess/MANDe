@@ -108,29 +108,38 @@
 						   "See a fullscreen map</a><iframe id=\"gridR\" src=\"gmap.html\"></iframe>";
 
 				var choice = $("#resolution option:selected").val();
+				
 				//Show the Hawaii map
 				if(choice == "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd" ||
 				   choice == "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd") {
 					$('#gridLBox').html(gmap);
 					$('#gridRBox').html(gmap);
+					$('#north').val('23.9999');
+					$('#south').val('17.0001');
+					$('#east').val('-153.0001');
+					$('#west').val('-161.9999');
 				} 
 				//Show the Palmyra map
 				if(choice == "src/palmyra_40m.grd") {
 					$('#gridRBox').html(img);
 					$('#gridLBox').html(img);
+					$('#north').val('6.040205');
+					$('#south').val('5.772680');
+					$('#east').val('-161.916750');
+					$('#west').val('-162.357355');
 				} 
 			}); //end $(resolution).change
 
 			//Read cookie value if it exists
-			//var cookieValue = $.cookie("acousticwebapp-data");
-			/*if (cookieValue != "" && !(cookieValue == undefined)) {
+			var cookieValue = $.cookie("acousticwebapp-data");
+			if (cookieValue != "" && !(cookieValue == undefined)) {
 				var dic = JSON.parse("{" + cookieValue + "}");
 				for(var key in dic) {
 					if($("#" + key).length == 0) {
 						$("#" + key).val(dic[key]);
 					}
 				}
-			}*/
+			}
 			loaded = true;
 		}, 'text');
 	}
@@ -247,7 +256,7 @@
 			//Parse the userSensorList
 			var userSensorList = $("#userSensors").val();
 			var sensorList = "";
-			if (userSensorList != "" && !(userSensorList == undefined)) {
+			if (userSensorList != "" && !(typeof userSensorList == "undefined")) {
 				//Strip whitespace
 				userSensorList = userSensorList.replace(/\s/g, '');
 				//Split on commas
@@ -318,7 +327,7 @@
 			//Add a timestamp
 			dic += "\"timestamp\":\"" + timestamp + "\"";
 			//write a cookie
-			//$.cookie("acousticwebapp-data", escape(dic));
+			//$.cookie("acousticwebapp-data", dic);
 			
 			// Actually submit the form
 			$.ajax({

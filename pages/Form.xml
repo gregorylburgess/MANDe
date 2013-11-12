@@ -9,16 +9,16 @@
 					<Option label="Palmyra Atoll: 40 meter cells">src/palmyra_40m.grd</Option>
 				</Options>
 			</Field>
-			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your area of interest.">
+			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your area of interest in Decimal Degrees.">
 				21.923
 			</Field>
-			<Field id="south" label="Southern Grid Boundary" type="text" toolTip="The Southeren Latitude boundary for your area of interest.">
+			<Field id="south" label="Southern Grid Boundary" type="text" toolTip="The Southeren Latitude boundary for your area of interest in Decimal Degrees.">
 				21.479
 			</Field>
-			<Field id="west" label="Western Grid Boundary" type="text" toolTip="The Westeren Longitude boundary for your area of interest.">
+			<Field id="west" label="Western Grid Boundary" type="text" toolTip="The Westeren Longitude boundary for your area of interest in Decimal Degrees.">
 				-158.869
 			</Field>
-			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your area of interest.">
+			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your area of interest in Decimal Degrees.">
 				-158.316
 			</Field>
 			<!--  Local File support. Uncomment if you want to use local files>

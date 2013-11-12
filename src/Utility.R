@@ -1248,7 +1248,6 @@ checkParams = function(params, stop=TRUE) {
     }
 	else {
 		checkForMin("numSensors", as.numeric(params$numSensors), 0, stop)
-		params$numSensors = as.numeric(params$numSensors)
 	}
 	
 	# projectedSensors
@@ -1257,111 +1256,6 @@ checkParams = function(params, stop=TRUE) {
 	}
 	else {
 		checkForMin("projectedSensors", as.numeric(params$projectedSensors), 0, stop)
-		params$projectedSensors = as.numeric(params$projectedSensors)
-	}
-	
-	# bias
-    if(!('bias' %in% names)) {
-        params$bias = 1
-    }
-	if(!(params$bias %in% c(1,2,3))) {
-		printError("Error: Bias value must be 1, 2, or 3.", stop)
-	}
-	
-	# Warn users if they use depth pref without knowing what the map looks like
-	if('dp' %in% names  && !('inputFile' %in% names)) {
-		printError("Error: Using dp option without a known input file may be bad!.
-				For example, if the generated habitat grid contains no cells near
-				the depth specified, no fish will be generated.", stop)
-	}
-	
-    # inputFile
-    if(('inputFile' %in% names)) {
-        params$inputFile = as.character(params$inputFile)
-    }
-	else {
-		# default to the 1km grid
-		params$inputFile = "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd"
-	}
-	
-	# inputFileType
-    if(('inputFileType' %in% names)) {
-		supportedFileTypes = c("netcdf", "arcgis")
-		if(!(params$inputFileType %in% supportedFileTypes)) {
-			printError("Invalid 'inputFileType' value.", stop)
-		}
-        params$inputFileType = as.character(params$inputFileType)
-    }
-	else {
-            params$inputFileType = 'ncdf'
-    }
-	
-	# cellSize
-    if(!('cellSize' %in% names)) {
-        params$cellSize = 1000
-    }
-	else {
-		checkForMin("cellSize", as.numeric(params$cellSize), 1, stop)
-		params$cellSize = as.numeric(params$cellSize)
-	}
-	
-	# detectionRange
-	if(!('detectionRange' %in% names)) {
-		params$detectionRange = 2000
-	}
-	else {
-		checkForMin("detectionRange", as.numeric(params$detectionRange), 1, stop)
-		params$detectionRange = as.numeric(params$detectionRange)
-	}
-	if(params$detectionRange <= params$cellSize) {
-		printError("Detection Range of a sensor must greater than a cell's width.", stop)
-	}
-	
-	# startX
-    if(!('startX' %in% names)) {
-        params$startX = 308
-    }
-	else {
-		checkForMin("startX", as.numeric(params$startX), 1, stop)
-		params$startX = as.numeric(params$startX)
-	}
-	
-	# startY
-    if(!('startY' %in% names)) {
-        params$startY = 452
-    }
-	else {
-		checkForMin("startY", as.numeric(params$startY), 1, stop)
-		params$startY = as.numeric(params$startY)
-	}
-	
-	if(params$startX < 1 || params $startY < 1) {
-		printError("BGrid x and y coordinates must be greater than 1.", stop)
-	}
-	
-	#XDist
-    if(!('XDist' %in% names)) {
-        params$XDist = 50
-    }
-	else {
-		checkForMin("XDist", as.numeric(params$XDist), 1, stop)
-		params$XDist = as.numeric(params$XDist)
-	}
-	
-	#YDist
-    if(!('YDist' %in% names)) {
-        params$YDist = 50
-    }
-	else {
-		checkForMin("YDist", as.numeric(params$YDist), 1, stop)
-		params$YDist = as.numeric(params$YDist)
-	}
-	
-	#seriesName
-    if(!('seriesName' %in% names)) {
-        params$seriesName = 'z'
-    }	else {
-		params$seriesName = as.character(params$seriesName)
 	}
 	
 	#userSensorList
@@ -1400,18 +1294,117 @@ checkParams = function(params, stop=TRUE) {
 		printError("Please specify/allow the program to place/project a total of at least two sensors.", stop)
 	}
 	
+	# bias
+    if(!('bias' %in% names)) {
+        params$bias = 1
+    }
+	if(!(params$bias %in% c(1,2,3))) {
+		printError("Error: Bias value must be 1, 2, or 3.", stop)
+	}
+	
+	# Warn users if they use depth pref without knowing what the map looks like
+	if('depth_off_bottom' %in% names  && !('inputFile' %in% names)) {
+		printError("Error: Using dp option without a known input file may be bad!.
+				For example, if the generated habitat grid contains no cells near
+				the depth specified, no fish will be generated.", stop)
+	}
+	
+    # inputFile
+    if(('inputFile' %in% names)) {
+        params$inputFile = as.character(params$inputFile)
+    }
+	else {
+		# default to the 1km grid
+		params$inputFile = "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd"
+	}
+	
+	# inputFileType
+    if(!('inputFileType' %in% names)) {
+		params$inputFileType = 'ncdf'
+	}
+	else {
+		supportedFileTypes = c("netcdf", "arcgis")
+		if(!(params$inputFileType %in% supportedFileTypes)) {
+			printError("Invalid 'inputFileType' value.", stop)
+		}
+        params$inputFileType = as.character(params$inputFileType)
+    }
+	
+	# cellSize
+    if(!('cellSize' %in% names)) {
+        params$cellSize = 1000
+    }
+	else {
+		checkForMin("cellSize", as.numeric(params$cellSize), 1, stop)
+	}
+	
+	# detectionRange
+	if(!('detectionRange' %in% names)) {
+		params$detectionRange = 2000
+	}
+	else {
+		checkForMin("detectionRange", as.numeric(params$detectionRange), 1, stop)
+	}
+	if(params$detectionRange <= params$cellSize) {
+		printError("Detection Range of a sensor must greater than a cell's width.", stop)
+	}
+	
+	# startX
+    if(!('startX' %in% names)) {
+        params$startX = 308
+    }
+	else {
+		checkForMin("startX", as.numeric(params$startX), 1, stop)
+	}
+	
+	# startY
+    if(!('startY' %in% names)) {
+        params$startY = 452
+    }
+	else {
+		checkForMin("startY", as.numeric(params$startY), 1, stop)
+	}
+	
+	#XDist
+    if(!('XDist' %in% names)) {
+        params$XDist = 50
+    }
+	else {
+		checkForMin("XDist", as.numeric(params$XDist), 1, stop)
+	}
+	
+	#YDist
+    if(!('YDist' %in% names)) {
+        params$YDist = 50
+    }
+	else {
+		checkForMin("YDist", as.numeric(params$YDist), 1, stop)
+	}
+	
+	#seriesName
+    if(!('seriesName' %in% names)) {
+        params$seriesName = 'z'
+    }	else {
+		params$seriesName = as.character(params$seriesName)
+	}
+	
 
     # shapeFcn
     if(!('shapeFcn' %in% names)) {
         params$shapeFcn = "shape.gauss"
-        params$detectionRange = 3*params$cellSize
-        params$peak = 0.98
     }	
 	else {
 		# Currently, only gauss is defined.
 		if (params$shapeFcn != "shape.gauss") {
 			printError("Currently, the only valid value for shapeFcn is 'shape.gauss'.", stop)
 		}
+	}
+	if(!('peak' %in% names)) {
+		peak = .98
+	}
+	else {
+		checkForMin("peak", as.numeric(params$peak), 0.00001, stop)
+		checkForMax("peak", as.numeric(params$peak), 1, stop)
 	}
 	
 	#sensorElevation
@@ -1420,7 +1413,6 @@ checkParams = function(params, stop=TRUE) {
     }   
 	else {
 		checkForMin("sensorElevation", as.numeric(params$sensorElevation), 0, stop)
-		params$sensorElevation = as.numeric(params$sensorElevation)
     }
     
     ## Calculate an approximate upper bound for suppression range
@@ -1451,6 +1443,25 @@ checkParams = function(params, stop=TRUE) {
 		}
 		params$suppressionFcn = as.character(params$suppressionFcn)
 	}
+	# 0 < max/min suppressionValue < 1
+	if(!('maxsuppressionValue' %in% names)) {
+		params$maxsuppressionValue = .1
+	}
+	else {
+		checkForMin("maxsuppressionValue", params$maxsuppressionValue, 0, stop)
+		checkForMax("maxsuppressionValue", params$maxsuppressionValue, 1, stop)
+	}
+	if(!('minsuppressionValue' %in% names)) {
+		params$minsuppressionValue = .5
+	}
+	else {
+		checkForMin("minsuppressionValue", params$minsuppressionValue, 0, stop)
+		checkForMax("minsuppressionValue", params$minsuppressionValue, 1, stop)
+	}
+	# minsuppressionValue < maxsuppressionValue
+	if(!(params$minsuppressionValue < params$maxsuppressionValue)) {
+		printError("'minsuppressionValue' must be less than 'maxsuppressionValue'.")
+	}
 	
 	# SuppressionRange Factor
     if(!('suppressionRangeFactor' %in% names)) {
@@ -1466,13 +1477,33 @@ checkParams = function(params, stop=TRUE) {
     
     # FishModel
     if(!('fishmodel' %in% names)) {
-        #print("Movement model defaults to RW")
         params$fishmodel = 'rw'
     }	
 	else {
 		params$fishmodel = as.character(params$fishmodel)
 		if(params$fishmodel == "True" | params$fishmodel == "ou") {
 			params$fishmodel = 'ou'
+			#OU vals
+			required = c('mux','muy','ousdx','ousdy','oucor')
+			if(!all(required %in% names)) {
+				printError("Missing OU model variables.  Required values are 'mux', 'muy', 'ousdx', 'ousdy', and 'oucor'")
+			}
+			#validation for ou vars
+			else {
+				#mux, muy must be grid x/y indicies (at least 1, and less than XDist/YDist)
+				checkForMin('mux', params$mux, 1, stop)
+				checkForMin('muy', params$muy, 1, stop)
+				checkForMax('mux', params$mux, params$XDist, stop)
+				checkForMax('muy', params$muy, params$YDist, stop)
+				
+				#ousdx and ousdy need only be non negative
+				checkForMin('ousdx', params$ousdx, 0, stop)
+				checkForMin('ousdy', params$ousdy, 0, stop)
+				
+				# -1 < oucor < 1
+				checkForMin('oucor', params$oucor, -1, stop)
+				checkForMax('oucor', params$oucor, 1, stop)
+			}
 		}
 		else if(params$fishmodel == "False" | params$fishmodel == "rw") {
 			params$fishmodel = 'rw'
@@ -1481,7 +1512,20 @@ checkParams = function(params, stop=TRUE) {
 			printError("Invalid 'fishmodel' value.", stop)
 		}
 	}
-
+	
+	#Vertical Habitat Range
+	if('mindepth' %in% names && 'maxdepth' %in% names) {
+		#mindepth must be non-positive
+		checkForMax('mindepth', params$mindepth, 0, stop)
+	}
+	
+	#Depth Preference
+	if('depth_off_bottom' %in% names && 'depth_off_bottom_sd' %in% names) {
+		#must be non-negative
+		checkForMin('depth_off_bottom', params$depth_off_bottom, 0, stop)
+		checkForMin('depth_off_bottom_sd', params$depth_off_bottom_sd, 0, stop)
+	}
+	
     return(params)
 }
 
@@ -1501,6 +1545,21 @@ checkForMin = function(name, value, minVal, stop=TRUE){
 	}
 }
 
+#' @name checkForMax
+#' @title Checks that value is less than the provided maxVal, throwing an error if it isn't.
+#' @description Checks that value is less than maxVal, printing an error with the provided name
+#' if it isn't.
+#' 
+#' @param name A text name for the value variable (this is what gets printed in the error message.
+#' @param value The value to test.
+#' @param maxVal The max value for value.
+#' @param stop If TRUE, stops the program when an error occurs.
+#' @return Nothing.
+checkForMax = function(name, value, maxVal, stop=TRUE){
+	if(value > maxVal ){
+		printError(sprintf("'%s' value must be less than %g, recieved %g.", name, maxVal, value), stop)
+	}
+}
 
 #' @title Converts input parameters from meters to grid cells.
 #' @description These are used for internal calculations and are invisible to the user.
