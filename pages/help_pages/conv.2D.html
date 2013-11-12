@@ -22,7 +22,7 @@ functionality is not needed here anyway).
 <h3>Usage</h3>
 
 <pre>
-  conv.2D(mat, kx, ky)
+  conv.2D(mat, kx, ky, timestamp = 1, silent = FALSE)
 </pre>
 
 
@@ -41,6 +41,15 @@ convolution operation on</p>
 <tr valign="top"><td><code>ky</code></td>
 <td>
 <p>Convolution kernel in y direction</p>
+</td></tr>
+<tr valign="top"><td><code>timestamp</code></td>
+<td>
+<p>A timestamp reference for status
+updates.</p>
+</td></tr>
+<tr valign="top"><td><code>silent</code></td>
+<td>
+<p>If set to TRUE, disables status printing.</p>
 </td></tr>
 </table>
 

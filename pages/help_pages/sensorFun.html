@@ -19,7 +19,7 @@ sensor locations.
 
 <pre>
   sensorFun(numSensors, bGrid, fGrid, range, bias, params,
-    debug = FALSE, opt = FALSE)
+    debug = FALSE, silent = FALSE, save.inter = FALSE)
 </pre>
 
 
@@ -59,10 +59,14 @@ PARAMETER_DESCRIPTIONS.html for more info.</p>
 <p>If enabled, turns on debug printing (console
 only).</p>
 </td></tr>
-<tr valign="top"><td><code>opt</code></td>
+<tr valign="top"><td><code>save.inter</code></td>
 <td>
-<p>Tells the program to use vectorized R
-commands.</p>
+<p>If TRUE intermediary calculations are
+output as key inter.</p>
+</td></tr>
+<tr valign="top"><td><code>silent</code></td>
+<td>
+<p>If set to TRUE, disables status printing.</p>
 </td></tr>
 </table>
 

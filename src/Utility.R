@@ -183,7 +183,7 @@ updateFGrid = function(loc, grids, params, debug=FALSE){
 #' @title Calculates the composite "goodness" grid for a particular bias.
 #' @description Calls a particular sumGrid function based on the bias and opt values.  Actual work
 #' 			is done by the called function.
-#'
+#' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
 #' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
@@ -1629,10 +1629,10 @@ printError = function(msg, stop=TRUE) {
 	}
 }
 
-#' @title Returns the % completion of the calculation of the sumgrid for a given job.
+#' @title Returns the percent completion of the calculation of the sumgrid for a given job.
 #'
 #' @param id The id of the job to query.  This is always the associated timestamp for the job.
-#' @return The status of the job as a percentage (0<=n<=1).
+#' @return The status of the job as a percentage between zero and one.
 checkStatus = function(id) {
 	return(status[toString(id)])
 }

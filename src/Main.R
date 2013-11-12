@@ -105,6 +105,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
 #' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
 #' @export
 acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
+	library("rjson")
 	status <<- {}
 	#### TEST RUN
 	params = list()
@@ -115,10 +116,10 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	params$timestamp = -1
 	params$numSensors = 4
 	params$bias = bias
-	params$sensorElevation <- 1
-   		 params$shapeFcn <- 'shape.gauss'
-	params$peak=.98 
-        params$detectionRange <- 25
+	params$sensorElevation = 1
+	params$shapeFcn = 'shape.gauss'
+	params$peak = .98 
+    params$detectionRange <- 120
 	
 	# BGrid Variables
 	params$inputFile = "src/palmyra_40m.grd"
@@ -126,9 +127,9 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	params$seriesName = 'z'
 	params$cellSize = 40 
 	params$startX = 50
-	params$XDist = 800
+	params$XDist = 20
 	params$startY = 200
-	params$YDist = 200
+	params$YDist = 20
 	
 	## Suppression Variables
 	params$suppressionRangeFactor = 1
@@ -171,9 +172,15 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	return(acousticRun(params, showPlots=FALSE, debug))
 }
 
-
+#' @name appendError
+#' @title Appends execution errors to a global gErrors dictionary, with the 'time' variable as the key.
+#' @description Creates an entry in the global 'gErrors' dictionary with the 'time' value as a key, and
+#' msg as a value, then prints msg to the terminal.
+#' @param msg The error message to print.
+#' @param time A timestamp to use as a key.
+#' @return The error message that was passed in.
+#' @export
 appendError = function(msg, time) {
 	gErrors[toString(time)] <<- msg[1]
 	print(gErrors[toString(time)])
 }
-#acousticTest( bias=1)

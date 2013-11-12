@@ -21,7 +21,7 @@ placed in the current cell.
 
 <pre>
   calc.percent.viz(r, c, rind, cind, bGrid, land,
-    sensorDepth, dpflag, params)
+    sensorDepth, dpflag, params, debug = FALSE)
 </pre>
 
 
@@ -55,6 +55,11 @@ visibility percentage.</p>
 <p>Matrix containing logicals (TRUE = land cell)
 indicating wheter a cell in the bGrid is a land cell.</p>
 </td></tr>
+<tr valign="top"><td><code>debug</code></td>
+<td>
+<p>If enabled, turns on debug printing (console
+only).</p>
+</td></tr>
 <tr valign="top"><td><code>sensorDepth</code></td>
 <td>
 <p>Depth of sensor in current cell.</p>
@@ -77,10 +82,11 @@ PARAMETER_DESCRIPTIONS.html for more info.</p>
 
 <p>Returns a dictionary with three keys (all vectors):
 percentVisibility contains the percentage fish/signals
-visible in the surrounding cells, inds contains the
-linear indices in the bGrid to which the visibilities
+visible in the surrounding cells, linearIndex contains
+the linear indices in the bGrid to which the visibilities
 pertain, dists contains the distance from the current
-cell to each of the returned cells as given by inds.
+cell to each of the returned cells as given by
+linearIndex.
 </p>
 
 

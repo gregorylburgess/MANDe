@@ -21,7 +21,7 @@ be overlayed using the plot.bathy flag.
 
 <pre>
   plotGrid(result, type = "bGrid", main = type, xlab = "",
-    ylab = "", plot.bathy = TRUE)
+    ylab = "", plot.bathy = TRUE, plot.sensors = TRUE, ...)
 </pre>
 
 
@@ -53,8 +53,17 @@ grids: 'bGrid', 'fGrid', 'sumGrid', or
 </td></tr>
 <tr valign="top"><td><code>plot.bathy</code></td>
 <td>
-<p>Specifies whether contour lines for
-bathymetry should be overlayed in the graphs.</p>
+<p>Specifies whether bathymetry contour
+lines should be added to plots.</p>
+</td></tr>
+<tr valign="top"><td><code>plot.sensors</code></td>
+<td>
+<p>Specifies if sensors should be added
+to plot.</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>Additional parameters to image, see ?image.</p>
 </td></tr>
 </table>
 
