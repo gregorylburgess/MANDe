@@ -1490,11 +1490,11 @@ checkParams = function(params, stop=TRUE) {
 			}
 			#validation for ou vars
 			else {
-				#mux, muy must be grid x/y indicies (at least 1, and less than XDist/YDist)
-				checkForMin('mux', params$mux, 1, stop)
-				checkForMin('muy', params$muy, 1, stop)
-				checkForMax('mux', params$mux, params$XDist, stop)
-				checkForMax('muy', params$muy, params$YDist, stop)
+				#mux, muy must be porportions of the x/y axis, between 0 and 1)
+				checkForMin('mux', params$mux, 0, stop)
+				checkForMin('muy', params$muy, 0, stop)
+				checkForMax('mux', params$mux, 1, stop)
+				checkForMax('muy', params$muy, 1, stop)
 				
 				#ousdx and ousdy need only be non negative
 				checkForMin('ousdx', params$ousdx, 0, stop)

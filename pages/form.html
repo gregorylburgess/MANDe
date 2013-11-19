@@ -131,6 +131,7 @@
 			}); //end $(resolution).change
 
 			//Read cookie value if it exists
+			/*
 			var cookieValue = $.cookie("acousticwebapp-data");
 			if (cookieValue != "" && !(cookieValue == undefined)) {
 				var dic = JSON.parse("{" + cookieValue + "}");
@@ -139,8 +140,7 @@
 						$("#" + key).val(dic[key]);
 					}
 				}
-			}
-			loaded = true;
+			}*/
 		}, 'text');
 	}
 
@@ -248,10 +248,10 @@
 			alert(errors);
 		}
 		else {	
-			var startX = parseInt((myw-w)/dpcC);
-			var XDist = parseInt((mye-myw)/dpcC);
-			var startY = parseInt((mys-s)/dpcR);
-			var YDist = parseInt((myn-mys)/dpcR);
+			var startX = Math.ceil((myw-w)/dpcC);
+			var XDist = Math.ceil((mye-myw)/dpcC);
+			var startY = Math.ceil((mys-s)/dpcR);
+			var YDist = Math.ceil((myn-mys)/dpcR);
 
 			//Parse the userSensorList
 			var userSensorList = $("#userSensors").val();
@@ -266,8 +266,8 @@
 					var r = parseFloat(userSensorList[2*i+1]);
 					var tc = ((c-myw));
 					var tr = ((r-mys));
-					c = Math.ceil(parseInt((c-myw)/dpcC));
-					r = Math.ceil(parseInt((r-mys)/dpcR));
+					c = Math.ceil((c-myw)/dpcC);
+					r = Math.ceil((r-mys)/dpcR);
 
 					sensorList += c + "," + r + ",";
 				}
@@ -282,6 +282,8 @@
 			dict += "\"seriesName\":\"z\",";
 			dict += "\"cellSize\":\"" + cells + "\",";
 			dict += "\"userSensorList\":\"" + sensorList + "\",";
+			dict += "\"dpcR\":\"" + dpcR + "\",";
+			dict += "\"dpcC\":\"" + dpcC + "\",";
 			submitForm(dict);
 		}
 	}
@@ -311,7 +313,10 @@
 						dic += "\"" + id + "\":\"" + value + "\",";
 					}
 					else {
-						var value = $(this).text().replace(/\s/g, "");
+						//var value = $(this).text().replace(/\s/g, "");
+						var value = $("#" + id).val().replace(/\s/g, "");
+						//alert(id + " " + value);
+						dic += "\"" + id + "\":\"" + value + "\",";
 						if(value == 'True') {
 							$(this).find('Hidable').find('HField').each(function() {
 								id = $(this).attr("id");
@@ -407,10 +412,10 @@
 			}
 			toRet += "</font>";
 			//unset the cookie if an error occured
-			$.removeCookie('acousticwebapp-data');
+			//$.removeCookie('acousticwebapp-data');
 		}
 		//Re-Print params
-		toRet += "<h3>Parameters:</h3>";
+		toRet += "<h1>Parameters:</h1>";
 		for(var key in params) {
 			toRet += "<b>" + key + "</b>" + ": " + params[key] + "</br>";
 			if (key == "sensorList") {
@@ -423,7 +428,28 @@
 		}
 		
 		if(!err) {
-			toRet += "</br><h1>Results:</h1></br><h3>Stats:</h4>";
+			toRet += "</br><h1>Results:</h1>";
+
+			//Parse sensor boundary values
+			var south = params["south"];
+			var west = params["west"];
+			var dpcC = params["dpcC"];
+			var dpcR = params["dpcR"];
+			
+			toRet += "<h3>Sensor Locations:</h3>";
+			//Print sensor locations
+			toRet += "<table class=\"table\" style=\"max-width:443px;\"><thead><tr>";
+			toRet += "<th>Longitude</th><th>Latitude</th>";
+			toRet += "</tr></thead><tbody>";
+			sensors = sensors.sort(function(a,b){return -(b.r-a.r) + (b.c-a.c)/10.0});
+			for (var i=0;i<sensors.length; i++) {
+				toRet += "<tr><td>" + (sensors[i].r * dpcR + west).toFixed(10) + "</td><td>" + (sensors[i].c * dpcC + south).toFixed(10) + "</td></tr>";
+			}
+			toRet += "</tbody></table>";
+			
+			
+			//Print network stats
+			toRet += "<h3>Stats:</h3></br>";
 			for(var key in stats) {
 				if(key != "acousticCoverage") {
 					toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";

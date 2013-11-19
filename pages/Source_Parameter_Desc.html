@@ -1,0 +1,280 @@
+<html>
+<body><font color="white" face="arial">
+	<h1>AcousticMain() Parameter Descriptions</h1>
+	<h2><u>Fish Model Variables</u></h2>
+		<div class="variable">fishmodel</div> 
+		Specify which fish model to use.  Specify either "ou" or "rw".
+		<ul>
+			<li>
+				<b>Random Walk (rw):</b>
+				Purely diffusive movements with no locational or directional
+				preference. This results in a uniform distribution of fish over the
+				study region. Useful when no knowledge about fish behavior is
+				available or can be assumed.  No additional Fish Model Algorithm parameters 
+				are required if this option is chosen.
+			</li></br>
+			<li>
+				<b>Ornstein-Uhlenbeck(ou):</b>
+				Movements within a limited region mimicking fish with a home range. This results
+				in a normal distribution with two parameters: the home range center
+				(mean), and the home range extents and shape (covariance). This is
+				useful if the study species is known to prefer a specific geographic
+				region. The covariance controls the strength of attraction toward this
+				specific region. Selecting this option requires users to specify home range center 
+				('mux' and 'muy'), home range size ('ousdx' and 'ousdy'), and home range directional correlation('oucor').
+				<ul>
+					<li>
+						<div class="variable">mux</div> 
+						X location of the home range center given as proportion of axes. A value between 0 and 1.
+					</li>
+					<li>
+						<div class="variable">muy</div> 
+						Y location of the home range center given as proportion of axes. A value between 0 and 1. 
+					</li>
+					<li>
+						<div class="variable">ousdx</div> 
+						Standard deviation in meters of home range extent in the x direction. 
+						Controls home range width.  A rule of thumb says that for each direction in
+						isolation approximately 95% of the time is spent within plus minus two
+						standard deviations. 
+					</li>
+					<li>
+						<div class="variable">ousdy</div> 
+						Standard deviation in meters of home range extent in the y direction. 
+						Controls home range height. A rule of thumb says that for each direction in
+						isolation approximately 95% of the time is spent within plus minus two
+						standard deviations. 
+					</li>
+					<li>
+						<div class="variable">oucor</div> 
+						Correlation of spatial distribution between directions. Controls the tilt of the home range. 
+						This is useful if the home range shape is angled relative to the x,y coordinate system. The
+						correlation must be in the range [-1, 1]. 
+					</li>
+				</ul><!-- end OU params -->
+			</li>
+		</ul><!-- end fishmodel params -->
+
+	
+	<h2><u>Optional Fish Model Variables</u></h2>
+		<h3>Restrict Vertical Habitat Range</h3> 
+		Restricts fish to habitat
+		regions within a given depth range. This is useful if the fish is known
+		to live in a certain vertical habitat (e.g. between -10 and -50 meters) meters. If
+		unspecified the species is assumed to be able to utilize the whole
+		water column. Using this option requires specifying 'mindepth' and 'maxdepth'. 
+		<ul>
+			<li>
+				<div class="variable">mindepth</div> 
+				Specifies the shallowest depth in meters a fish will
+				visit. Valid values are non-positive real numbers.
+			</li>
+			<li>
+				<div class="variable">maxdepth</div> 
+				Specifies the deepest depth in meters a fish will
+				visit. Valid values are non-positive real numbers. 
+			</li>
+		</ul>
+		
+		<h3>Use Depth Preference</h3> 
+		Within the vertical habitat fish may also
+		have a preference to linger at a certain height relative to the bottom.
+		This is specified with a normal distribution with a mean preferred
+		height relative to the bottom and a standard deviation (SD). Using this option 
+		requires specifying 'depth_off_bottom' and 'depth_off_bottom_sd'.
+		<ul>
+			<li>
+				<div class="variable">depth_off_bottom</div> 
+				Depth preference of fish relative to bottom
+				(in meters off the bottom). Valid values are non-negative real numbers.
+			</li>
+			<li>
+				<div class="variable">depth_off_bottom_sd</div> 
+				Strength of depth preference as a
+				standard deviation, 95% of the time is spent within plus minus 2*SD.
+				Units are in meters. Valid values are negative real numbers. 
+			</li>
+		</ul>
+		
+	<h2><u>Sensor Variables</u></h2>
+		<div class="variable">numSensors</div> 
+		Specifies how many sensors the program should place. 
+		</br>
+		<div class="variable"projectedSensors</div> 
+		Specifies how many sensors the program should provide projections for.
+		</br>
+		<div class="variable"userSensorList</div> 
+		Specifies a list of sensors that should be placed before running the program.  
+		Useful for indicating the locations of already existing sensors. Sensor locations are given
+		in the form: longitude of sensor 1, latitude of sensor 1, longitude of sensor 2, latitude of sensor 2, ...
+		</br>
+		<div class="variable"bias</div> Specify how you want the system to
+		determine the "goodness" of a cell. Options are 1, 2, or 3.
+		</br> 
+		A value of '1' indicates that a "good" cell has a high number of animals within
+		detection range (ignoring line of sight). This is useful for sensors
+		not restricted to line-of-sight detection. 
+		</br>
+		A value of '2' indicates that a "good" cell has the best visibility (taking into account
+		bathymetry and shadowing, but completely ignoring fish density). This
+		is useful for networks restricted to line-of-sight detection and having
+		no prior knowledge of animal habitat. 
+		</br>
+		A value of '3' indicates that a
+		"good" cell has a high number of visible fish (incorporating both
+		bathymetry and animal density). This is useful for networks restricted
+		to line-of-sight detection, and having some idea of animal habitat. 
+		</br>
+		
+		<h3>Sensor Elevation</h3>
+		Specifies how far off the bottom a sensor should be placed.  Units are in meters. 
+		Valid values are non-negative real numbers.
+		</br>
+		
+		<h3>Sensor Shape function</h3>
+		Determines which functional shape to represent horizontal acoustic attenuation in the
+		water. The detection function specifies how the chance of signal
+		detection declines as a function of distance to sensor. Ranging
+		experiments should preferably be carried out locally at the study site
+		to approximate this function. Currently, only "shape.gauss" is supported.
+		</br>
+		
+		<h3>Max Detection Value</h3>
+		The probability of detecting a fish
+		located right next to the sensor. Specifies a maximum value for the
+		shape function. Values should be a decimal between 0.05 and 1.
+		</br>
+		
+		<h3>Detection Range</h3>
+		The distance in meters from the sensor where the chance of detecting a signal is 0.05.
+		</br>
+		</br>
+		</br>
+		
+	<h2>Bathymetry Variables</h2>
+		<h3>Input File</h3> 
+		Specifies the file location of the Bathy File to use.  For arcGIS filetypes, this is the
+		folder containing the data files.  For netCDF filetypes, this is the ncdf file itself.
+		</br>
+		
+		<h3>Input File Type</h3> 
+		Specifies the file type of the Bathy file you provided. Options are ArcGIS and NetCDF. 
+		</br>
+		
+		<h3>Data Series Name</h3>
+		For ArcGIS/NetCDF, this specifies the name of the data series to use.
+		</br>
+		
+		<h3>Grid cell size</h3> 
+		Specifies the size of the grid cell in meters.
+		</br>
+		
+		<h3>Beginning X Index</h3> 
+		Specifies the starting X cell-index of the area of interest for the file chosen. 
+		Valid values are non-negative integers.
+		</br>
+		
+		<h3>X Axis Length</h3>
+		Specifies how far the area of interest extends
+		along the X axis. Units are in meters. Valid
+		values are non-negative integers. 
+		</br>
+		
+		<h3>Beginning Y Index</h3>
+		Specifies the starting Y cell-index of the
+		area of interest for the file chosen. Valid values are non-negative
+		integers.
+		</br>
+		
+		<h3>Y Axis Length</h3>
+		Specifies how far the area of interest extends
+		along the Y axis. Units are in number of bathymetric grid cells. Valid
+		values are non-negative integers.
+		</br>
+		
+		<h3>Northern Grid Boundary</h3>
+		Specifies the Northern latitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Southern Grid Boundary</h3>
+		Specifies the Southern latitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Western Grid Boundary</h3>
+		Specifies the Western longitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Eastern Grid Boundary</h3>
+		Specifies the Eastern latitude limit of the study area in decimal degrees.
+		</br>
+		</br>
+		</br>
+		
+		
+	<h2>Suppression Variables</h2>
+		In order to prevent the program from
+		placing sensors too near or on top of each other, a suppression
+		function is used to reduce the goodness of cells around already placed
+		sensors. Another way to think of this mechanism is that the program
+		tries to enforce a minimum bound on the sparsity of the sensor network
+		with the result that sensors are more spread out.
+		</br>
+				
+		<h3>Suppression Factor</h3> 
+		Specifies the range of suppression in
+		multiples of the detection range. For example, a suppression factor of
+		2 enforces a suppression range of two times the detection range. Cells
+		within the suppression range of a sensor will be subject to the
+		specified suppression function. To deter sensor overlap, a good value
+		to use is equal to or higher than the sensor Detection Range specified
+		above. Valid values are non-negative real numbers. 
+		</br>
+		
+		<h3>Suppression Function</h3>
+		Specify suppression function to use.
+		Options are <div class="variable">suppression.static</div>, <div class="variable">suppression.scale</div>, <div class="variable">detection.function</div>,
+		<div class="variable">detection.function.shadow</div>, or <div class="variable">detection.function.exact</div>.
+		</br>
+		<div class="variable">suppression.static:</div> 
+		Replaces all cells within range of a sensor with
+		the value specified in Min suppression value. 
+		</br>
+		<div class="variable">suppression.scale:</div> </br>
+		Multiplies the values of cells within range of a sensor by a scaling
+		factor according to the cell's distance from the sensor. Nearby cells
+		receive a higher scaling factor, and lower cells receive a lower
+		scaling factor. The scaling factor is linearly related to the distance
+		between the sensor and cell. Minimum and Maximum values for scaling
+		factors can be specified below. 
+		</br>
+		<div class="variable">detection.function:</div> </br>Uses the inverse
+		of the detection function to down scale goodness of grid cells near the
+		sensor, but does not take objects that block signal into account. Grid
+		cells' goodness will increase as a function of distance to the sensor.
+		</br>
+		<div class="variable">detection.function.shadow:</div> </br>Uses the inverse of the detection
+		function to down scale goodness of grid cells near the sensor, and does
+		take objects that block signal into account. This means that sensors on
+		opposite sides of a blocking wall will not affect each other's
+		goodness. Unblocked grid cells' goodness will increase as a function of
+		distance to the sensor. 
+		</br>
+		<div class="variable">detection.function.exact:</div> </br>The above suppression
+		functions do not recalculate the goodness grid after placing a new
+		sensor and therefore only provide an approximately optimal solution.
+		This suppression function does recalculate the goodness iteratively,
+		and is therefore slower by a factor equal to the number of sensors. 
+		</br>
+		
+		<h3>Max Suppression Value (model 1+2 only)</h3>
+		Specifies the maximum
+		scaling factor to apply. Cells directly adjacent to a sensor will
+		receive this as a scaling factor. 
+		</br>
+		
+		<h3>Min suppression Value (model 2 only)</h3>
+		Specifies the minimum
+		scaling factor to apply. Cells at the edge of the suppression Range
+		will receive this as a scaling factor.
+</font>
+</body></html>

@@ -109,8 +109,6 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	status <<- {}
 	#### TEST RUN
 	params = list()
-	#notification option
-	params$userEmail = "someone@mail.com"
 	
 	## Sensor variables
 	params$timestamp = -1
@@ -139,19 +137,19 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	## This is only relevant with suppression.scale
 	params$minsuppressionValue = .5 
 	## Choose random walk type movement model
-	params$fishmodel <- 'rw'
+	params$fishmodel <- 'ou'
 	if(params$fishmodel == 'ou'){
             ## OU parameter: center of home range
-            params$mux <- 0.7 ## Proportion of x scale
-            params$muy <- 0.5 ## Proportion of y scale
+            params$mux <- .3 ## Proportion of x scale
+            params$muy <- .3 ## Proportion of y scale
 		
             ## ----- OU: Home range shape and size parameters: -----
             ## SD of home range in x direction, sdx > 0 in meters
-            params$ousdx <- 25
+            params$ousdx <- 120
             ## SD of home range in y direction, sdy > 0 in meters
-            params$ousdy <- 25
+            params$ousdy <- 120
             ## Correlation between directions, -1 < cor < 1
-            params$oucor <- 0.7
+            params$oucor <- 0
 	}
 	## Apply vertical habitat range?
 	vHabitatRange = FALSE
@@ -184,3 +182,5 @@ appendError = function(msg, time) {
 	gErrors[toString(time)] <<- msg[1]
 	print(gErrors[toString(time)])
 }
+
+acousticTest()

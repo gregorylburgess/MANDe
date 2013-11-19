@@ -22,9 +22,13 @@ change <- function(input, output, pattern, value, debug=TRUE) {
 	}
 }
 
+#install and load roxygen2
+install.packages("roxygen2", repos='http://cran.cnr.Berkeley.edu')
 library(roxygen2)
+
 # name of the package to create (Fill in whatever you want)
 packageName = "acoustic"
+
 # Names of source files.  These must exist in 'src/' folder of the working directory.
 files = c("Description.R",
 		"Bathy.R", 
@@ -56,7 +60,7 @@ for (file in files) {
 }
 
 # Call Roxygen to make the .Rd files
-print('--- Roxygenize')
+print('--- Roxygenize ---')
 roxygenize(packageName, copy=FALSE)
 
 # Changes all file paths in source() calls to their new values.

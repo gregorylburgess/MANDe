@@ -1,34 +1,30 @@
 <font color="white" face="arial">
-	<h1>Parameter Descriptions</h1>
-	<h2>Notification Options</h2>
-		<h3>User Email</h3> 
-		If you provide an email address, you will be notified when your job has
-		finished processing. This is useful for long requests.
-		</br>
-
+	<h1>AcousticMain() Parameter Descriptions</h1>
 	<h2>Fish Model Variables</h2>
 	
 		<h3>Fish Model Algorithm</h3> 
 		The choice here should reflect the prior knowledge about the long-term 
-		distribution of fish within the study region.Options are Random Walk 
-		or Ornstein-Uhlenbeck (OU). 
+		distribution of fish within the study region.  Options are 'rw' (Random Walk) 
+		or 'ou' (Ornstein-Uhlenbeck). 
 		</br> 
 		
-		<b>Random Walk (RW):</b> </br> Purely diffusive movements with no locational or directional
+		<b>Random Walk (rw):</b> </br> Purely diffusive movements with no locational or directional
 		preference. This results in a uniform distribution of fish over the
-		study region. Useful when no knowledge about fish behaviour is
-		available or can be assumed.</br> 
+		study region. Useful when no knowledge about fish behavior is
+		available or can be assumed.  No additional Fish Model Algorithm parameters 
+		are required if this option is chosen.</br> 
 		
-		<b>Ornstein-Uhlenbeck (OU):</b> Movements
+		<b>Ornstein-Uhlenbeck(ou):</b> Movements
 		within a limited region mimicking fish with a home range. This results
 		in a normal distribution with two parameters: the home range center
 		(mean), and the home range extents and shape (covariance). This is
 		useful if the study species is known to prefer a specific geographic
 		region. The covariance controls the strength of attraction toward this
-		specific region. 
+		specific region. Selecting this option requires users to specify home range center 
+		('mux' and 'muy'), home range size ('ousdx' and 'ousdy'), and home range directional correlation('oucor').
 		</br>
-		<h3>Home range center (OU only)</h3> 
-		x and y coordinate of the home range center given as proportion of axes. 
+		<h3>Home range center x coordinate</h3> 
+		The x coordinate of the home range center given as proportion of axes. 
 		</br>
 		
 		<h3>Home range size (OU only)</h3> 
@@ -41,7 +37,7 @@
 		<h3>Home range directional correlation (OU only)</h3> 
 		Correlation spatial distribution between directions. This is useful is the home
 		range shape is angled relative to the x,y coordinate system. The
-		correlation must be in the range [-1; 1]. 
+		correlation must be in the range [-1, 1]. 
 		</br> 
 		</br>
 		
@@ -49,7 +45,7 @@
 		<h3>Restrict Vertical Habitat Range</h3> 
 		Restricts fish to habitat
 		regions within a given depth range. This is useful if the fish is known
-		to live in a certain vertical habitat say [-10; -50] meters. If
+		to live in a certain vertical habitat (e.g. between -10 and -50 meters) meters. If
 		unspecified the species is assumed to be able to utilize the whole
 		water column. Enabling this reveals the two following parameters: "Min
 		Depth" & "Max Depth". 
@@ -89,9 +85,16 @@
 		
 	<h2>Sensor Variables</h2>
 		<h3>Number of Sensors to Use</h3> 
-		Specifies how many sensors the system should try to place. 
+		Specifies how many sensors the program should place. 
 		</br>
-		
+		<h3>Number of Sensors to Project</h3> 
+		Specifies how many sensors the program should provide projections for.
+		</br>
+		<h3>User Sensor List</h3> 
+		Specifies a list of sensors that should be placed before running the program.  
+		Useful for indicating the locations of already existing sensors. Sensor locations are given
+		in the form: longitude of sensor 1, latitude of sensor 1, longitude of sensor 2, latitude of sensor 2, ...
+		</br>
 		<h3>'Goodness' Algorithm</h3> Specify how you want the system to
 		determine the "goodness" of a cell. Options are 1, 2, or 3.
 		</br> 
@@ -120,8 +123,7 @@
 		water. The detection function specifies how the chance of signal
 		detection declines as a function of distance to sensor. Ranging
 		experiments should preferably be carried out locally at the study site
-		to approximate this function. Options are : shape.T, shape.gauss, and
-		shape.sigmoidal.
+		to approximate this function. Currently, only "shape.gauss" is supported.
 		</br>
 		
 		<h3>Max Detection Value</h3>
@@ -138,10 +140,12 @@
 		
 	<h2>Bathymetry Variables</h2>
 		<h3>Input File</h3> 
+		Specifies the file location of the Bathy File to use.  For arcGIS filetypes, this is the
+		folder containing the data files.  For netCDF filetypes, this is the ncdf file itself.
 		</br>
 		
 		<h3>Input File Type</h3> 
-		Specifies the file type of the Bathy file you provided. Options are ArcGIS, NetCDF, and ASC. 
+		Specifies the file type of the Bathy file you provided. Options are ArcGIS and NetCDF. 
 		</br>
 		
 		<h3>Data Series Name</h3>
@@ -159,7 +163,7 @@
 		
 		<h3>X Axis Length</h3>
 		Specifies how far the area of interest extends
-		along the X axis. Units are in number of bathymetric grid cells. Valid
+		along the X axis. Units are in meters. Valid
 		values are non-negative integers. 
 		</br>
 		
@@ -174,8 +178,25 @@
 		along the Y axis. Units are in number of bathymetric grid cells. Valid
 		values are non-negative integers.
 		</br>
+		
+		<h3>Northern Grid Boundary</h3>
+		Specifies the Northern latitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Southern Grid Boundary</h3>
+		Specifies the Southern latitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Western Grid Boundary</h3>
+		Specifies the Western longitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Eastern Grid Boundary</h3>
+		Specifies the Eastern latitude limit of the study area in decimal degrees.
 		</br>
 		</br>
+		</br>
+		
 		
 	<h2>Suppression Variables</h2>
 		In order to prevent the program from

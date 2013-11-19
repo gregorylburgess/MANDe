@@ -2,7 +2,10 @@
 <Groups>
 	<Group id="Bathymetry Variables">
 		<Fields>
-			<Field id="resolution" label="Bathymetry Dataset" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting '50 meter cells' will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
+		
+		
+			<!--  Pre-defined Server File support. Comment out if you want to use local files-->
+			<Field id="resolution" label="Bathymetry Dataset" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting smaller cell sizes will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
 				<Options>
 					<Option label="Hawaiian Isles: 1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
 					<Option label="Hawaiian Isles: 50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
@@ -21,11 +24,14 @@
 			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your area of interest in Decimal Degrees.">
 				-158.316
 			</Field>
+			
+			
+			
 			<!--  Local File support. Uncomment if you want to use local files>
 			<Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
 				src/palmyrabath.RData
 			</Field>
-			<Field id="inputFileType"  label="Input File Type"  type="select"  toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS, NetCDF, and ASC.">
+			<Field id="inputFileType"  label="Input File Type"  type="select"  toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS and NetCDF">
 				<Options>
 					<Option label="ArcGIS">arcgis</Option>
 					<Option label="NetCDF">netcdf</Option>
@@ -59,10 +65,10 @@
 					<Option label="Ornstein-Uhlenbeck (OU)">True</Option>
 				</Options>
 				<Hidable>
-					<HField id="mux"  label="Home Range Center (X value)"  type="text"  toolTip="X coordinate of the home range center given as proportion of the x axis.">
+					<HField id="mux"  label="Home Range Center (X value)"  type="text"  toolTip="Longitude of the home range center.">
 						0.4
 					</HField>
-					<HField id="muy"  label="Home Range Center (Y value)"  type="text"  toolTip="Y coordinate of the home range center given as proportion of the y axis.">
+					<HField id="muy"  label="Home Range Center (Y value)"  type="text"  toolTip="Latitude of the home range center.">
 						0.4
 					</HField>
 					<HField id="ousdx"  label="Home Range Extent (X value)"  type="text"  toolTip="SD of the utilization distribution in the x direction in meters.">

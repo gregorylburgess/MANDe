@@ -3,8 +3,12 @@ body {
 	padding-bottom: 40px;
 	background: #000;
 	color: #fff;
+	font-family: "Calibri", sans-serif; 
 }
 
+a {
+	color: #555;
+}
 #hero {
 	margin-top: 35px;
 	background-image: -moz-linear-gradient(100% 95% 90deg, #000, #333);
@@ -132,3 +136,7 @@ body {
 	
 }
 
+.var {
+	font-weight: bold;
+	font-size: 15pt;
+}
