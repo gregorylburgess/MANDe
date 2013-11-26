@@ -13,19 +13,22 @@
 					<li><a href="#help" onClick="help()">Help</a></li>
 				</ul>
 			</div>
-			<!--/.nav-collapse -->
 		</div>
 	</div>
 
+
 <script>
 function about() {
-	$("#content").load("about.html");
+	$("#hero").hide();
+	$("#form").load("about.html");
 }
 function help() {
-	$("#content").load("help.html");
+	$("#hero").hide();
+	$("#form").load("help.html");
 }
 function home() {
-	$("#content").load("form.html");
+	$("#hero").show();
+	$("#form").load("form.html");
 }
 </script>
 </div>

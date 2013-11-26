@@ -1,24 +1,36 @@
 <div>
 	<h2>Help Topics:</h2>
+	<h4>Setting Up Your Own Instance:</h4>
 	<ul>
-		<li><a href="#" onclick="paramDesc()">Parameter Descriptions</a></li>
-		<li><a href="#">User Guide</a></li>
-		<li><a href="#" onclick="methodDesc()">Developer Guide</a></li>
 		<li><a href="#" onclick="lInstall()">Setting Up A Local Instance on Your Computer</a></li>
 		<li><a href="#" onclick="sInstall()">Setting Up A Cloud-Based Instance on Amazon Web Services</a></li>
 	</ul>
+	<h4>Using The Webapp:</h4>
+	<ul>
+		<li><a href="#">User Guide</a></li>
+	</ul>
+	<h4>Using The R Package:</h4>
+	<ul>
+		<li><a href="#" onclick="devGuide()">Developer Guide</a></li>
+		<li><a href="#" onclick="methodDesc()">Method Descriptions</a></li>
+		<li><a href="#" onclick="paramDesc()">Parameter Descriptions</a></li>
+	</ul>
+	
 	<script>
+	function devGuide() {
+		$("#form").load("lib_devGuide.html");
+	}
 	function paramDesc() {
-		$("#content").load("parameter_descriptions.html");
+		$("#form").load("lib_vars.html");
 	}
 	function methodDesc() {
-		$("#content").load("method_descriptions.html");
+		$("#form").load("method_descriptions.html");
 	}
 	function lInstall() {
-		$("#content").load("local_install.html");
+		$("#form").load("local_install.html");
 	}
 	function sInstall() {
-		$("#content").load("server_install.html");
+		$("#form").load("server_install.html");
 	}
 	</script>
 </div>

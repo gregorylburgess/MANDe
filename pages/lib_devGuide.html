@@ -1,0 +1,65 @@
+<h2> Acousitc Package Developer Guide</h2>
+This document discusses the general concepts and functionality included within the R package, as well as guidance on how to extend functionality.
+
+
+<h4>General Program Flow</h4>
+The package generally functions as follows:
+1. Acquire bathymetry</br>
+2. Simulate Animal Behavior</br>
+3. Calculate the sumGrid</br>
+4. Place user Sensors</br>
+5. Suppress user Sensors</br>
+6. Find optimal sensor placements</br>
+7. Generate statistical & graphical data</br>
+</br>
+</br>
+
+<h3>Grids</h3>
+Within the program, several R matricies or "grids" are used frequently:</br>
+<h5>fGrid:</h5> Represents the movement patterns of fish over a study period as a probability of their occupation of the cell.  The sum of all cells in the grid should equal 1.
+</br>
+<h5>bGrid:</h5> Contains the bathymetric data for each cell in the study area.  These are negative numbers representing depth in meters.
+</br>
+<h5>sumGrid:</h5> Represents the "goodness" of a particular cell.  This grid is generated from the bGrid and fGrid by a sumGrid function. Higher values indicate better choices.  Values must be positive real numbers.
+</br>
+</br>
+<h3>Functionality</h3>
+<h5>Bathymetry Acquisition</h5>
+The generation of the bGrid is handled by the Bathy.R file.  All bathymetry options and parameters are contained within this file.  
+The size of the bGrid dictates the size of the fGrid and sumGrid.
+</br>
+</br>
+<h5>Fish Modeling</h5>
+The modeling of animal behavior is handled by the FishModel.R file.  All fish model options and parameters required to generate the fGrid are handled within this file.
+The fish model has access to all parameters passed into the program, as well as a bGrid for the study area.  The fish() function makes the appropriate method calls based on the value of the <i>fishmodel</i> parameter. 
+</br></br>
+
+<h5>sumGrid Functions:</h5>
+sumGrid functions are functions that calculate a sumGrid for a given study area.  
+Functions of this genre have function names starting with "sumGrid.".  
+The function <i>sumGrid.fun</i> is the "operator" and calls specific sumGrid functions based on the <i>bias</i> parameter.
+Generally, the calculation of the sumGrid is the most expensive calculation done by the program.
+</br>
+</br>
+<h5>suppression Functions:</h5>
+To find optimal sensor placements (step 6), the package uses a greedy algorithm over the sumGrid to find good candidates for sensor placement (it chooses to place sensors in the largest values of the sumGrid).  
+Using this technique, it is possible that multiple cells will have the same goodness value (perhaps on a flat plane with equal distribution of animals across the study area).
+In these cases, the program will blindly choose the first occurance of the highest value at each iteration.  This may result in sensors being clumped together in one corner of the study area.
+</br><img src="images/sumGrid-clump.png"></br>
+In the above image, all the green cells are equally good choices for the program to pick.  As a result, the program picks the first few occurances of these green cells.
+Any placement of sensors amongst green cells would be equally optimal, however the pictured network is rather awkward.  
+The point of suppression is to penalize cells of the sumGrid near sensors and create a more distributed network.  
+In doing so, the absoloute optimality of the network decreases, but unique recovery rate increases.  The above image shows a job which was run with a suppressionRangeFactor of 0.
+The below image shows the same job, but with a suppressionRangeFactor of 2.
+</br><img src="images/sumGrid-supp.png"></br>
+</br>
+Just as <i>sumGrid.fun</i> acts as an operator for sumGrid Functions, <i>suppress.opt</i> acts as an operator for suppression Functions.
+
+In order to prevent the system from placing sensors in tight groupings and to maximize unique data recovery,  
+
+
+
+
+
+
+

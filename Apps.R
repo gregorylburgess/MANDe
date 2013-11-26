@@ -27,7 +27,7 @@ query <- function(env) {
 		# Try and run an asynchrynous request if multicore is present
 		if(require('multicore')) {
 			library('multicore')
-			parallel(acousticRun(parameters))
+			jobs[toString(params$timestamp)] <<- parallel(acousticRun(parameters))
 			res$write("processing")
 		}
 		# Run a serial request otheriwse.
@@ -46,6 +46,9 @@ getStatus <- function(env) {
 	req = Rook::Request$new(env)
 	res = Rook::Response$new()
 	params = parseJSON(req$params())
+	for(job in jobs) {
+		print(collect(job, wait, 1))
+	}
 	jobStatus = checkStatus(toString(params$timestamp))
 	res$write(jobStatus)
 	res$finish()

@@ -10,9 +10,7 @@
 		<a id="maplinkR" href="gmap.html" target="_blank">See a fullscreen map</a>
 		<iframe id="gridR" src="gmap.html"></iframe>
 	</div>
-	<iframe id= "desc" src="Source_Parameter_Desc.html" frameBorder="0">
-	Your browser doesn't support iframes.
-	</iframe>
+
 </div>
 <script type="text/javascript">
 	loadForm();
@@ -365,15 +363,14 @@
 				start++;
 				end++;
 			}
-			
-
 		}, "text");
 	}
 
 	
 	//Waits until the job has been finished by trying to load a <timestamp>.json file 
 	function waitForData(data) {
-		$('#content').load("progress_bar.html");
+		$("#hero").hide();
+		$('#form').load("progress_bar.html");
 		var filename = "../txt/" + timestamp + ".json";
 		var exists = UrlExists(filename);
 		var waitLoop = setInterval(
@@ -496,6 +493,6 @@
 		}
 		toRet += "</br><center><button type=\"submit\" class=\"btn btn-danger\" onClick=\"location.reload()\"> < Back</button></center>";
 		toRet += "</div>";
-		$('#content').html(toRet);
+		$('#form').html(toRet);
 	}
 </script>
