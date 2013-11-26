@@ -10,7 +10,7 @@
 		<a id="maplinkR" href="gmap.html" target="_blank">See a fullscreen map</a>
 		<iframe id="gridR" src="gmap.html"></iframe>
 	</div>
-	<iframe id= "desc" src="parameter_descriptions.html" frameBorder="0">
+	<iframe id= "desc" src="Source_Parameter_Desc.html" frameBorder="0">
 	Your browser doesn't support iframes.
 	</iframe>
 </div>
@@ -131,7 +131,7 @@
 			}); //end $(resolution).change
 
 			//Read cookie value if it exists
-			/*
+			
 			var cookieValue = $.cookie("acousticwebapp-data");
 			if (cookieValue != "" && !(cookieValue == undefined)) {
 				var dic = JSON.parse("{" + cookieValue + "}");
@@ -140,7 +140,7 @@
 						$("#" + key).val(dic[key]);
 					}
 				}
-			}*/
+			}
 		}, 'text');
 	}
 
@@ -148,7 +148,7 @@
 	//Validates fields and submits the form
 	function validate() {
 		var errors = "";
-		var res = $("#resolution option:selected").text();
+		var res = $("#inputFile option:selected").text();
 		var cells = 0;
 		var dpcR = 0;
 		var dpcC = 0;
@@ -159,13 +159,13 @@
 		var noffset = 0;
 		var woffset = 0;
 		
-		if (res == "Hawaiian Isles: 50 meter cells") {
+		if (res == "Hawaii 50m cells") {
 			cells = 50;
 		}
-		if (res == "Hawaiian Isles: 1 km cells") {
+		if (res == "Hawaii 1km cells") {
 			cells = 1000;
 		}
-		if (res == "Palmyra Atoll: 40 meter cells") {
+		if (res == "Palmyra 40m cells") {
 			cells = 40;
 		}
 		//Get user values
@@ -271,13 +271,13 @@
 
 					sensorList += c + "," + r + ",";
 				}
-				sensorList = sensorList.substring(0, sensorList.length - 1);
+				sensorList = sensorList.substring(0, sensorList.length - 1).replace(/\,/g,"%2C");
 			}
 			var dict = "\"startX\":\"" + startX + "\",";
 			dict += "\"startY\":\"" + startY + "\",";
 			dict += "\"XDist\":\"" + XDist + "\",";
 			dict += "\"YDist\":\"" + YDist + "\",";
-			dict += "\"inputFile\":\"" + $("#resolution").val() + "\",";
+			//dict += "\"inputFile\":\"" + $("#resolution").val() + "\",";
 			dict += "\"inputFileType\":\"netcdf\",";
 			dict += "\"seriesName\":\"z\",";
 			dict += "\"cellSize\":\"" + cells + "\",";
@@ -313,11 +313,9 @@
 						dic += "\"" + id + "\":\"" + value + "\",";
 					}
 					else {
-						//var value = $(this).text().replace(/\s/g, "");
 						var value = $("#" + id).val().replace(/\s/g, "");
-						//alert(id + " " + value);
-						dic += "\"" + id + "\":\"" + value + "\",";
-						if(value == 'True') {
+						if(value == "True") {
+							dic += "\"" + id + "\":\"" + value + "\",";
 							$(this).find('Hidable').find('HField').each(function() {
 								id = $(this).attr("id");
 								value = $("#" + id).val().replace(/\s/g, "");
@@ -328,21 +326,51 @@
 				});
 			});
 			
-
-			//Add a timestamp
-			dic += "\"timestamp\":\"" + timestamp + "\"";
 			//write a cookie
 			//$.cookie("acousticwebapp-data", dic);
+			//document.cookie= 'acousticwebapp-data=' + dic;
+			//Add a timestamp
+			dic += "\"timestamp\":\"" + timestamp + "\"";
+
+			var dataSize = 600.0;
+			var numRequests = Math.ceil(dic.length/dataSize);
+			var i = 1;
+			var data = dic.replace(/\"/g,"\'");  //"
+			var start =0;
+			var end = 1;
+			while(i <= numRequests) {
+				//slice off a chunk of data
+				var partialDic = data.slice(dataSize * start, Math.min(dataSize * end, dic.length));
+				var requestData = "\"data\":\"" + partialDic + "\",";
+				requestData += "\"timestamp\":\"" + timestamp + "\",";
+				requestData += "\"complete\":\"" + numRequests + "\",";
+				requestData += "\"part\":\"" + i + "\"";
+			    $.retryAjax({
+			    	url: '../../query',
+			    	data: requestData,
+			    	async: false,
+			        timeout: 10000,
+			        retryLimit: 2,
+			        success: function(data) {
+			        			//if this was our last request to send...wait for data
+			           			if(i == numRequests) {
+			           				waitForData(data);
+			           			}
+			        		}, 
+			        error: function() {
+			            alert("An error occured while trying to contact the server.  Please send us an email, and try again later.");
+			        }
+			    });
+				i++;
+				start++;
+				end++;
+			}
 			
-			// Actually submit the form
-			$.ajax({
-				url: '../../query', 
-				data: dic,
-				success: waitForData,
-			});
+
 		}, "text");
 	}
 
+	
 	//Waits until the job has been finished by trying to load a <timestamp>.json file 
 	function waitForData(data) {
 		$('#content').load("progress_bar.html");
@@ -412,7 +440,7 @@
 			}
 			toRet += "</font>";
 			//unset the cookie if an error occured
-			//$.removeCookie('acousticwebapp-data');
+			$.removeCookie('acousticwebapp-data');
 		}
 		//Re-Print params
 		toRet += "<h1>Parameters:</h1>";

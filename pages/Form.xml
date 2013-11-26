@@ -5,11 +5,11 @@
 		
 		
 			<!--  Pre-defined Server File support. Comment out if you want to use local files-->
-			<Field id="resolution" label="Bathymetry Dataset" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting smaller cell sizes will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
+			<Field id="inputFile" label="Bathymetry Dataset" type="select" toolTip="Determines the resolution of the resulting dataset. Selecting smaller cell sizes will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
 				<Options>
-					<Option label="Hawaiian Isles: 1 km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
-					<Option label="Hawaiian Isles: 50 meter cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
-					<Option label="Palmyra Atoll: 40 meter cells">src/palmyra_40m.grd</Option>
+					<Option label="Hawaii 1km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
+					<Option label="Hawaii 50m cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
+					<Option label="Palmyra 40m cells">src/palmyra_40m.grd</Option>
 				</Options>
 			</Field>
 			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your area of interest in Decimal Degrees.">

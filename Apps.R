@@ -11,17 +11,30 @@ library("rjson")
 query <- function(env) {
 	req = Rook::Request$new(env)
 	res = Rook::Response$new()
+	
 	params = parseJSON(req$params())
-	# Try and run an asynchrynous request if multicore is present
-	if(require('multicore')) {
-		library('multicore')
-		parallel(acousticRun(params))
-		res$write("processing")
+	data = params$data
+	
+	if(params$part==1) {
+		queries[toString(params$timestamp)] <<- data
 	}
-	# Run a serial request otheriwse.
 	else {
-		acousticRun(params)
-		res$write("finished")
+		queries[toString(params$timestamp)] <<- paste(queries[toString(params$timestamp)], data, sep="") 
+	}
+
+	if(params$part == params$complete){
+		parameters = parseJSON(gsub("\'", "\"", queries[toString(params$timestamp)]))
+		# Try and run an asynchrynous request if multicore is present
+		if(require('multicore')) {
+			library('multicore')
+			parallel(acousticRun(parameters))
+			res$write("processing")
+		}
+		# Run a serial request otheriwse.
+		else {
+			acousticRun(parameters)
+			res$write("finished")
+		}
 	}
 	res$finish()
 }

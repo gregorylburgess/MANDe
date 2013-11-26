@@ -1,7 +1,37 @@
-<font color="white" face="arial">
-	<h1>AcousticMain() Parameter Descriptions</h1>
-	<h2>Fish Model Variables</h2>
-	
+<!DOCTYPE html>
+<html>
+<head>
+	<link href="../css/custom.css" rel="stylesheet">
+</head>
+<body>
+<h2>Acoustic Webapp Parameter List</h2>
+Listed below are the parameter fields supported by the webapp.  These descriptions are intended to supplement the provided tooltips.  The names and descriptions of each parameter field are given below. </br></br></br>
+
+
+	<h2>Bathymetry Dataset</h2>
+		<h3>Input File</h3> 
+		Specifies the file location of the Bathy File to use.  For arcGIS filetypes, this is the
+		folder containing the data files.  For netCDF filetypes, this is the ncdf file itself.
+		</br>
+		
+		<h3>Northern Grid Boundary</h3>
+		Specifies the Northern latitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Southern Grid Boundary</h3>
+		Specifies the Southern latitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Western Grid Boundary</h3>
+		Specifies the Western longitude limit of the study area in decimal degrees.
+		</br>
+		
+		<h3>Eastern Grid Boundary</h3>
+		Specifies the Eastern latitude limit of the study area in decimal degrees.
+		</br>
+		</br>
+		</br>
+		
 		<h3>Fish Model Algorithm</h3> 
 		The choice here should reflect the prior knowledge about the long-term 
 		distribution of fish within the study region.  Options are 'rw' (Random Walk) 
@@ -138,65 +168,6 @@
 		</br>
 		</br>
 		
-	<h2>Bathymetry Variables</h2>
-		<h3>Input File</h3> 
-		Specifies the file location of the Bathy File to use.  For arcGIS filetypes, this is the
-		folder containing the data files.  For netCDF filetypes, this is the ncdf file itself.
-		</br>
-		
-		<h3>Input File Type</h3> 
-		Specifies the file type of the Bathy file you provided. Options are ArcGIS and NetCDF. 
-		</br>
-		
-		<h3>Data Series Name</h3>
-		For ArcGIS/NetCDF, this specifies the name of the data series to use.
-		</br>
-		
-		<h3>Grid cell size</h3> 
-		Specifies the size of the grid cell in meters.
-		</br>
-		
-		<h3>Beginning X Index</h3> 
-		Specifies the starting X cell-index of the area of interest for the file chosen. 
-		Valid values are non-negative integers.
-		</br>
-		
-		<h3>X Axis Length</h3>
-		Specifies how far the area of interest extends
-		along the X axis. Units are in meters. Valid
-		values are non-negative integers. 
-		</br>
-		
-		<h3>Beginning Y Index</h3>
-		Specifies the starting Y cell-index of the
-		area of interest for the file chosen. Valid values are non-negative
-		integers.
-		</br>
-		
-		<h3>Y Axis Length</h3>
-		Specifies how far the area of interest extends
-		along the Y axis. Units are in number of bathymetric grid cells. Valid
-		values are non-negative integers.
-		</br>
-		
-		<h3>Northern Grid Boundary</h3>
-		Specifies the Northern latitude limit of the study area in decimal degrees.
-		</br>
-		
-		<h3>Southern Grid Boundary</h3>
-		Specifies the Southern latitude limit of the study area in decimal degrees.
-		</br>
-		
-		<h3>Western Grid Boundary</h3>
-		Specifies the Western longitude limit of the study area in decimal degrees.
-		</br>
-		
-		<h3>Eastern Grid Boundary</h3>
-		Specifies the Eastern latitude limit of the study area in decimal degrees.
-		</br>
-		</br>
-		</br>
-		
 		
 	<h2>Suppression Variables</h2>
 		In order to prevent the program from
@@ -262,4 +233,5 @@
 		Specifies the minimum
 		scaling factor to apply. Cells at the edge of the suppression Range
 		will receive this as a scaling factor.
-</font>
+</body>
+</html>
