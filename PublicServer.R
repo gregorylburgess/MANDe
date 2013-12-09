@@ -5,6 +5,7 @@ myPort <- 80
 myInterface <- "0.0.0.0"
 status <- -1
 queries <<- {}
+jobs <<-{}
 status <- .Call(tools:::startHTTPD, myInterface, myPort)
 if (status == 0) {
 	print("Trying to Start Server...")

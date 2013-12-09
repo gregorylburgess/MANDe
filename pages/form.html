@@ -156,6 +156,9 @@
 		var w = 0;
 		var noffset = 0;
 		var woffset = 0;
+		var ou = $("#fishmodel").val();
+		var mux = $("#mux").val();
+		var muy = $("#muy").val()
 		
 		if (res == "Hawaii 50m cells") {
 			cells = 50;
@@ -242,6 +245,14 @@
 		if(mye<=myw) {
 			errors +=  "Western value (" + myw +") must be less than Eastern Value (" + mye + ").\n";
 		}
+		if(ou) {
+			if(!(mux > myw && mux < mye)) {
+				errors += "Home Range Center X coordinate must be between the Western value (" + myw +") and the Eastern Value (" + mye + ").";
+			}
+			if(!(muy < myn && muy > mys)) {
+				errors += "Home Range Center Y coordinate must be between the Northern value (" + myn +") and the Southern Value (" + mys + ").";
+			}
+		}
 		if( errors.length > 0 ){
 			alert(errors);
 		}
@@ -250,7 +261,8 @@
 			var XDist = Math.ceil((mye-myw)/dpcC);
 			var startY = Math.ceil((mys-s)/dpcR);
 			var YDist = Math.ceil((myn-mys)/dpcR);
-
+			$("#mux").val((mux - myw)/(mye - myw));
+			$("#muy").val((muy - mys)/(myn - mys));
 			//Parse the userSensorList
 			var userSensorList = $("#userSensors").val();
 			var sensorList = "";

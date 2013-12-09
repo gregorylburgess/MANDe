@@ -64,16 +64,16 @@
 				</Options>
 				<Hidable>
 					<HField id="mux"  label="Home Range Center (X value)"  type="text"  toolTip="Longitude co-ordiante of the home range center.">
-						0.4
+						-158.8
 					</HField>
 					<HField id="muy"  label="Home Range Center (Y value)"  type="text"  toolTip="Latitude co-ordiante of the home range center.">
-						0.4
+						21.5
 					</HField>
 					<HField id="ousdx"  label="Home Range Extent (X value)"  type="text"  toolTip="SD of the home range in meters in the x direction.">
-						25
+						4000
 					</HField>
 					<HField id="ousdy"  label="Home Range Extent (Y value)"  type="text"  toolTip="SD of the home range in meters in the y direction.">
-						25
+						4000
 					</HField>
 					<HField id="oucor"  label="Directional Correlation of Home Range"  type="text"  toolTip="The correlation between x and y directions, -1 &lt; x &lt; 1.  Determines the tilt of the homerange area.">
 						0.7
