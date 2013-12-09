@@ -16,10 +16,6 @@ fish <- function(params, bGrid) {
             rw={ 
                 print("Using RW model")
                 fGrid <- matrix(1,rows,cols)
-                if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
-                    print('RW: Using vertical habitat to calculate fGrid')
-                    fGrid[!verticalHabitat(params$mindepth,params$maxdepth,bGrid$bGrid)] <- 0
-                }
             },
             ## Ornstein-Uhlenbeck case
             ou={
@@ -35,12 +31,11 @@ fish <- function(params, bGrid) {
                 XY <- cbind(as.vector(X),as.vector(Y))
                 hrVals <- dmvnorm(XY,c(mux,muy),hrCov)
                 fGrid <- matrix(hrVals,rows,cols,byrow=FALSE)
-                if('mindepth' %in% names(params) & 'maxdepth' %in% names(params)){
-                    print('OU: Using vertical habitat to calculate fGrid')
-                    fGrid[!verticalHabitat(params$mindepth,params$maxdepth,bGrid$bGrid)] <- 0
-                }
             }
     )
+	if('mindepth' %in% names(params) && 'maxdepth' %in% names(params)){
+		fGrid[!verticalHabitat(params$mindepth,params$maxdepth,bGrid$bGrid)] <- 0
+	}
     ## Set land areas to zero
     fGrid[land] <- 0
     ## Make sure fGrid sums to one
