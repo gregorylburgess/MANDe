@@ -1,6 +1,4 @@
 body {
-	padding-top: 60px;
-	padding-bottom: 40px;
 	background: #000;
 	color: #fff;
 	font-family: "Calibri", sans-serif; 
@@ -139,4 +137,14 @@ a {
 .var {
 	font-weight: bold;
 	font-size: 15pt;
+}
+
+.dev-img {
+	max-width: 400px;
+}
+
+#value {
+    position: absolute;
+    right: 10px;
+    z-index: 1000;
 }

@@ -61,10 +61,9 @@
 		        if (GBrowserIsCompatible())
 		        {
 		            var map = new GMap2(document.getElementById("map"));
-		            $('#map').append("<div id=\"value\"></div>");
-		            
+		            $('#map').append("<div id=\"value\" style=\"position: absolute; bottom:12px; right: 0px; z-index: 1000; background-color:rgba(0, 0, 0, 0.5); font-family:arial; font-size:20pt;\"></div>");
 		            GEvent.addListener(map, "mousemove", function(event) {
-		            	$("#value").html("Lat:" + event.lat().toFixed(3) + ", Lon: "+event.lng().toFixed(3));
+		            	$("#value").html("Lat: " + event.lat().toFixed(3) + ", Lon: "+event.lng().toFixed(3));
 		            	});
 		            // Make the terrain layer available
 		            map.addMapType(G_PHYSICAL_MAP);
