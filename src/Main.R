@@ -12,8 +12,8 @@ source('src/Utility.R')
 #' @description This is the main routine that calls several sub-routines when designing the network.
 #' First the input parameters are checked for validity and default values are assigned if input 
 #' values are missing. Then bathymetry is loaded and the fish distribution generated. Then the
-#' goodness grid (sumGrid) is calculated depending on the design parameters (this is the heavy part).
-#' When the sumGrid is finished sensors can be placed optimally and stats and figures generated.
+#' goodness grid (goodnessGrid) is calculated depending on the design parameters (this is the heavy part).
+#' When the goodnessGrid is finished sensors can be placed optimally and stats and figures generated.
 #'
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
@@ -28,11 +28,11 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
     }
 	
 	gErrors <<- {}
-	bGrid = {}
-	fGrid = {}
-	sumGrid = {}
+	topographyGrid = {}
+	behaviorGrid = {}
+	goodnessGrid = {}
 	sensors = {}
-	sensors$sumGrid = {}
+	sensors$goodnessGrid = {}
 	sensors$sensorList = {}
 	statDict = {}
 	results = {}
@@ -42,29 +42,29 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
 	    params = checkParams(params)
 	
 	    ## Create/Load the Bathy grid for the area of interest
-	    bGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
+	    topographyGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
 	            params$XDist, params$YDist, params$seriesName, debug)
-	    bGrid = list("bGrid"=bGrid, "cellRatio"=params$cellSize)
+	    topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
 	    ## Convert parameter values from meters to number of grid cell 
-	    params = convertMetersToGrid(params,bGrid)
+	    params = convertMetersToGrid(params,topographyGrid)
 	    ## Specify a standard scale of x and y axes if previously undefined
-	    if(!("x" %in% names(bGrid))) {
-			bGrid$x = (1:dim(bGrid$bGrid)[1])*params$cellSize 
+	    if(!("x" %in% names(topographyGrid))) {
+			topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
 		}
-	    if(!("y" %in% names(bGrid))) {
-			bGrid$y = (1:dim(bGrid$bGrid)[2])*params$cellSize
+	    if(!("y" %in% names(topographyGrid))) {
+			topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
 		}
 	    ## Calculate fish grid
-	    fGrid = fish(params, bGrid)
+	    behaviorGrid = fish(params, topographyGrid)
 	
 	    ## Find good sensor placements
-	    sensors <- sensorFun(params$numSensors, bGrid, fGrid, params$range, params$bias, params, debug, save.inter=save.inter)
+	    sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter)
 	
 	    ## Stat analysis of proposed setup.
-	    statDict = getStats(params, bGrid, fGrid, sensors, debug)
+	    statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)
 		
 		## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
-		results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
+		results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
 				"stats" = statDict, "params"=params, "errors"=gErrors[toString(params$timestamp)])
 		
 		if(save.inter) {
@@ -85,7 +85,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
 	}, finally = function(e){})
 	
 	# only params and errors should actually have values
-	results = list("bGrid" = bGrid, "fGrid" = fGrid, "sumGrid"=sensors$sumGrid, "sensors" = sensors$sensorList, 
+	results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
 			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=gErrors[toString(params$timestamp)])
 	
 	# writeFiles returns json and txt file locations
@@ -119,7 +119,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	params$peak = .98 
     params$detectionRange <- 120
 	
-	# BGrid Variables
+	# topographyGrid Variables
 	params$inputFile = "src/palmyra_40m.grd"
 	params$inputFileType = "netcdf"
 	params$seriesName = 'z'

@@ -26,28 +26,28 @@ resetParams = function () {
 
 #' Resets the test Grids to a default state.
 #' 
-#' @return Returns a dictinary of reset grids containing the keys 'bGrid', 'fGrid', and 'sumGrid'.
+#' @return Returns a dictinary of reset grids containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid'.
 #' @export
 resetGrids = function () {
 	# Use a non-square grid to ensure that columns and rows
 	# are being correctly referenced
 	status <<- {}
-	fGrid = matrix(c(1:35), 
+	behaviorGrid = matrix(c(1:35), 
 			nrow=r, 
 			ncol=c) 
-	bGrid = -1 * fGrid
-	sumGrid = {}
-	bGrid = list(bGrid=bGrid, cellRatio=1)
-	grids = list(bGrid=bGrid, fGrid=fGrid, sumGrid=sumGrid)
+	topographyGrid = -1 * behaviorGrid
+	goodnessGrid = {}
+	topographyGrid = list(topographyGrid=topographyGrid, cellRatio=1)
+	grids = list(topographyGrid=topographyGrid, behaviorGrid=behaviorGrid, goodnessGrid=goodnessGrid)
 	return(grids)
 }
 
-#'  @title Tests the sumGrid function and all of its bias options.
+#'  @title Tests the goodnessGrid function and all of its bias options.
 #' 
 #' @return N/A
 #' @export
-TestUtility.sumGrid = function (debug=FALSE) {
-	sumGrid = {}
+TestUtility.goodnessGrid = function (debug=FALSE) {
+	goodnessGrid = {}
 	
 	na = matrix(rep(NA,35), nrow=r, ncol=c)
 	zero = matrix(rep(0,35), nrow=r, ncol=c) 
@@ -87,42 +87,42 @@ TestUtility.sumGrid = function (debug=FALSE) {
 		grids = resetGrids()
 		
 		
-		# Calculate the sumgrid of the Grids provided by resetGrids() and the given bias
-        sumGrid[[i]] = sumGridFun(grids, params$range, i, params, debug, silent=TRUE)$sumGrid
+		# Calculate the goodnessGrid of the Grids provided by resetGrids() and the given bias
+        goodnessGrid[[i]] = goodnessGridFun(grids, params$range, i, params, debug, silent=TRUE)$goodnessGrid
         # compare the results to our solGrid
-        if (!isTRUE(all.equal(as.character(solGrid[[i]]), as.character(sumGrid[[i]], tolerance=tolerance)))) {
+        if (!isTRUE(all.equal(as.character(solGrid[[i]]), as.character(goodnessGrid[[i]], tolerance=tolerance)))) {
 			print("Expected:")
 			print(solGrid[[i]])
 			print("Recieved:")
-			print(sumGrid[[i]])
-            stop(sprintf("[SumGrid bias=%g]: FAIL", i))
+			print(goodnessGrid[[i]])
+            stop(sprintf("[goodnessGrid bias=%g]: FAIL", i))
         }
 		
 		
-		# Calculate the sumgrid of a grid full of NAs and a grid full of zeroes
+		# Calculate the goodnessGrid of a grid full of NAs and a grid full of zeroes
 		invalidGrids = list(na=na, zero=zero)
 		gridNames = names(invalidGrids)
 		k = 1
 		for(grid in invalidGrids) {
 			params = resetParams()
 			grids = resetGrids()
-			# set bGrid and fGrid to either a grid of NAs or a grid of zeroes
-			grids$fGrid = grid
-			grids$bGrid$bGrid = grid
+			# set topographyGrid and behaviorGrid to either a grid of NAs or a grid of zeroes
+			grids$behaviorGrid = grid
+			grids$topographyGrid$topographyGrid = grid
 			# call the function with obviously bad inputs
-			result = sumGridFun(grids, params$range, i, params, debug=FALSE, silent=TRUE)$sumGrid
+			result = goodnessGridFun(grids, params$range, i, params, debug=FALSE, silent=TRUE)$goodnessGrid
 			# we should get back a grid of all zeroes for both cases.
 			if (!isTRUE(all.equal(zero, result, tolerance=tolerance))) {
 				print("Expected:")
 				print(zero)
 				print("Recieved:")
 				print(result)
-				stop(sprintf("[SumGrid bias=%g - %s]: FAIL", i, gridNames[[k]]))
+				stop(sprintf("[goodnessGrid bias=%g - %s]: FAIL", i, gridNames[[k]]))
 			}
 			k = k + 1
 		}
     }
-	print("[sumGrid]: Pass")
+	print("[goodnessGrid]: Pass")
 }
 
 TestUtility.checkStatus = function () {
@@ -213,9 +213,9 @@ TestUtility.suppress.opt = function() {
 	params$suppressionRangeFactor = 2
 	params$peak = 1
 	params$sd = .3
-	bGrid = matrix(rep(-5,25),nrow=5,ncol=5)
-	dims = dim(bGrid)
-	params = convertMetersToGrid(params, bGrid)
+	topographyGrid = matrix(rep(-5,25),nrow=5,ncol=5)
+	dims = dim(topographyGrid)
+	params = convertMetersToGrid(params, topographyGrid)
 	
 	functions = c("suppression.static", "suppression.scale", "suppression.shadow",
 			      "detection.function.shadow", "detection.function.exact")
@@ -419,9 +419,9 @@ TestUtility.suppress.opt = function() {
 					params$depth_off_bottom = 4
 					params$depth_off_bottom_sd = 1
 				}
-				# Reset sumGrid 
-				sumGrid = matrix(rep(1,25), nrow=5, ncol=5)
-				result = suppress.opt(sumGrid, dims, loc, params, bGrid, debug=FALSE)	
+				# Reset goodnessGrid 
+				goodnessGrid = matrix(rep(1,25), nrow=5, ncol=5)
+				result = suppress.opt(goodnessGrid, dims, loc, params, topographyGrid, debug=FALSE)	
 				if(!isTRUE(all.equal(result, sols[[j]], tolerance=tolerance))) {
 					print("Expected:")
 					print(sols[[j]])
@@ -581,7 +581,7 @@ TestUtility.calc.percent.viz = function() {
 	range = 3
 	# our test cell is in the center of each 5x5 test grid
 	params = resetParams()
-	fGrid = matrix(c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), nrow=5, ncol=5)
+	behaviorGrid = matrix(c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), nrow=5, ncol=5)
 	loc = list(c=3,r=3)
 	params$params$depth_off_bottom = 4
 	params$depth_off_bottom_sd = 1
@@ -742,14 +742,14 @@ TestUtility.calc.percent.viz = function() {
 	j = 1
 	for (dpflag in c(FALSE, TRUE)) {
 		params$dpflag = dpflag
-		for (bGrid in vals) {
-			bGrid = bGrid * -1
-			land = bGrid >= 0
-			sensorDepth = bGrid + sensorElevation
-			cells = getArea(loc, dim(bGrid), range)
+		for (topographyGrid in vals) {
+			topographyGrid = topographyGrid * -1
+			land = topographyGrid >= 0
+			sensorDepth = topographyGrid + sensorElevation
+			cells = getArea(loc, dim(topographyGrid), range)
 			rind = cells$rs:cells$re
 			cind = cells$cs:cells$ce
-			result = calc.percent.viz(loc$r, loc$c, rind, cind, bGrid, land, sensorDepth[loc$r,loc$c], dpflag, params, debug=FALSE)
+			result = calc.percent.viz(loc$r, loc$c, rind, cind, topographyGrid, land, sensorDepth[loc$r,loc$c], dpflag, params, debug=FALSE)
 			for(key in c("percentVisibility", "dists", "linearIndex")) {
 				#print(!all(result[[key]] == sols[[j]][[key]]))
 				options(digits=14)
@@ -771,7 +771,7 @@ TestUtility.calc.percent.viz = function() {
 	print("[calc.percent.viz]: Pass")
 }
 
-TestUtility.updateFGrid = function () {
+TestUtility.updatebehaviorGrid = function () {
 	vals = list(
 				list(r=4,c=3),
 				list(r=1,c=1),
@@ -828,9 +828,9 @@ TestUtility.updateFGrid = function () {
 	for (loc in vals) {
 		grids = resetGrids()
 		params = resetParams()
-		grids$fGrid = matrix(rep(1,35),nrow=7,ncol=5)
-		grids$bGrid$bGrid = matrix(rep(-2,35),nrow=7,ncol=5)
-		result = updateFGrid(loc, grids, params, debug=FALSE)$fGrid
+		grids$behaviorGrid = matrix(rep(1,35),nrow=7,ncol=5)
+		grids$topographyGrid$topographyGrid = matrix(rep(-2,35),nrow=7,ncol=5)
+		result = updatebehaviorGrid(loc, grids, params, debug=FALSE)$behaviorGrid
 		if(!isTRUE(all.equal(result, sols[[i]], tolerance = as.numeric(tolerance)))) {
 			print("Expected:")
 			print(sols[[i]])
@@ -843,7 +843,7 @@ TestUtility.updateFGrid = function () {
 		}
 		i = i + 1
 	}
-	print("[updateFGrid]: Pass")
+	print("[updatebehaviorGrid]: Pass")
 }
 
 
@@ -860,11 +860,11 @@ TestUtility.getStats = function () {
 	params$projectedSensors = 0
 	range = 2
 	bias = 1
-	bGrid = {}
-	bGrid$bGrid = matrix(rep(-2,49),nrow=7,ncol=7)
-	bGrid$x = (1:dim(bGrid$bGrid)[1])*params$cellSize 
-	bGrid$y = (1:dim(bGrid$bGrid)[2])*params$cellSize
-	fGrid = bGrid$bGrid + 3
+	topographyGrid = {}
+	topographyGrid$topographyGrid = matrix(rep(-2,49),nrow=7,ncol=7)
+	topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
+	topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
+	behaviorGrid = topographyGrid$topographyGrid + 3
 	# Test recovery rates for non-optimal placements
 	sensorLists = list(
 					c1 = list(list(r=1,c=1), list(r=7,c=7), list(r=1,c=7), list(r=7,c=1)),
@@ -877,7 +877,7 @@ TestUtility.getStats = function () {
 						delta = 3,
 						absRecoveryRate = 4.2288375045063,
 						uniqRecoveryRate = 4.2288375045061,
-						acousticCoverage =
+						coverageGrid =
 								matrix(
 									c(7.5000000000000e-01, 1.3955401921205e-01, 8.9905364478859e-04,
 									4.0107074505968e-07, 8.9905364478859e-04, 1.3955401921205e-01,
@@ -905,7 +905,7 @@ TestUtility.getStats = function () {
 						delta = 0.5,
 						absRecoveryRate = 5.6680965411468,
 						uniqRecoveryRate = 4.6962450985649,
-						acousticCoverage = 
+						coverageGrid = 
 								matrix(
 									c(1.0782107698892e-06, 1.6840383027461e-04, 1.0664295700512e-03,
 									1.0664295700512e-03, 1.6840383027461e-04, 1.0782107698892e-06,
@@ -933,7 +933,7 @@ TestUtility.getStats = function () {
 						delta = 1,
 						absRecoveryRate = 5.6680954385782,
 						uniqRecoveryRate = 5.5775877710844,
-						acousticCoverage = 
+						coverageGrid = 
 							matrix(
 								c(1.0777299416231e-06, 1.6728897317286e-04, 9.0013040579140e-04,
 								3.3454948012712e-04, 9.0013040579140e-04, 1.6728897317286e-04, 1.0777299416231e-06,
@@ -957,8 +957,8 @@ TestUtility.getStats = function () {
 	i = 1
 	for(sList in sensorLists){
 		params$sensorList = sList
-		sensors = sensorFun(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, silent=TRUE)
-		result = getStats(params, bGrid, fGrid, sensors, debug=FALSE)
+		sensors = sensorFun(numSensors, topographyGrid, behaviorGrid, range, bias, params, debug=FALSE, silent=TRUE)
+		result = getStats(params, topographyGrid, behaviorGrid, sensors, debug=FALSE)
 		
 		for (item in names(result)) {
 			if(!isTRUE(all.equal(result[[item]], sols[[i]][[item]], tolerance = as.numeric(tolerance)))) {
@@ -968,7 +968,7 @@ TestUtility.getStats = function () {
 				print(result[[item]])
 				print("Diff:")
 				print(sols[[i]][[item]] - result[[item]])
-				#print(split(result$acousticCoverage, rep(1:ncol(result$acousticCoverage), each = nrow(result$acousticCoverage))))
+				#print(split(result$coverageGrid, rep(1:ncol(result$coverageGrid), each = nrow(result$coverageGrid))))
 				stop(sprintf("[TestUtility.getStats %i]: FAIL",i))
 				
 			}
@@ -1007,7 +1007,7 @@ TestUtility.checkParams = function() {
 #' @export
 runUtilityTests = function () {
 	print("--- Testing Utility Functions ---")
-	TestUtility.sumGrid()
+	TestUtility.goodnessGrid()
 	TestUtility.getCells()
 	TestUtility.suppression.static()
 	TestUtility.suppression.scale()
@@ -1015,7 +1015,7 @@ runUtilityTests = function () {
 	TestUtility.getArea()
 	TestUtility.offset()
 	TestUtility.calc.percent.viz()
-	TestUtility.updateFGrid()
+	TestUtility.updatebehaviorGrid()
 	TestUtility.getStats()
 	print("Success! All Utility Tests Passed.")
 }

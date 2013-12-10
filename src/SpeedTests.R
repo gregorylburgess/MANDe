@@ -3,13 +3,13 @@ source("src/Utility.R")
 # are being correctly referenced
 r=5
 c=2
-bGrid = matrix(c(1,2,3,4,5,6,7,8,9,10), 
+topographyGrid = matrix(c(1,2,3,4,5,6,7,8,9,10), 
 		nrow=r, 
 		ncol=c) 
 cellRatio = 1
-fGrid = bGrid
-bGrid = list(bGrid=bGrid, cellRatio=cellRatio)
-grids = list(bGrid=bGrid, fGrid=fGrid)
+behaviorGrid = topographyGrid
+topographyGrid = list(topographyGrid=topographyGrid, cellRatio=cellRatio)
+grids = list(topographyGrid=topographyGrid, behaviorGrid=behaviorGrid)
 range = 1
 params = checkParams(list(numSensors=0, shapeFcn="shape.t", range=1, sd=1, peak=.75))
 
@@ -24,16 +24,16 @@ SpeedTests.getCells.opt <- function(){
 	print(system.time(for(i in 1:10000) getCells.opt(startingCell, targetCell)))
 }
 
-SpeedTests.sumGrid.sumSimple <- function() {
+SpeedTests.goodnessGrid.sumSimple <- function() {
 	print('Old fun:')
 	ng <- 500
-	grid <- list(fGrid=matrix(1:ng^2,ng,ng))
-	at <- system.time(a <- sumGrid.sumSimple(grid, 'fGrid', params$range, debug=FALSE)$sumGrid)
+	grid <- list(behaviorGrid=matrix(1:ng^2,ng,ng))
+	at <- system.time(a <- goodnessGrid.sumSimple(grid, 'behaviorGrid', params$range, debug=FALSE)$goodnessGrid)
 	print(at)
 	print('Optimized fun:')
-	bt <- system.time(b <- sumGrid.sumSimple.opt(grid, 'fGrid', params$range, debug=FALSE)$sumGrid)
+	bt <- system.time(b <- goodnessGrid.sumSimple.opt(grid, 'behaviorGrid', params$range, debug=FALSE)$goodnessGrid)
 	print(bt)
 }
 
 SpeedTests.getCells.opt()
-SpeedTests.sumGrid.sumSimple()
+SpeedTests.goodnessGrid.sumSimple()

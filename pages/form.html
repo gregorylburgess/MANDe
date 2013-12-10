@@ -14,6 +14,7 @@
 </div>
 <script type="text/javascript">
 	loadForm();
+	var numericNames = new Array();
 	function loadForm() {
 		var form = "";
 		var timestamp = -1;
@@ -33,6 +34,7 @@
 					var value = $(this).text().replace(/\s/g, "");
 
 					if (type == 'text') {
+						numericNames.push(id);
 						form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
 							+ "<a class=\"link\" data-original-title=\"" + toolTip 
 							+ "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
@@ -146,6 +148,12 @@
 	//Validates fields and submits the form
 	function validate() {
 		var errors = "";
+		numericNames.splice(numericNames.indexOf("userSensors"),1);
+		for(id in numericNames) {
+			if(!isANumber($("#" + numericNames[id]).val())) {
+				errors += numericNames[id] + " is not a numeric value.\n";
+			}
+		}
 		var res = $("#inputFile option:selected").text();
 		var cells = 0;
 		var dpcR = 0;
@@ -488,7 +496,7 @@
 			//Print network stats
 			toRet += "<h3>Stats:</h3></br>";
 			for(var key in stats) {
-				if(key != "acousticCoverage") {
+				if(key != "coverageGrid") {
 					toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
 				}
 			}
@@ -507,4 +515,8 @@
 		toRet += "</div>";
 		$('#form').html(toRet);
 	}
+	
+	function isANumber(n) {
+		  return !isNaN(parseFloat(n)) && isFinite(n);
+		}
 </script>

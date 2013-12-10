@@ -5,8 +5,8 @@ library('rjson')
 
 #' @name sensorFun
 #' @title Calls functions to generate a 'goodness' grid and choose sensor locations.
-#' @details Finds a "good" set of sensor placements for a given setup [bGrid, fGrid, params].
-#' Returns a list of locations as grid coordinates, and the calculated sumGrid (goodness grid).
+#' @details Finds a "good" set of sensor placements for a given setup [topographyGrid, behaviorGrid, params].
+#' Returns a list of locations as grid coordinates, and the calculated goodnessGrid (goodness grid).
 #' Bias value controls the 'goodness' algorithm that gets called.
 #' Bias cases:
 #' 1. Fish density only.
@@ -14,8 +14,8 @@ library('rjson')
 #' 3. Detectable fish accounting for bathy.
 #'
 #' @param numSensors The number of sensors the program should place.
-#' @param bGrid A valid BGrid.
-#' @param fGrid A valid FGrid.
+#' @param topographyGrid A valid topographyGrid.
+#' @param behaviorGrid A valid behaviorGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
@@ -23,13 +23,13 @@ library('rjson')
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @param silent If set to TRUE, disables status printing.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE, silent = FALSE, save.inter=FALSE) {
+sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, params, debug=FALSE, silent = FALSE, save.inter=FALSE) {
     if (debug) {
         cat("\n[sensorFun]\n")
-        print("bGrid")
-        print(bGrid)
-        print("fGrid")
-        print(fGrid)
+        print("topographyGrid")
+        print(topographyGrid)
+        print("behaviorGrid")
+        print(behaviorGrid)
         print(sprintf("bias=%g",bias))
         print("params")
         print(params)
@@ -39,14 +39,14 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
     if(save.inter) inter = list()
     
     sensorList = {}
-    dims = dim(fGrid)
+    dims = dim(behaviorGrid)
     rows = dims[1]
     cols = dims[2]
-    grids = list("bGrid" = bGrid, "fGrid"=fGrid)
+    grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
-    # calculate the sumGrid
-    grids = sumGridFun(grids, range, bias, params, debug=debug, silent=silent)
-    sumGrid = grids$sumGrid
+    # calculate the goodnessGrid
+    grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent)
+    goodnessGrid = grids$goodnessGrid
     if(save.inter) inter[[1]] = grids
 	
 	# place user-defined sensors, and down weigh them
@@ -67,7 +67,7 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 	i = numSensors
 	while(i > 0) {
         # find the max location 
-        maxLoc = which.max(grids$sumGrid)
+        maxLoc = which.max(grids$goodnessGrid)
         # Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
         c = ceiling(maxLoc/rows)
         r = (maxLoc %% rows)
@@ -88,54 +88,54 @@ sensorFun = function(numSensors, bGrid, fGrid, range, bias, params, debug=FALSE,
 		i = i - 1
     }
     if(save.inter){
-        return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid, inter=inter))
+        return(list(sensorList=sensorList, goodnessGrid=goodnessGrid, goodnessGridSupp=grids$goodnessGrid, inter=inter))
     }else{
-        return(list(sensorList=sensorList, sumGrid=sumGrid, sumGridSupp=grids$sumGrid))
+        return(list(sensorList=sensorList, goodnessGrid=goodnessGrid, goodnessGridSupp=grids$goodnessGrid))
     }
 }
 
-#' @title Performs suppression on the sumGrid/fGrid depending upon the suppressionFcn specified.
-#' @description The suppressionFcn 'detection.functino.exact' indicates that the fGrid must be suppressed, then the entire 
-#' sumGrid recalculated based upon the new fGrid.  Any other suppressionFcn simply calls suppress.opt, which just suppresses
-#' the sumGrid, avoiding the need to recalculate the whole sumGrid (a very expensive operation).  The latter approach can be
+#' @title Performs suppression on the goodnessGrid/behaviorGrid depending upon the suppressionFcn specified.
+#' @description The suppressionFcn 'detection.functino.exact' indicates that the behaviorGrid must be suppressed, then the entire 
+#' goodnessGrid recalculated based upon the new behaviorGrid.  Any other suppressionFcn simply calls suppress.opt, which just suppresses
+#' the goodnessGrid, avoiding the need to recalculate the whole goodnessGrid (a very expensive operation).  The latter approach can be
 #' considered a 'fast approximation', while the former an 'exact count'.
 #'
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
-#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @return Returns the grids parameter, with an updated FGrid.
+#' @return Returns the grids parameter, with an updated behaviorGrid.
 sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE) {
 	if(params$suppressionFcn != 'detection.function.exact'){
-		grids$sumGrid = suppress.opt(grids$sumGrid, dim(grids$fGrid), loc, params, grids$bGrid$bGrid, debug)
+		grids$goodnessGrid = suppress.opt(grids$goodnessGrid, dim(grids$behaviorGrid), loc, params, grids$topographyGrid$topographyGrid, debug)
 	}else{
-		grids = updateFGrid(loc,grids,params,debug)
-		grids = sumGridFun(grids, range, bias, params, debug)
+		grids = updatebehaviorGrid(loc,grids,params,debug)
+		grids = goodnessGridFun(grids, range, bias, params, debug)
 	}
 	return(grids)
 }
 
-#' @title Updates the FGrid after each sensor is placed to reflect which areas that are already covered by sensors.
-#' @description When a sensor is placed the FGrid must be updated to reflect where unique signals are emitted.
-#' This is done by calculating the coverage of the sensor given by loc and then downweighing the FGrid
+#' @title Updates the behaviorGrid after each sensor is placed to reflect which areas that are already covered by sensors.
+#' @description When a sensor is placed the behaviorGrid must be updated to reflect where unique signals are emitted.
+#' This is done by calculating the coverage of the sensor given by loc and then downweighing the behaviorGrid
 #' using this coverage such that locations that are well covered by the sensor at loc is downweighed more
 #' that poorly covered locations.
 #'
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
-#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @return Returns the grids parameter, with an updated FGrid.
-updateFGrid = function(loc, grids, params, debug=FALSE){
+#' @return Returns the grids parameter, with an updated behaviorGrid.
+updatebehaviorGrid = function(loc, grids, params, debug=FALSE){
   if(debug){
-      cat("\n[updateFGrid]\n")
+      cat("\n[updatebehaviorGrid]\n")
       print("loc")
       print(loc)
   }
-  grid = grids$fGrid
-  bG = grids$bGrid$bGrid
+  grid = grids$behaviorGrid
+  bG = grids$topographyGrid$topographyGrid
   dims = dim(grid)
   rows = dim(grid)[1]
   cols = dim(grid)[2]
@@ -174,61 +174,61 @@ updateFGrid = function(loc, grids, params, debug=FALSE){
   dgrid = 1 - (dgrid1 * dgrid2)
   ## Downweigh observed region
   grid[rind,cind] = grid[rind,cind] * dgrid
-  grids$fGrid = grid
+  grids$behaviorGrid = grid
   return(grids)
 }
 
 
-#' @name sumGridFun
+#' @name goodnessGridFun
 #' @title Calculates the composite "goodness" grid for a particular bias.
-#' @description Calls a particular sumGrid function based on the bias and opt values.  Actual work
+#' @description Calls a particular goodnessGrid function based on the bias and opt values.  Actual work
 #' 			is done by the called function.
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
-#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, disables status printing.
-#' @return Returns the grids parameter, with an updated sumGrid.
-sumGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALSE) {
+#' @return Returns the grids parameter, with an updated goodnessGrid.
+goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALSE) {
     if (debug) {
-        cat("\n[sumGrid]\n")
-        print("bGrid")
-        print(grids$bGrid)
-        print("fGrid")
-        print(grids$fGrid)
+        cat("\n[goodnessGrid]\n")
+        print("topographyGrid")
+        print(grids$topographyGrid)
+        print("behaviorGrid")
+        print(grids$behaviorGrid)
         print(sprintf("bias=%g", bias))
         print("params")
         print(params)
     }
 	status [toString(params$timestamp)] <<- 0
-	bGrid = grids$bGrid$bGrid
+	topographyGrid = grids$topographyGrid$topographyGrid
 	# Remove all NAs from the Grids
-	bGrid[is.na(bGrid)] = 0
-	grids$bGrid$bGrid = bGrid
-	grids$fGrid[is.na(grids$fGrid)] = 0
+	topographyGrid[is.na(topographyGrid)] = 0
+	grids$topographyGrid$topographyGrid = topographyGrid
+	grids$behaviorGrid[is.na(grids$behaviorGrid)] = 0
 	
 	#Fish
     if (bias == 1) {
 		if(debug) {
-			print("bias=1; Calling sumGrid.sumSimple")
+			print("bias=1; Calling goodnessGrid.sumSimple")
 		}
-        return(sumGrid.sumSimple.opt(grids, "fGrid", params, debug, silent))
+        return(goodnessGrid.sumSimple.opt(grids, "behaviorGrid", params, debug, silent))
     }
     #Bathy
     else if (bias == 2) {
 		if(debug) {
-			print("bias=2; Calling sumGrid.sumBathy.opt")
+			print("bias=2; Calling goodnessGrid.sumBathy.opt")
 		}
-        return(sumGrid.sumBathy.opt(grids, params, debug, silent))
+        return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
     }
     #Combo
 	else if (bias == 3) {
-        ## Note sumGrid.sumBathy.opt also handles bias 3
+        ## Note goodnessGrid.sumBathy.opt also handles bias 3
 		if(debug) {
-			print("bias=3; Calling sumGrid.sumBathy.opt")
+			print("bias=3; Calling goodnessGrid.sumBathy.opt")
 		}
-        return(sumGrid.sumBathy.opt(grids, params, debug, silent))
+        return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
     }
     else {
         stop("ERROR: Invalid Bias")
@@ -240,13 +240,13 @@ sumGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALSE) {
 #' mainly gains it speed from using FFT) as an alternative to running through tedious
 #' R for loops.
 #'
-#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param key A key to the dictionary provided in the 'grids' parameter specifying which grid should be summed.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, disables status printing.
-#' @return Returns the grids parameter, with an updated sumGrid.
-sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE) {
+#' @return Returns the grids parameter, with an updated goodnessGrid.
+goodnessGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE) {
 	
     ## Create a vector of distances to the cells that can be sensed by a sensor in the current cell
     subdists = 1:params$range
@@ -256,12 +256,12 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE)
     kernel = do.call(params$shapeFcn, list(dists, params))
     ## Check that the length of the kernel is as it should be
     if(length(kernel) != 2*params$range+1) {
-		printError(paste('[sumGrid.sumSimple.opt]: length of kernel was:',
+		printError(paste('[goodnessGrid.sumSimple.opt]: length of kernel was:',
 					length(kernel),'expected:',2*params$range+1))
 	}
     ## Extract relevant grid as given by key
     tempGrid = get(key, grids)
-    ## Do convolution. This operation is identical to the for loop in sumGrid.sumSimple
+    ## Do convolution. This operation is identical to the for loop in goodnessGrid.sumSimple
     ## For more general information about how the convolution operation is defined google it! wikipedia has a decent explanation.
 	if(debug) {
 		print("Calling conv.2D")
@@ -270,16 +270,16 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE)
 		print("Kernel")
 		print(kernel)
 	}
-    grids$sumGrid = conv.2D(tempGrid,kernel,kernel, params$timestamp, silent)
+    grids$goodnessGrid = conv.2D(tempGrid,kernel,kernel, params$timestamp, silent)
     ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
-    sensorDepth = grids$bGrid$bGrid + params$sensorElevation
+    sensorDepth = grids$topographyGrid$topographyGrid + params$sensorElevation
     ## Calculate a matrix where TRUE values indicate that a grid cell could contain a sensor below the surface
     belowSurf = sensorDepth < 0
     ## Set the goodness to zero in cells where a sensor would not be below the surface (it would stick out of the water)
-    grids$sumGrid[!belowSurf] = 0
+    grids$goodnessGrid[!belowSurf] = 0
     
     if(debug){
-        cat("\n[sumGrid.sumSimple.opt]\n")
+        cat("\n[goodnessGrid.sumSimple.opt]\n")
         print("grids")
         print(grids)
     }
@@ -287,25 +287,25 @@ sumGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=FALSE)
 }
 
 
-#' @title Calculates the sumGrid when a line of sight bias is chosen (bias 2 or 3).
+#' @title Calculates the goodnessGrid when a line of sight bias is chosen (bias 2 or 3).
 #' @description Loops through all cells where sensor placement is valid (where sensor would be below surface)
 #' and calculates goodness. If bias is 2 only bathymetry (line of sight) is used to calculate goodness, whereas if
-#' bias is 3 both bathymetry and fish distribution (fGrid) are used. This function uses vectorized calculations.
+#' bias is 3 both bathymetry and fish distribution (behaviorGrid) are used. This function uses vectorized calculations.
 #' 
-#' @param grids A dictionary containing the keys 'bGrid', 'fGrid', and 'sumGrid', which hold a valid BGrid, FGrid and SumGrid.
+#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, turns off status printing.
-#' @return Returns the grids parameter, with an updated sumGrid.
-sumGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) {
-    nr = dim(grids$bGrid$bGrid)[1]
-    nc = dim(grids$bGrid$bGrid)[2]
-    ## Calculate the number of cells in the bGrid
+#' @return Returns the grids parameter, with an updated goodnessGrid.
+goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) {
+    nr = dim(grids$topographyGrid$topographyGrid)[1]
+    nc = dim(grids$topographyGrid$topographyGrid)[2]
+    ## Calculate the number of cells in the topographyGrid
     ng = nr*nc
-    ## Make a copy of the bGrid to make code look nicer (could get rid of to save memory)
-    bG = grids$bGrid$bGrid
-    ## Initialize the sumGrid matrix (allocate memory)
-    sumGrid = matrix(0,nr,nc)
+    ## Make a copy of the topographyGrid to make code look nicer (could get rid of to save memory)
+    bG = grids$topographyGrid$topographyGrid
+    ## Initialize the goodnessGrid matrix (allocate memory)
+    goodnessGrid = matrix(0,nr,nc)
     ## Make sure we use an integer range
     rng = round(params$range)
     ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
@@ -316,7 +316,7 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) {
     land = bG >= 0
     ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
     dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
-    usefGrid = params$bias==3
+    usebehaviorGrid = params$bias==3
     for(c in 1:nc){
         comp = c/nc
 		if(!silent) {
@@ -337,19 +337,19 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) {
                 pV = calc.percent.viz(r, c, rind, cind, bG, land, sensorDepth[r,c], dpflag, params, debug)
                 ## Calculate the detection function value at all grid points
                 probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
-                ## If bias == 3 include the fGrid in the calculations, if not just use bathymetry and detection function
-				if(usefGrid) {
-					probOfRangeDetection = probOfRangeDetection * grids$fGrid[pV$linearIndex]
+                ## If bias == 3 include the behaviorGrid in the calculations, if not just use bathymetry and detection function
+				if(usebehaviorGrid) {
+					probOfRangeDetection = probOfRangeDetection * grids$behaviorGrid[pV$linearIndex]
 				}
                 ## Calculate goodness of cell (r,c) by summing detection probabilities of all visible cells
-                sumGrid[r,c] = sum(probOfRangeDetection * pV$percentVisibility)
+                goodnessGrid[r,c] = sum(probOfRangeDetection * pV$percentVisibility)
             }
         }
     }
 	status[toString(params$timestamp)] <<- 1
-    grids$sumGrid = sumGrid
+    grids$goodnessGrid = goodnessGrid
     if(debug){
-        cat("\n[sumGrid.sumBathy.opt]\n")
+        cat("\n[goodnessGrid.sumBathy.opt]\n")
         print("grids")
         print(grids)
     }
@@ -363,13 +363,13 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) {
 #' current cell.
 #'
 #' 
-#' @param r Row of the current cell in the bGrid.
-#' @param c Column of the current cell in the bGrid.
-#' @param rind Row indices of the bGrid to calculate visibility percentage.
-#' @param cind Column indices of the bGrid to calculate visibility percentage.
-#' @param bGrid A valid bGrid.
+#' @param r Row of the current cell in the topographyGrid.
+#' @param c Column of the current cell in the topographyGrid.
+#' @param rind Row indices of the topographyGrid to calculate visibility percentage.
+#' @param cind Column indices of the topographyGrid to calculate visibility percentage.
+#' @param topographyGrid A valid topographyGrid.
 #' @param land Matrix containing logicals (TRUE = land cell) indicating wheter a cell 
-#' in the bGrid is a land cell.
+#' in the topographyGrid is a land cell.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param sensorDepth Depth of sensor in current cell.
 #' @param dpflag If TRUE depth preference is used meaning that the percentage of visible 
@@ -377,15 +377,15 @@ sumGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) {
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
 #' @return Returns a dictionary with three keys (all vectors): percentVisibility contains
 #' the percentage fish/signals visible in the surrounding cells, linearIndex contains the linear
-#' indices in the bGrid to which the visibilities pertain, dists contains the distance
+#' indices in the topographyGrid to which the visibilities pertain, dists contains the distance
 #' from the current cell to each of the returned cells as given by linearIndex.
-calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, params, debug=FALSE){
+calc.percent.viz = function(r, c, rind, cind, topographyGrid, land, sensorDepth, dpflag, params, debug=FALSE){
 	if(debug){
 		print("[calc.percent.viz]")
 		print(sprintf("point: (%g,%g)",r,c))
 	}
-    rows = dim(bGrid)[1]
-    cols = dim(bGrid)[2]
+    rows = dim(topographyGrid)[1]
+    cols = dim(topographyGrid)[2]
     nr = rows
 
     ## Find rows and columns for relevant cells
@@ -410,7 +410,7 @@ calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, 
     ## Save actual distances in the dists vector
     dists = disttmp$x
     ## Get depths at the sorted cells by using disttmp$ix, which contains the sorted indices
-    depths = bGrid[linearIndex[disttmp$ix]]
+    depths = topographyGrid[linearIndex[disttmp$ix]]
     ## Calculate the line of sight slopes to each of the sorted cells
     slopes = (depths-sensorDepth)/dists
     ## Create a vector, which can be used to easily map an index in the sorted vector to an index in the rind by cind matrix
@@ -495,22 +495,22 @@ calc.percent.viz = function(r, c, rind, cind, bGrid, land, sensorDepth, dpflag, 
 #' @title Suppresses the values of cells around a sensor using a specified suppressionFunction.
 #' @description This is an optimized version, which uses vectorization.
 #' 
-#' @param sumGrid A valid SumGrid.
-#' @param dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
+#' @param goodnessGrid A valid goodnessGrid.
+#' @param dims The dimensions of the topographyGrid.  Just call dim() on the topographyGrid for this.
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
-#' @param bGrid valid BGrid.
+#' @param topographyGrid valid topographyGrid.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @return Returns a suppressed sumGrid.
-suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
+#' @return Returns a suppressed goodnessGrid.
+suppress.opt = function(goodnessGrid, dims, loc, params, topographyGrid, debug=FALSE) {
     if(debug) {
         cat("\n[suppress.opt]\n")
         print(sprintf("suppressionFcn: %s", params$suppressionFcn))
         print(sprintf("loc: (%g,%g)",loc$c,loc$r))
-        print("sumGrid")
-        print(sumGrid)
-        print("bGrid")
-        print(bGrid)
+        print("goodnessGrid")
+        print(goodnessGrid)
+        print("topographyGrid")
+        print(topographyGrid)
     }
     suppressionFcn = params$suppressionFcn
     minsuppressionValue = params$minsuppressionValue
@@ -519,8 +519,8 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
     dfflag = suppressionFcn=='detection.function' ||
 			 suppressionFcn=='detection.function.shadow' ||
 			 suppressionFcn=='detection.function.exact'
-    rows = dim(sumGrid)[1]
-    cols = dim(sumGrid)[2]
+    rows = dim(goodnessGrid)[1]
+    cols = dim(goodnessGrid)[2]
 	
     ## Find the values that are affected by suppression (are within suppression range)
     vals = getArea(loc, dims, params$suppressionRange)
@@ -555,13 +555,13 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
       ## If shadowing should be accounted for in the suppression
       if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
         ## Create a matrix where land cells have value TRUE
-        land = bGrid >= 0
+        land = topographyGrid >= 0
         ## Create the depth value of a sensor placed at loc
-        sensorDepth = bGrid[loc$r,loc$c] + params$sensorElevation
+        sensorDepth = topographyGrid[loc$r,loc$c] + params$sensorElevation
         ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
         dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
         ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, bGrid, land, sensorDepth, dpflag, params, debug)
+        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, topographyGrid, land, sensorDepth, dpflag, params, debug)
         ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
         ## Initialize
         testmap = matrix(0,rows,cols)
@@ -579,9 +579,9 @@ suppress.opt = function(sumGrid, dims, loc, params, bGrid, debug=FALSE) {
       }
     }
     ## Do suppression at the relevant indices given by rind and cind
-    sumGrid[rind,cind] = sumGrid[rind,cind] * supgrid
+    goodnessGrid[rind,cind] = goodnessGrid[rind,cind] * supgrid
 
-    return(sumGrid)
+    return(goodnessGrid)
 }
 
 
@@ -633,7 +633,7 @@ suppression.scale = function (dist, suppressionRange, minsuppressionValue,
 #' @description Defines the "shape" of a sensor's range.
 #' 
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
-#' @param dims The dimensions of the BGrid.  Just call dim() on the BGrid for this.
+#' @param dims The dimensions of the topographyGrid.  Just call dim() on the topographyGrid for this.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a dictionary of start/end indexes for rows and columns respectively named : {rs,re,cs,ce}.
@@ -659,12 +659,12 @@ getArea=function(loc, dims, range, debug=FALSE) {
 #' @title Returns the cells crossed by a beam from the starting cell to the target cell.
 #' @description This is an optimized using vectorization. Returns the cells crossed by a beam from the starting cell to the target cell. Note that the starting cell is omitted from the result set.
 #' 
-#' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the BGrid.
-#' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the BGrid.
+#' @param startingCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor's location on the topographyGrid.
+#' @param targetCell A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen tag's location on the topographyGrid.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @param nr Number of rows in bGrid.
+#' @param nr Number of rows in topographyGrid.
 #' @return If nr != NULL a vector is returned containing the linear indices
-#' (not row and col) of cells in the bGrid crossed by a beam from the starting
+#' (not row and col) of cells in the topographyGrid crossed by a beam from the starting
 #' cell to the target cell. If nr == NULL a matrix with a row column and a col
 #' column is returned.
 getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
@@ -722,7 +722,7 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
                 ## Add the corresponding columns also
                 cols = c(cols,cols[inds])
             }
-            ## Convert to linear (not row col) indices in the bGrid
+            ## Convert to linear (not row col) indices in the topographyGrid
             if(!is.null(nr)) {
 				biginds = sub2ind(rows,cols,nr)
 			}
@@ -741,7 +741,7 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
             inds = which(abs(diff(cols))>0)
             rows = c(rows,rows[inds])
             cols = c(cols,cols[inds+1])
-            ## Convert to linear (not row col) indices in the bGrid
+            ## Convert to linear (not row col) indices in the topographyGrid
             if(!is.null(nr)) biginds = sub2ind(rows,cols,nr)
         }
         ## Indices to use are all of them except the starting cell
@@ -750,7 +750,7 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
           ## If nr is not input return a matrix with rows and cols
           return( cbind(cols[useinds],rows[useinds]) )
         }else{
-          ## If nr was input return the linear indices in the bGrid
+          ## If nr was input return the linear indices in the topographyGrid
           return( biginds[useinds] )
         }
     }else{
@@ -767,7 +767,7 @@ getCells.opt = function(startingCell, targetCell, debug=FALSE, nr=NULL) {
 #' cell located at the third column, second row (aka the cell at (3,2) on a 1-based grid
 #' system).
 #' 
-#' @param point A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the point to translate on the BGrid.
+#' @param point A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the point to translate on the topographyGrid.
 #' @return A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the translated point.
 offset= function(point){
     r= point$r
@@ -819,44 +819,44 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         xlab = 'x dir'
         ylab = 'y dir'
 	
-	## BGrid
+	## topographyGrid
 	if(!showPlots){
-          filenames$bGrid = paste(path, "img/bGrid-", time, ".png", sep="")
-          png(filenames$bGrid)
+          filenames$topographyGrid = paste(path, "img/topographyGrid-", time, ".png", sep="")
+          png(filenames$topographyGrid)
         }else{
             dev.new()
         }
-        plotGrid(result,type='bGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='topographyGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	if(!showPlots) dev.off()
 	
-	## FGrid
+	## behaviorGrid
 	if(!showPlots){
-          filenames$fGrid = paste(path, "img/fGrid-", time, ".png", sep="")
-          png(filenames$fGrid)
+          filenames$behaviorGrid = paste(path, "img/behaviorGrid-", time, ".png", sep="")
+          png(filenames$behaviorGrid)
         }else{
             dev.new()
         }
-        plotGrid(result,type='fGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='behaviorGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	if(!showPlots) dev.off()
 	
-	## SumGrid
+	## goodnessGrid
 	if(!showPlots){
-          filenames$sumGrid = paste(path, "img/sumGrid-", time, ".png", sep="")
-          png(filenames$sumGrid)
+          filenames$goodnessGrid = paste(path, "img/goodnessGrid-", time, ".png", sep="")
+          png(filenames$goodnessGrid)
         }else{
             dev.new()
         }
-        plotGrid(result,type='sumGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='goodnessGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	if(!showPlots) dev.off()
 	
 	## Acoustic Coverage
 	if(!showPlots){
-            filenames$acousticCoverage = paste(path, "img/acousticCoverage-", time, ".png", sep="")
-            png(filenames$acousticCoverage)
+            filenames$coverageGrid = paste(path, "img/coverageGrid-", time, ".png", sep="")
+            png(filenames$coverageGrid)
         }else{
             dev.new()
         }
-        plotGrid(result,type='acousticCoverage',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
+        plotGrid(result,type='coverageGrid',xlab=xlab,ylab=ylab,plot.bathy=plot.bathy)
 	if(!showPlots) dev.off()
 
         ## Unique Recovery Rate
@@ -882,7 +882,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 #' graphs generated by the job, and optionally a zip file containing all of the above.  All
 #' filenames include a the time value so that associated files are recognizable.
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
-#' @param filenames A dictionary containing file paths; keys are: bGrid, fGrid, sumGrid, acousticCoverage, and
+#' @param filenames A dictionary containing file paths; keys are: topographyGrid, behaviorGrid, goodnessGrid, coverageGrid, and
 #' recoveryRates.
 #' @param path A path to prepend to all the filenames.
 #' @param time The timestamp label to include in all filenames.
@@ -905,10 +905,10 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
 	
 	# Append the new txt and zip file locations, and clear all the old data from the result set.
 	result$filenames = filenames
-	result$bGrid = NULL
-	result$fGrid = NULL
-	result$sumGrid = NULL
-	result$acousticCoverage = NULL
+	result$topographyGrid = NULL
+	result$behaviorGrid = NULL
+	result$goodnessGrid = NULL
+	result$coverageGrid = NULL
 	
 	# Write results to a json file
 	jsonFile = paste(path, "txt/", time, ".json", sep="")
@@ -924,7 +924,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
 #' contours can be overlayed using the plot.bathy flag.
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
-#' @param type Character specifying grid type. Available grids: 'bGrid', 'fGrid', 'sumGrid', or 'acousticCoverage'.
+#' @param type Character specifying grid type. Available grids: 'topographyGrid', 'behaviorGrid', 'goodnessGrid', or 'coverageGrid'.
 #' @param main Set title of plot.
 #' @param xlab Set label of x axis.
 #' @param ylab Set label of y axis.
@@ -932,32 +932,32 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
 #' @param plot.sensors Specifies if sensors should be added to plot.
 #' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
-plotGrid = function(result,type='bGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,...){
+plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,...){
     ## n is number of colors in palette
     n = 24
     col = heat.colors(n)
-    if(type=='bGrid'){
+    if(type=='topographyGrid'){
         ##col = colorRampPalette(c("darkviolet","navy","white"))(n)
         col = colorRampPalette(c("navy","white"))(n)
-        grid = result$bGrid$bGrid
+        grid = result$topographyGrid$topographyGrid
     }
-    if(type=='fGrid'){
+    if(type=='behaviorGrid'){
         col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        grid = result$fGrid
+        grid = result$behaviorGrid
     }
-    if(type=='sumGrid'){
+    if(type=='goodnessGrid'){
         col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        grid = result$sumGrid
+        grid = result$goodnessGrid
     }
-    if(type=='acousticCoverage'){
+    if(type=='coverageGrid'){
         col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        grid = result$stats$acousticCoverage
+        grid = result$stats$coverageGrid
     }
     ## Plot the actual grid as an image
-    image(result$bGrid$x,result$bGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col,...)
+    image(result$topographyGrid$x,result$topographyGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col,...)
     if(plot.bathy) {
         ## Add bathymetry contour
-        contour(result$bGrid$x,result$bGrid$y,result$bGrid$bGrid,add=TRUE,nlevels=5)
+        contour(result$topographyGrid$x,result$topographyGrid$y,result$topographyGrid$topographyGrid,add=TRUE,nlevels=5)
     }
     if(plot.sensors){
         ## Add sensors and their numbers
@@ -1028,9 +1028,9 @@ plotSensors = function(result,circles=TRUE,circlty=3){
   ## Radian values for a full circle
   a = seq(0, 2 * pi, length.out=100)
   ## Cols
-  sensx = result$bGrid$x[result$stats$sensorMat[1:ns, 2]]
+  sensx = result$topographyGrid$x[result$stats$sensorMat[1:ns, 2]]
   ## Rows
-  sensy = result$bGrid$y[result$stats$sensorMat[1:ns, 1]]
+  sensy = result$topographyGrid$y[result$stats$sensorMat[1:ns, 1]]
   ## Plot sensor range as circles
   if(circles){
 	i = ns
@@ -1047,41 +1047,41 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 }
 
 
-#' @title Provides statistical data on detection, given a particular bGrid, fGrid, and sensor arrangement.
+#' @title Provides statistical data on detection, given a particular topographyGrid, behaviorGrid, and sensor arrangement.
 #' @description This function calculates placements of projected sensors and the value
 #' of each sensor (requested and projected) as given in increase in unique recovery rate.
 #' Additionally, the acoustic coverage map, unique recovery rate, absolute recovery rate, and sparsity
 #' are calculated and returned after placing the requested number of sensors.
 #' 
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
-#' @param bGrid A valid BGrid.
-#' @param fGrid A valid FGrid.
+#' @param topographyGrid A valid topographyGrid.
+#' @param behaviorGrid A valid behaviorGrid.
 #' @param sensors The result of a successful call to sensorFun().
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A dictionary of statistical values containing the keys: "delta", "sensorMat"         
-#' "uniqRRs", "acousticCoverage", "absRecoveryRate", "uniqRecoveryRate".
-getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
+#' "uniqRRs", "coverageGrid", "absRecoveryRate", "uniqRecoveryRate".
+getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) {
 	if(debug) {
 		print("[getstats]")
 	}
     statDict = list()
     ## Number of requested sensors
     numSensors = length(sensors$sensorList)
-    rows = dim(fGrid)[1]
-    cols = dim(fGrid)[2]
+    rows = dim(behaviorGrid)[1]
+    cols = dim(behaviorGrid)[2]
     rng = params$range
     
     ## Calculate the value of each sensor (as the increase in unique recoveryrate)
     numProj = numSensors + params$projectedSensors
-    ## sumGrid suppressed by numSensors
-    sumGridSupp = sensors$sumGridSupp
+    ## goodnessGrid suppressed by numSensors
+    goodnessGridSupp = sensors$goodnessGridSupp
     sensorList = sensors$sensorList
     ## Calculate locations of projected sensors
 	ns = numProj-numSensors
 	i = ns
     while (i > 0) { 
       ## find the max location 
-      maxLoc = which.max(sumGridSupp)
+      maxLoc = which.max(goodnessGridSupp)
       ## Switch the row/col vals since R references Grid coords differently
       c=ceiling(maxLoc/rows)
       r=(maxLoc %% rows)
@@ -1092,7 +1092,7 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
       ## append maxLoc to the sensor list.
       sensorList = c(sensorList, list(maxLoc))
       ## down-weigh all near-by cells to discourage them from being chosen by the program
-      sumGridSupp = suppress.opt(sumGridSupp, dim(fGrid), maxLoc, params, bGrid$bGrid, debug)
+      goodnessGridSupp = suppress.opt(goodnessGridSupp, dim(behaviorGrid), maxLoc, params, topographyGrid$topographyGrid, debug)
 	  i = i - 1
     }
 
@@ -1107,8 +1107,8 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
     }
     
     ## Distance maps (the distance from any grid cell to a receiver)
-    rows = dim(fGrid)[1]
-    cols = dim(fGrid)[2]
+    rows = dim(behaviorGrid)[1]
+    cols = dim(behaviorGrid)[2]
     X = matrix(rep(1:cols,rows),rows,cols,byrow=TRUE)
     Y = matrix(rep(1:rows,cols),rows,cols,byrow=FALSE)
     dimap = array(0,dim=c(rows,cols,numProj))
@@ -1131,7 +1131,7 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
 
     ## Incorporate vertical detection probability using line of sight
     if(params$bias!=1){
-      bG = bGrid$bGrid
+      bG = topographyGrid$topographyGrid
       ## Create a matrix where land cells have value TRUE
       land = bG >= 0
       ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
@@ -1173,7 +1173,7 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
         ## Probability of no detection
         cover[rind,cind] = cover[rind,cind] * (1 - demap[rind,cind,k]) 
         covertmp = 1-cover
-        uniqRRs[k] = sum(covertmp * fGrid)
+        uniqRRs[k] = sum(covertmp * behaviorGrid)
 		i = i - 1
     }
     duniqRRs = diff(c(0,uniqRRs))
@@ -1192,14 +1192,14 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
     ## placing sensors and calculating unique RR as above)
     statDict$uniqRRs = cumsum(srt$x)
     ## Acoustic coverage for best sensors
-    statDict$acousticCoverage = 1-apply(1-demap[,,srt$ix[1:numSensors]],c(1,2),prod)
+    statDict$coverageGrid = 1-apply(1-demap[,,srt$ix[1:numSensors]],c(1,2),prod)
 
     ## Calculate distance matrix needed to calculate sparsity
     distVec = rep(0,numSensors)
 	i = numProj
 	while(i > 0) {
 		k = numProj-i+1
-        dists = sqrt((bGrid$x[xSens[srt$ix[k]]]-bGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (bGrid$y[ySens[srt$ix[k]]]-bGrid$y[ySens[srt$ix[1:numSensors]]])^2)
+        dists = sqrt((topographyGrid$x[xSens[srt$ix[k]]]-topographyGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (topographyGrid$y[ySens[srt$ix[k]]]-topographyGrid$y[ySens[srt$ix[1:numSensors]]])^2)
         distVec[k] = min(dists[dists>0])
 		i = i - 1
     }
@@ -1210,10 +1210,10 @@ getStats = function(params, bGrid, fGrid, sensors, debug=FALSE) {
     
     ## Absolute recovery rate (here we don't care about getting the same ping multiple times)
     demapmat = apply(demap[,,srt$ix[1:numSensors]],c(1,2),sum)
-    statDict$absRecoveryRate = sum(demapmat*fGrid)
+    statDict$absRecoveryRate = sum(demapmat*behaviorGrid)
 	
     ## Calculate recovery rate of unique detections    
-    statDict$uniqRecoveryRate = sum(statDict$acousticCoverage * fGrid)
+    statDict$uniqRecoveryRate = sum(statDict$coverageGrid * behaviorGrid)
     
     return(statDict)
 }
@@ -1565,10 +1565,10 @@ checkForMax = function(name, value, maxVal, stop=TRUE){
 #' @description These are used for internal calculations and are invisible to the user.
 #' 
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
-#' @param bGrid A valid bGrid.
+#' @param topographyGrid A valid topographyGrid.
 #' @return The 'params' parameter, populated with necessary internal variables ("sd",
 #' "suppsd", "range", "suppressionRange") with unit 'grid cells'.
-convertMetersToGrid = function(params, bGrid=NA){
+convertMetersToGrid = function(params, topographyGrid=NA){
   ## Cell size in meters
   cellSize = params$cellSize
   ## Detection range with SD=1, dx=1
@@ -1653,7 +1653,7 @@ conv.2D = function(mat, kx, ky, timestamp=1, silent=FALSE){
 #' 
 #' @param row The row index.
 #' @param col The col index.
-#' @param dims The dimensions of the BGrid.  Just call dim() on the parent matrix for this.
+#' @param dims The dimensions of the topographyGrid.  Just call dim() on the parent matrix for this.
 #' @return The translated linear index.
 sub2ind = function(row, col, dims){
     (col-1) * dims[1] + row
@@ -1688,7 +1688,7 @@ printError = function(msg, stop=TRUE) {
 	}
 }
 
-#' @title Returns the percent completion of the calculation of the sumgrid for a given job.
+#' @title Returns the percent completion of the calculation of the goodnessGrid for a given job.
 #'
 #' @param id The id of the job to query.  This is always the associated timestamp for the job.
 #' @return The status of the job as a percentage between zero and one.
@@ -1696,7 +1696,7 @@ checkStatus = function(id) {
 	return(status[toString(id)])
 }
 
-#' @title Sets the percent completion of the calculation of the sumgrid for a given job.
+#' @title Sets the percent completion of the calculation of the goodnessGrid for a given job.
 #'
 #' @param id The id of the job to query.  This is always the associated timestamp for the job.
 #' @param value The percent completion of the job.

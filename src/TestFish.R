@@ -32,17 +32,17 @@ TestFish.fish = function() {
 				  		nrow=5,
 				  		ncol=5)
 		 )
-	bGrid =  {}
-	fGrid = {}
-	bGrid$bGrid = matrix(-1:-25,nrow=5,ncol=5)
+	topographyGrid =  {}
+	behaviorGrid = {}
+	topographyGrid$topographyGrid = matrix(-1:-25,nrow=5,ncol=5)
 	
 	params = list(fishmodel="rw", numSensors=2, bias=1)
 	params$cellSize=50
-	bGrid$x = (1:dim(bGrid$bGrid)[1])*params$cellSize 
-	bGrid$y = (1:dim(bGrid$bGrid)[2])*params$cellSize
+	topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
+	topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
 
 	#rw
-	fGrid$f1 = fish(params,bGrid)
+	behaviorGrid$f1 = fish(params,topographyGrid)
 	
 	#ou
 	params$fishmodel="ou"
@@ -52,28 +52,28 @@ TestFish.fish = function() {
 	params$ousdx=100
 	params$ousdy=100
 	params = checkParams(params)
-	fGrid$f2 = fish(params,bGrid)
+	behaviorGrid$f2 = fish(params,topographyGrid)
 	
 	
 	#ou with vertical habitat restriction
 	params$mindepth = -3
 	params$maxdepth = -14
-	fGrid$f3 = fish(params,bGrid)
+	behaviorGrid$f3 = fish(params,topographyGrid)
 	
 	#rw with vertical habitat restriction
 	params$fishmodel ="rw"
-	fGrid$f4 = fish(params,bGrid)
+	behaviorGrid$f4 = fish(params,topographyGrid)
 	
-	for(i in 1:length(fGrid)) {
+	for(i in 1:length(behaviorGrid)) {
 		#check that we got the right data
-		if(!isTRUE(all.equal(fGrid[[i]], sol[[i]], tolerance=tolerance))){
+		if(!isTRUE(all.equal(behaviorGrid[[i]], sol[[i]], tolerance=tolerance))){
 			print("Expected:")
 			print(sol[[i]])
 			print("Recieved:")
-			print(fGrid[[i]])
-			print(split(fGrid[[i]], rep(1:ncol(fGrid[[i]]), each = nrow(fGrid[[i]]))))
+			print(behaviorGrid[[i]])
+			print(split(behaviorGrid[[i]], rep(1:ncol(behaviorGrid[[i]]), each = nrow(behaviorGrid[[i]]))))
 			print("Diff:")
-			print(fGrid[[i]]-sol[[i]])
+			print(behaviorGrid[[i]]-sol[[i]])
 			stop(sprintf("[TestFish.fish %i]: FAIL",i))
 		}
 	}

@@ -39,38 +39,38 @@ TestBathy.getBathy = function() {
 					 nrow=5,
 				 	 ncol=5)
 
-	bGrid = getBathy(inputFile, inputFileType, startX, startY, XDist, YDist, seriesName, timestamp, debug)
+	topographyGrid = getBathy(inputFile, inputFileType, startX, startY, XDist, YDist, seriesName, timestamp, debug)
 	
 	#The default simulated grid
-	fakeGrid = simulateBGrid(XDist, YDist)
+	fakeGrid = simulatetopographyGrid(XDist, YDist)
 	
 	#Ensure that the system is indeed pulling the results from our file and not simply
 	#simulating them.
-	if(isTRUE(all.equal(bGrid,fakeGrid))) {
+	if(isTRUE(all.equal(topographyGrid,fakeGrid))) {
 		printError(sprintf("Missing Test File: %s.  Please download it here: %s, unzip it, and place it in the src/ directory.",
 						inputFile, linkLocation))
 	}
 	
 	#check that we got the right data
-	if(!isTRUE(all.equal(bGrid,sol))){
+	if(!isTRUE(all.equal(topographyGrid,sol))){
 		print("Expected:")
 		print(sol)
 		print("Recieved:")
-		print(bGrid)
+		print(topographyGrid)
 		stop("[TestBathy.getBathy %i]: FAIL")
 	}
 	print("[getBathy]: Pass")
 }
 
-TestBathy.simulateBGrid = function() {
+TestBathy.simulatetopographyGrid = function() {
 	XDist = 5
 	YDist = 5
-	fakeGrid = simulateBGrid(XDist, YDist)
+	fakeGrid = simulatetopographyGrid(XDist, YDist)
 	sol = c(XDist,YDist)
 	if(!(all.equal(dim(fakeGrid), sol))) {
-		printError("[simulateBGrid]: FAIL!")
+		printError("[simulatetopographyGrid]: FAIL!")
 	}
-	print("[simulateBGrid]: Pass")
+	print("[simulatetopographyGrid]: Pass")
 }
 
 #' Runs a battery of tests.
@@ -80,7 +80,7 @@ TestBathy.simulateBGrid = function() {
 runBathyTests = function () {
 	print("--- Testing Bathy Functions ---")
 	TestBathy.checkPackages()
-	TestBathy.simulateBGrid()
+	TestBathy.simulatetopographyGrid()
 	TestBathy.getBathy()
 	print("Success! All Bathy Tests Passed.")
 }
