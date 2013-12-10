@@ -63,10 +63,10 @@
 					<Option label="Ornstein-Uhlenbeck (OU)">True</Option>
 				</Options>
 				<Hidable>
-					<HField id="mux"  label="Home Range Center (X value)"  type="text"  toolTip="Longitude co-ordiante of the home range center.">
+					<HField id="mux"  label="Home Range Center (X value)"  type="text"  toolTip="Longitude co-ordiante of the home range center.  Value must be in decimal degrees.">
 						-158.8
 					</HField>
-					<HField id="muy"  label="Home Range Center (Y value)"  type="text"  toolTip="Latitude co-ordiante of the home range center.">
+					<HField id="muy"  label="Home Range Center (Y value)"  type="text"  toolTip="Latitude co-ordiante of the home range center.  Value must be in decimal degrees.">
 						21.5
 					</HField>
 					<HField id="ousdx"  label="Home Range Extent (X value)"  type="text"  toolTip="SD of the home range in meters in the x direction.">
@@ -86,10 +86,10 @@
 					<Option label="Enable">True</Option>
 				</Options>
 				<Hidable>
-					<HField id="minDepth"  label="Min Depth"  type="text"  toolTip="Specifies the shallowest cell an animal will visit.">
+					<HField id="minDepth"  label="Min Depth"  type="text"  toolTip="Specifies the shallowest cell an animal will visit.  Units are in negative meters">
 						-2
 					</HField>
-					<HField id="maxDepth"  label="Max Depth"  type="text"  toolTip="Specifies the deepest cell an animal will visit.">
+					<HField id="maxDepth"  label="Max Depth"  type="text"  toolTip="Specifies the deepest cell an animal will visit. Units are in negative meters.">
 						-10
 					</HField>
 				</Hidable>

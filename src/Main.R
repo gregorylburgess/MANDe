@@ -183,4 +183,54 @@ appendError = function(msg, time) {
 	print(gErrors[toString(time)])
 }
 
-acousticTest()
+parseJSON <- function(params) {
+	params = paste("{",params,"}", sep="")
+	parser = newJSONParser()
+	parser$addData(params)
+	return(parser$getObject())
+}
+
+library("rjson")
+par = list(
+	startX= 7400,
+    startY= 3300,
+    XDist= 2000,
+    YDist= 6300,
+    inputFile= "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd",
+    inputFileType= "netcdf",
+    seriesName= "z",
+    cellSize= 50,
+    userSensorList= 
+			"1440,4518,
+			80,142,
+			80,160,
+			40,118,
+			120,140,
+			80,108,
+			980,5164,
+			1820,4718,
+			1900,4706,
+			220,6048,
+			660,6256,
+			1780,4610,
+			1120,4416,
+			1880,4678",
+    numSensors= 14,
+    projectedSensors= 0,
+    bias= 1,
+    sensorElevation= 1,
+    shapeFcn= "shape.gauss",
+    peak= .98,
+    detectionRange= 4000,
+    north= 21.7,
+    south= 18.65,
+    west= -158.3,
+    east= -157.3,
+    resolution= "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd",
+    suppressionRangeFactor= 2,
+    suppressionFcn= "suppression.scale",
+    maxsuppressionValue= 1,
+    minsuppressionValue= .5,
+    timestamp= "-1")
+status <<-{}
+	#acousticRun(par)

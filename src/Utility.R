@@ -1445,14 +1445,14 @@ checkParams = function(params, stop=TRUE) {
 	}
 	# 0 < max/min suppressionValue < 1
 	if(!('maxsuppressionValue' %in% names)) {
-		params$maxsuppressionValue = .1
+		params$maxsuppressionValue = .5
 	}
 	else {
 		checkForMin("maxsuppressionValue", params$maxsuppressionValue, 0, stop)
 		checkForMax("maxsuppressionValue", params$maxsuppressionValue, 1, stop)
 	}
 	if(!('minsuppressionValue' %in% names)) {
-		params$minsuppressionValue = .5
+		params$minsuppressionValue = .1
 	}
 	else {
 		checkForMin("minsuppressionValue", params$minsuppressionValue, 0, stop)
@@ -1460,7 +1460,7 @@ checkParams = function(params, stop=TRUE) {
 	}
 	# minsuppressionValue < maxsuppressionValue
 	if(!(params$minsuppressionValue < params$maxsuppressionValue)) {
-		printError("'minsuppressionValue' must be less than 'maxsuppressionValue'.")
+		printError("'minsuppressionValue' must be greater than 'maxsuppressionValue'.")
 	}
 	
 	# SuppressionRange Factor
@@ -1694,4 +1694,19 @@ printError = function(msg, stop=TRUE) {
 #' @return The status of the job as a percentage between zero and one.
 checkStatus = function(id) {
 	return(status[toString(id)])
+}
+
+#' @title Sets the percent completion of the calculation of the sumgrid for a given job.
+#'
+#' @param id The id of the job to query.  This is always the associated timestamp for the job.
+#' @param value The percent completion of the job.
+#' @return None.
+setStatus = function(id, value) {
+	status[toString(id)] <<- value
+	if(require('multicore')) {
+		data = raw(2)
+		data[1] = id
+		data[2] = value
+		sendMaster(data)
+	}
 }
