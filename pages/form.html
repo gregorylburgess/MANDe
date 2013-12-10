@@ -356,6 +356,9 @@
 			var data = dic.replace(/\"/g,"\'");  //"
 			var start =0;
 			var end = 1;
+
+			$("#hero").hide();
+			$('#form').load("progress_bar.html");
 			while(i <= numRequests) {
 				//slice off a chunk of data
 				var partialDic = data.slice(dataSize * start, Math.min(dataSize * end, dic.length));
@@ -389,8 +392,6 @@
 	
 	//Waits until the job has been finished by trying to load a <timestamp>.json file 
 	function waitForData(data) {
-		$("#hero").hide();
-		$('#form').load("progress_bar.html");
 		var filename = "../txt/" + timestamp + ".json";
 		var exists = UrlExists(filename);
 		var waitLoop = setInterval(
@@ -481,18 +482,7 @@
 			var dpcC = params["dpcC"];
 			var dpcR = params["dpcR"];
 			
-			toRet += "<h3>Sensor Locations:</h3>";
-			//Print sensor locations
-			toRet += "<table class=\"table\" style=\"max-width:443px;\"><thead><tr>";
-			toRet += "<th>Longitude</th><th>Latitude</th>";
-			toRet += "</tr></thead><tbody>";
-			sensors = sensors.sort(function(a,b){return -(b.r-a.r) + (b.c-a.c)/10.0});
-			for (var i=0;i<sensors.length; i++) {
-				toRet += "<tr><td>" + (sensors[i].r * dpcR + west).toFixed(10) + "</td><td>" + (sensors[i].c * dpcC + south).toFixed(10) + "</td></tr>";
-			}
-			toRet += "</tbody></table>";
-			
-			
+
 			//Print network stats
 			toRet += "<h3>Stats:</h3></br>";
 			for(var key in stats) {
@@ -500,7 +490,21 @@
 					toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
 				}
 			}
+
+			//Print sensor locations
+			toRet += "<h3>Sensor Locations:</h3>";
+			var yList = stats["sensorMat"].slice(0,stats["sensorMat"].length/2);
+			var xList = stats["sensorMat"].slice(stats["sensorMat"].length/2,stats["sensorMat"].length);
+			toRet += "<table class=\"table\" style=\"max-width:443px;\"><thead><tr>";
+			toRet += "<th>ID#</th><th>Longitude</th><th>Latitude</th>";
+			toRet += "</tr></thead><tbody>";
+			//sensors = sensors.sort(function(a,b){return -(b.r-a.r) + (b.c-a.c)/10.0});
+			for (var i=0;i<xList.length; i++) {
+				toRet += "<tr><td>" + (i+1) + "</td><td>" + (xList[i] * dpcR + west).toFixed(10) + "</td><td>" + (yList[i] * dpcC + south).toFixed(10) + "</td></tr>";
+			}
+			toRet += "</tbody></table>";
 			
+			//Print Graphs
 			toRet += "<h3>Graphs:</h4>";
 			for(var key in filenames) {
 				if(filenames[key].indexOf(".png") != -1) {
