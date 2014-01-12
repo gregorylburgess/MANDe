@@ -486,21 +486,25 @@
 			//Print network stats
 			toRet += "<h3>Stats:</h3></br>";
 			for(var key in stats) {
-				if(key != "coverageGrid") {
+				if(key != "coverageGrid" && key != "sensorMat" && key != "sensorMatNotSorted" && key!= "uniqRRs") {
 					toRet +="<b>" + key + "</b>" +  ": " + stats[key] + "</br>";
 				}
 			}
 
 			//Print sensor locations
 			toRet += "<h3>Sensor Locations:</h3>";
+			var rrList = stats["uniqRRs"];
+			var lastRR = 0;
 			var yList = stats["sensorMat"].slice(0,stats["sensorMat"].length/2);
 			var xList = stats["sensorMat"].slice(stats["sensorMat"].length/2,stats["sensorMat"].length);
 			toRet += "<table class=\"table\" style=\"max-width:443px;\"><thead><tr>";
-			toRet += "<th>ID#</th><th>Longitude</th><th>Latitude</th>";
+			toRet += "<th>ID#</th><th>Longitude</th><th>Latitude</th><th>Unique Recovery Rate</th>";
 			toRet += "</tr></thead><tbody>";
 			//sensors = sensors.sort(function(a,b){return -(b.r-a.r) + (b.c-a.c)/10.0});
 			for (var i=0;i<xList.length; i++) {
-				toRet += "<tr><td>" + (i+1) + "</td><td>" + (xList[i] * dpcR + west).toFixed(10) + "</td><td>" + (yList[i] * dpcC + south).toFixed(10) + "</td></tr>";
+				toRet += "<tr><td>" + (i+1) + "</td><td>" + (xList[i] * dpcR + west).toFixed(10) + "</td><td>" 
+					     + (yList[i] * dpcC + south).toFixed(10) + "</td><td>" + (rrList[i] - lastRR) + "</td></tr>";
+				lastRR = rrList[i];
 			}
 			toRet += "</tbody></table>";
 			

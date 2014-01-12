@@ -5,22 +5,22 @@
 			<!--  Pre-defined Server File support. Comment out if you want to use local files-->
 			<Field id="inputFile" label="Bathymetry Dataset" type="select" toolTip="Specifies the dataset and resolution to use. Selecting smaller cell sizes will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
 				<Options>
-					<Option label="Hawaii 1km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
 					<Option label="Hawaii 50m cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
+					<Option label="Hawaii 1km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
 					<Option label="Palmyra 40m cells">src/palmyra_40m.grd</Option>
 				</Options>
 			</Field>
 			<Field id="north" label="Northern Grid Boundary" type="text" toolTip="The Northern Latitude boundary for your study area in Decimal Degrees.">
-				21.923
+				21.9
 			</Field>
 			<Field id="south" label="Southern Grid Boundary" type="text" toolTip="The Southeren Latitude boundary for your study area in Decimal Degrees.">
-				21.479
+				20.8
 			</Field>
 			<Field id="west" label="Western Grid Boundary" type="text" toolTip="The Westeren Longitude boundary for your study area in Decimal Degrees.">
-				-158.869
+				-158.3
 			</Field>
 			<Field id="east" label="Eastern Grid Boundary" type="text" toolTip="The Eastern Longitude boundary for your study area in Decimal Degrees.">
-				-158.316
+				-157.3
 			</Field>
 			
 			
@@ -64,7 +64,7 @@
 				</Options>
 				<Hidable>
 					<HField id="mux"  label="Home Range Center (X value)"  type="text"  toolTip="Longitude co-ordiante of the home range center.  Value must be in decimal degrees.">
-						-158.8
+						-158.1
 					</HField>
 					<HField id="muy"  label="Home Range Center (Y value)"  type="text"  toolTip="Latitude co-ordiante of the home range center.  Value must be in decimal degrees.">
 						21.5
@@ -82,26 +82,26 @@
 			</Field>
 			<Field id="vhabitat"  label="Restrict Vertical Habitat Range"  type="toggle"  toolTip="Restricts animal movement to habitat cells within the given depth range.">
 				<Options>
-					<Option label="Disable">False</Option>
 					<Option label="Enable">True</Option>
+					<Option label="Disable">False</Option>
 				</Options>
 				<Hidable>
-					<HField id="minDepth"  label="Min Depth"  type="text"  toolTip="Specifies the shallowest cell an animal will visit.  Units are in negative meters">
+					<HField id="mindepth"  label="Min Depth"  type="text"  toolTip="Specifies the shallowest cell an animal will visit.  Units are in negative meters">
 						-2
 					</HField>
-					<HField id="maxDepth"  label="Max Depth"  type="text"  toolTip="Specifies the deepest cell an animal will visit. Units are in negative meters.">
-						-10
+					<HField id="maxdepth"  label="Max Depth"  type="text"  toolTip="Specifies the deepest cell an animal will visit. Units are in negative meters.">
+						-400
 					</HField>
 				</Hidable>
 			</Field>
 			<Field id="depthPreference"  label="Use Depth Preference"  type="toggle"  toolTip="Normally distributes animals in the water column according to a given mean and SD.">
 				<Options>
-					<Option label="Disable">False</Option>
 					<Option label="Enable">True</Option>
+					<Option label="Disable">False</Option>
 				</Options>
 				<Hidable>
 					<HField id="dp"  label="Preferred Depth"  type="text"  toolTip="Depth preference of fish relative to the sea floor (in meters off the bottom).">
-						2
+						128
 					</HField>
 					<HField id="dpsd"  label="SD of Preferred Depth"  type="text"  toolTip="Standard deviation of preferred depth (in meters). Animals spend 95% of their time within plus/minus 2 SD of their preferred depth.">
 						2
@@ -113,23 +113,23 @@
 	<Group id="Sensor Variables">
 		<Fields>
 			<Field id="userSensors" label="User-Specified Sensors" type="text" toolTip="List of already existing sensors.  These sensors are placed and down-weighed before running the program.  Useful for including already existing sensors, or forcing the placement of a few sensors.  Do not include these sensors in the sensor count below.  Provide sensor locations as a string in the format: &lt;sensor1_Long&gt;, &lt;sensor1_Lat&gt;, &lt;sensor2_Long&gt;, &lt;sensor2_Lat&gt;...">
-				-158.8,21.9
+				-157.81,21.232,-158.19,21.674,-157.97,21.778,-157.58,20.909,-157.39,21.009,-157.35,21.003,-157.41,20.955,-157.74,20.858,-157.36,20.989,-157.59,21.337,-158.03,21.237,-158.27,21.548,-158.15,21.35,-158.11,21.265,-158.21,21.418,-157.74,21.507,-157.35,21.003,-157.41,20.955,-157.36,20.989,-157.35,21.003,-157.74,20.858,-157.36,20.989,-157.57,21.308,-157.59,21.262,-157.69,21.426,-157.57,21.256,-157.69,21.439
 			</Field>
 			<Field id="numSensors" label="Number of Sensors to Use" type="text" toolTip="The number of sensors the system should place optimally.">
-				10
+				0
 			</Field>
 			<Field id="projectedSensors" label="Number of Sensors to Project" type="text" toolTip="The number of theoretical sensors to be placed by the system.  These sensors will be placed in addition to any sensors specified above.  This option lets you see what adding more sensors to your setup does to your recovery rate.">
 				0
 			</Field>
 			<Field id="bias" label="'Goodness' Algorithm" type="select" toolTip="Specifies how the program determines the goodness of a cell.  A value of 1 bases goodness on fish presence, regardless of bathymetry.  A value of 2 bases goodness on bathymetric visibility, regardless of fish presence  A value of 3 bases goodness on the number of visible fish (both fish habitat and bathymetry are considered).">
 				<Options>
+					<Option label="3">3</Option>
 					<Option label="1">1</Option>
 					<Option label="2">2</Option>
-					<Option label="3">3</Option>
 				</Options>
 			</Field>
 			<Field id="sensorElevation"  label="Sensor Elevation"  type="text"  toolTip="Elevation of all sensors off of the bottom in meters.  This is includes any moorings used.">
-				1
+				30
 			</Field>
 			<Field id="shapeFcn"  label="Sensor Shape Function"  type="select"  toolTip="Determines which shape function to use for simulating signal attenuation. 'shape.gauss' is currently the only supported shape function.">
 				<Options>
@@ -140,7 +140,7 @@
 				.98
 			</Field>
 			<Field id="detectionRange"  label="Detection Range"  type="text"  toolTip="The distance in meters from the sensor where the probability of detecting a signal falls below 0.05.">
-				4000
+				5000
 			</Field>		
 		</Fields>
 	</Group>
