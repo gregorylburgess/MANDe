@@ -5,8 +5,8 @@
 			<!--  Pre-defined Server File support. Comment out if you want to use local files-->
 			<Field id="inputFile" label="Bathymetry Dataset" type="select" toolTip="Specifies the dataset and resolution to use. Selecting smaller cell sizes will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
 				<Options>
-					<Option label="Hawaii 50m cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
 					<Option label="Hawaii 1km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
+					<Option label="Hawaii 50m cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
 					<Option label="Palmyra 40m cells">src/palmyra_40m.grd</Option>
 				</Options>
 			</Field>
@@ -140,7 +140,7 @@
 				.98
 			</Field>
 			<Field id="detectionRange"  label="Detection Range"  type="text"  toolTip="The distance in meters from the sensor where the probability of detecting a signal falls below 0.05.">
-				5000
+				1001
 			</Field>		
 		</Fields>
 	</Group>

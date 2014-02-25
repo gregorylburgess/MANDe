@@ -1,4 +1,3 @@
-source('src/Utility.R')
 
 #' @name getBathy
 #' @title Generate a topographyGrid.
@@ -24,6 +23,7 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
                 library(ncdf)
                 ## open the netCDF file
                 ncdfObj = open.ncdf(inputFile)
+				#print(summary(ncdfObj))
                 ## grab a slice (in grid form)
                 topographyGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
 	    }

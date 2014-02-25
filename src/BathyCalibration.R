@@ -1,8 +1,7 @@
-source('src/Bathy.R')
+
 input50m = "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd"
 input1km ="src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd"
 inputFileType = "netcdf"
-
 XDist= 1
 YDist= 1
 seriesName="z"
@@ -124,4 +123,127 @@ sim1km = function() {
 					print(rslt)
 }
 
-sim50m()
+#' @name testplot
+#' @title Generates a topography Graph.
+#' @description Creates a test plot to help improve targeting on a netcdf dataset.
+#' @param x The longitude of a test point.
+#' @param y The latitude of a test point.
+#' @param myn The test Northern limit of the area to graph .
+#' @param mys The test Southern limit of the area to graph.
+#' @param mye The test Eastern limit of the area to graph.
+#' @param myw The test Western limit of the area to graph.
+#' @param timestamp A unique string/integer to prevent graph file overwrites.
+testplot = function(x, y, myn, mys, mye, myw, timestamp, ...) {
+	    #Data specific to the 1km grid file.
+		inputFile = "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd" 	#path to the 1km v19 bathy data grid file
+		inputFileType = "netcdf" 		#tells getBathy that this is a netcdf file 
+		seriesName = 'z' 		#netcdf variable name
+		n = 25; 			#Northern limit of the netcdf file
+		s = 17; 			# Southern limit of hte netcdf file
+		e = -153; 		#Eastern limit of the netcdf file
+		w = -162;		#Western limit of the netcdf file
+		dpcC = .00999;		#Degrees per cell in the Y direction, as given by the bathy dataset
+		dpcR = .00999;		#Degrees per cell in the X direction, as given by the bathy dataset
+		
+		startX = floor((myw-w)/dpcC)  		#Western most x index (in grid cells) for the area of interest
+		XDist = floor((mye-myw)/dpcC)		#the extent (in grid cells) for the area of interest in the x direction
+		startY = floor((mys-s)/dpcR)    		#Southern most y index (in grid cells) for the area of interest
+		YDist = floor((myn-mys)/dpcR)  		#the extent (in grid cells) for the area of interest in the y direction
+		xoffset = 2*dpcC
+		yoffset= 2*dpcR
+		r=(y + yoffset - mys)/dpcR 		#the y coordinate of the test point
+		c=(x + xoffset -myw)/dpcC	# the x coordinate of the test point
+		
+		#Print out the calulation of the test point's x/y coordinates
+		print(paste("r=(",y," - ",mys,")/",dpcR,"=",r))
+		print(paste("c=(",x," - ",myw,")/",dpcC,"=",c))
+		
+	    # Create/Load the Bathy grid for the area of interest
+		library(ncdf)
+		ncdfObj = open.ncdf(inputFile)		# open the netCDF file
+		topographyGrid = get.var.ncdf(ncdfObj, seriesName, start=c(startX, startY), count=c( XDist, YDist))		# grab a slice (in grid form)
+		
+	    # Specify a standard scale of x and y axes if previously undefined
+		xaxis = (1:dim(topographyGrid)[1])		#Create a range of numbers from 1 to the number of columns in the area of interest
+		yaxis = (1:dim(topographyGrid)[2])		#Create a range of numbers from 1 to the number of columns in the area of interest
+		
+		#graphing stuff
+		col = colorRampPalette(c("navy","white"))(24)
+		png(paste("topographyGrid-",timestamp, ".png"))
+		image(x=xaxis, y=yaxis, z=topographyGrid, zlim=c(-6000,0),xlab='x',ylab='y',col=col,...)
+		
+		contour(xaxis,yaxis,topographyGrid,add=TRUE,nlevels=5)		# Add bathymetry contour
+		sensx = list(c)		# Graphing library expects a vector containng x values
+		sensy = list(r)		# Graphing library expects a vector containng y values
+		points(sensx,sensy,pch=20,bg='red',cex=3)		# Plot the test point
+		dev.off()
+}
+#plot a test point around Big Island
+x= -155.003
+y=19.333
+myn=20
+mys=19
+mye=-154.66
+myw=-156.0
+timestamp="BI"
+testplot(x, y, myn, mys, mye, myw, timestamp)
+
+#plot a test point around the western most tip of Oahu (Kaena point)
+x= -158.28
+y=21.575
+myn=21.76
+mys=21.13
+mye=-157.55
+myw=-158.39
+timestamp="Oahu"
+testplot(x, y, myn, mys, mye, myw, timestamp)
+
+#plot a test point around the south western most tip of Niihau (pueo point)
+x=-160.072
+y=21.896
+myn=22.02
+mys=21.767
+myw=-160.3
+mye=-160.02
+timestamp="NI"
+testplot(x, y, myn, mys, mye, myw, timestamp)
+
+#plot a test point around a south western sea mount
+x=-161.335
+y=17.718
+myn=17.78
+mys=17.7
+myw=-161.35
+mye=-161.257
+timestamp="SW"
+testplot(x, y, myn, mys, mye, myw, timestamp)
+
+#plot a test point around a south eastern sea mount
+x=-154.083
+y=17.147
+myn=17.267
+mys=17.032
+myw=-154.192
+mye=-153.942
+timestamp="SE"
+testplot(x, y, myn, mys, mye, myw, timestamp)
+
+#plot a test point around a north eastern sea mount
+x=-153.212
+y=24.885
+myn=24.937
+mys=24.825
+myw=-153.281
+mye=-153.151
+timestamp="NE"
+testplot(x, y, myn, mys, mye, myw, timestamp)
+
+#plot a test point around a north western sea mount
+x=-161.902
+y=24.556
+myn=24.61
+mys=24.51
+myw=-161.93
+mye=-161.83
+timestamp="NW"
+testplot(x, y, myn, mys, mye, myw, timestamp)
