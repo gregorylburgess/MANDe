@@ -98,13 +98,13 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE) 
 }
 
 #' @name acousticTest
-#' @title Executes a test run of the program, using default parameters.  No additional 
-#' parameters are necessary.
-#'
+#' @title Executes a test run of the program, using default parameters.
+#' @description Executes a test run of the program, using default parameters.  No additional 
+#' parameters are necessary. The code for this function can be used as a template for new projects.
 #' @param bias Choose between bias 1 (fish only), 2 (shadowing only) or 3 (fish and shadowing).
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @return A dictionary of return objects, see RETURN_DESCRIPTOINS.html for more info.
+#' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
 acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	library("rjson")
@@ -113,13 +113,13 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	params = list()
 	
 	## Sensor variables
-	params$timestamp = -1
+	params$timestamp = 00
 	params$numSensors = 4
 	params$bias = bias
 	params$sensorElevation = 1
 	params$shapeFcn = 'shape.gauss'
 	params$peak = .98 
-    params$detectionRange <- 120
+        params$detectionRange <- 120
 	
 	# topographyGrid Variables
 	params$inputFile = "src/palmyra_40m.grd"
@@ -169,7 +169,7 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
 	    params$dpsd <- 2
 	}
-	return(acousticRun(params, showPlots=FALSE, debug))
+	return(acousticRun(params, showPlots, debug))
 }
 
 #' @name appendError
@@ -185,53 +185,15 @@ appendError = function(msg, time) {
 	print(gErrors[toString(time)])
 }
 
+#' @name parseJSON
+#' @title ???
+#' @description ???
+#' @param params ???
+#' @return ???
+#' @export
 parseJSON <- function(params) {
 	params = paste("{",params,"}", sep="")
 	parser = newJSONParser()
 	parser$addData(params)
 	return(parser$getObject())
 }
-
-
-par = list(
-	startX= 7400,
-    startY= 3300,
-    XDist= 2000,
-    YDist= 6300,
-    inputFile= "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd",
-    inputFileType= "netcdf",
-    seriesName= "z",
-    cellSize= 50,
-    userSensorList= 
-			"1440,4518,
-			80,142,
-			80,160,
-			40,118,
-			120,140,
-			80,108,
-			980,5164,
-			1820,4718,
-			1900,4706,
-			220,6048,
-			660,6256,
-			1780,4610,
-			1120,4416,
-			1880,4678",
-    numSensors= 14,
-    projectedSensors= 0,
-    bias= 1,
-    sensorElevation= 1,
-    shapeFcn= "shape.gauss",
-    peak= .98,
-    detectionRange= 4000,
-    north= 21.7,
-    south= 18.65,
-    west= -158.3,
-    east= -157.3,
-    resolution= "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd",
-    suppressionRangeFactor= 2,
-    suppressionFcn= "suppression.scale",
-    maxsuppressionValue= 1,
-    minsuppressionValue= .5,
-    timestamp= "-1")
-	#acousticRun(par)
