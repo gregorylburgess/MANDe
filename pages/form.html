@@ -18,6 +18,7 @@
 	function loadForm() {
 		var form = "";
 		var timestamp = -1;
+		//Parse the xml file for field information and default values
 		$.get("Form.xml", function(data) {
 			var xml = $($.parseXML(data));
 			xml.find('Group').each(function() {
@@ -32,7 +33,8 @@
 					var type = $(this).attr("type");
 					var toolTip = $(this).attr("toolTip");
 					var value = $(this).text().replace(/\s/g, "");
-
+					
+					//A text box users fill in
 					if (type == 'text') {
 						numericNames.push(id);
 						form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
@@ -43,6 +45,7 @@
 							+ "</div>"
 							+ "</div></a>";
 					}
+					//Drop downs/checkboxes
 					else if (type == "select" || type == "toggle") {
 						if (type == "toggle") {
 							groupID = id;
@@ -90,12 +93,14 @@
 						}
 					}
 				});
-			});//end xml.find(Group)
+			});// end xml.find(Group)
+			// Add buttons
 			form += "</br><center><div >"
 			+ "<button type=\"submit\" class=\"btn btn-success\" "
 			+ "onClick=\"validate()\" style=\"margin-right:20px;\">Submit</button>"
 			+ "<button class=\"btn btn-danger\" onClick=\"reset()\" >"
 			+ "Reset Form</button></div></center>";
+			// load the form data
 			$("#theForum").html(form);
 			$(".link").tooltip();
 
@@ -392,7 +397,7 @@
 	
 	//Waits until the job has been finished by trying to load a <timestamp>.json file 
 	function waitForData(data) {
-		var filename = "../txt/" + timestamp + ".json";
+		var filename = "../txt/" + timestamp + "-Results.json";
 		var exists = UrlExists(filename);
 		var waitLoop = setInterval(
 			function(){ 

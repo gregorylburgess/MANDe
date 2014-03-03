@@ -1,3 +1,5 @@
+#' Contains functions that read Bathymetry files and generate the Topography Grid
+
 
 #' @name getBathy
 #' @title Generate a topographyGrid.

@@ -21,12 +21,14 @@ source('src/Utility.R')
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE) {
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
     }
-	
+	if (!exists("status", where = -1, mode = "any",inherits = TRUE)) {
+		status <<- {}
+	}
 	gErrors <<- {}
 	topographyGrid = {}
 	behaviorGrid = {}
@@ -89,8 +91,8 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE){
 			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=gErrors[toString(params$timestamp)])
 	
 	# writeFiles returns json and txt file locations
-	filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), zip=FALSE)
-	print(filenames)
+	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), zip=FALSE)
+	print(results$filenames)
 
 	return(results)
 }
@@ -190,7 +192,7 @@ parseJSON <- function(params) {
 	return(parser$getObject())
 }
 
-library("rjson")
+
 par = list(
 	startX= 7400,
     startY= 3300,
@@ -232,5 +234,4 @@ par = list(
     maxsuppressionValue= 1,
     minsuppressionValue= .5,
     timestamp= "-1")
-status <<-{}
 	#acousticRun(par)

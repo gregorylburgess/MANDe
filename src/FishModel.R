@@ -1,3 +1,5 @@
+#' Generates the Behaviour Grid
+
 #' @name fish
 #' @title Generates a Fish Location Grid (behaviorGrid) for the program to use.  
 #' @description Values in the cells of this grid are expressed as a percentage of 

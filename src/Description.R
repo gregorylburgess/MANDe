@@ -11,4 +11,4 @@
 #' @seealso \code{\link{acousticTest}}
 #' @examples
 #' result <- acousticTest()
-NA
+NULL

@@ -3,9 +3,14 @@ source('Apps.R')
 
 myPort <- 80
 myInterface <- "0.0.0.0"
+#Rook Status
 status <- -1
+
+# Stores partial parameter sections
 queries <<- {}
+# Status dictionary for parallel jobs
 jobs <<-{}
+
 status <- .Call(tools:::startHTTPD, myInterface, myPort)
 if (status == 0) {
 	print("Trying to Start Server...")
@@ -15,13 +20,13 @@ if (status == 0) {
 	rook <- Rhttpd$new()
 	rook$listenAddr <- myInterface
 	rook$listenPort <- myPort
-	
-	# Change this line to your own application. You can add more than one
-	# application if you like
+	# Home page
 	rook$add(name="base", Redirect$new("/../static/pages/index.html"))
+	# Submit a job
 	rook$add(query, name="query")
+	# Check on the status of a job
 	rook$add(getStatus, name="status")
-	## Define static content that should be exposed via url
+	## Expose static directories via URL.
 	rook$add(name="static", 
 			Builder$new( 
 					Static$new(

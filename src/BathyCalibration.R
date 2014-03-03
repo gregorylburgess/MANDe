@@ -193,7 +193,7 @@ x= -158.28
 y=21.575
 myn=21.76
 mys=21.13
-mye=-157.55
+mye=-157.7
 myw=-158.39
 timestamp="Oahu"
 testplot(x, y, myn, mys, mye, myw, timestamp)

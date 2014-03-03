@@ -1,6 +1,5 @@
-#' Defines handlers for Rook URIs.
-#' 
-#' 
+#' Defines handlers and helper methods for Rook URIs.
+
 source("src/Main.R")
 #' @include src/Main.R
 library("rjson")
@@ -15,29 +14,54 @@ query <- function(env) {
 	params = parseJSON(req$params())
 	data = params$data
 	
+	#if this is the first package of data, create a new index for it
 	if(params$part==1) {
 		queries[toString(params$timestamp)] <<- data
 	}
+	#otherwise append the data to an existing index
 	else {
 		queries[toString(params$timestamp)] <<- paste(queries[toString(params$timestamp)], data, sep="") 
 	}
 
-	if(params$part == params$complete){
+	#Once we have all the packets, run the request.
+	if(params$part == params$complete) {
 		parameters = parseJSON(gsub("\'", "\"", queries[toString(params$timestamp)]))
 		# Try and run an asynchrynous request if multicore is present
 		if(require('multicore')) {
 			library('multicore')
-			jobs[toString(params$timestamp)] <<- parallel(acousticRun(parameters))
-			res$write("processing")
+			jobs[toString(params$timestamp)] <<- parallel(execute(res, parameters))
 		}
 		# Run a serial request otheriwse.
 		else {
-			acousticRun(parameters)
-			res$write("finished")
+			execute(res, parameters)
 		}
+		
 	}
+	
+	#Finish the request
 	res$finish()
 }
+
+#' Calls acousticRun and writes a json file.  Required for a parallel call.
+#' @param res The Rook response object.
+#' @param parameters A dictionary of parameters to pass to acousticRun().
+execute = function (res, parameters) {
+	res$write("processing...")
+	result = acousticRun(parameters)
+	writeJSON(result$filenames$jsonFile, result)
+	res$write("finished!")
+}
+
+#' Writes a JSON file with the provided data.
+#' @param data The data to write.
+#' @param filename The output filepath.
+writeJSON = function (filename, data) {
+	# Write results to a json file
+	jsonFile = data$filenames$jsonFile
+	file.create(jsonFile)
+	cat(toJSON(data), file=jsonFile, append=FALSE)
+}
+
 
 #' Returns the status of a particular request
 #' @param env The Rook environment object.
