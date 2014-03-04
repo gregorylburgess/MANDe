@@ -167,8 +167,8 @@
 		var s = 0;
 		var e = 0;
 		var w = 0;
-		var noffset = 0;
-		var woffset = 0;
+		var Roffset = 0;
+		var Coffset = 0;
 		var ou = $("#fishmodel").val();
 		var mux = $("#mux").val();
 		var muy = $("#muy").val()
@@ -201,8 +201,8 @@
 			s = 17;
 			e = -153;
 			w = -162;
-			noffset = 0;
-			woffset = 0;
+			Roffset = 0;
+			Coffset = 0;
 		}
 
 		//Data for the 1km dataset
@@ -211,14 +211,14 @@
 			//lat delta: 8.0
 			//Row_Count: 801 = 8/801 = 0.0099875156
 			//Col_Count: 901   9/901 = 0.00998890122
-			dpcR = 0.0099;
-			dpcC = 0.0099;
+			dpcR = 0.00999;
+			dpcC = 0.00999;
 			n = 25;
 			s = 17;
 			e = -153;
 			w = -162;
-			noffset = 0;
-			woffset = 0;
+			Roffset = 2 * dpcR;
+			Coffset = 2 * dpcC;
 		}
 		//Data for the palmyra dataset
 		if (cells == 40){
@@ -232,25 +232,25 @@
 			s = 5.772677;
 			e = -161.916751;
 			w = -162.357356;
-			noffset = 0;
-			woffset = 0;
+			Roffset = 0;
+			Coffset = 0;
 		}
-		myn += noffset;
-		mys += noffset;
-		myw += woffset;
-		mye += woffset;
+		//myn += Roffset;
+		//mys += Roffset;
+		//myw += Coffset;
+		//mye += Coffset;
 
 		if(myn > n) {
-			errors += "Northern value " + myn + " must be between " + s + " and " + (n - noffset) + ".\n";
+			errors += "Northern value " + myn + " must be between " + s + " and " + (n - Roffset) + ".\n";
 		}
 		if(mys < s) {
-			errors += "Southern value " + mys + " must be between " + s + " and " + (n - noffset) + ".\n";
+			errors += "Southern value " + mys + " must be between " + s + " and " + (n - Roffset) + ".\n";
 		}
 		if(mye >= e) {
-			errors += "Eastern value " + mye + " must be between " + w + " and " + (e - woffset) + ".\n";
+			errors += "Eastern value " + mye + " must be between " + w + " and " + (e - Coffset) + ".\n";
 		}
 		if(myw <= w) {
-			errors += "Western value " + myw + " must be between " + w +  " and " + (e - woffset) + ".\n";	
+			errors += "Western value " + myw + " must be between " + w +  " and " + (e - Coffset) + ".\n";	
 		}
 		if(myn<=mys) {
 			errors +=  "Northern value (" + myn + ") must be greater than Southern Value (" + mys + ").\n";
@@ -258,7 +258,7 @@
 		if(mye<=myw) {
 			errors +=  "Western value (" + myw +") must be less than Eastern Value (" + mye + ").\n";
 		}
-		if(ou) {
+		if(ou == 'True') {
 			if(!(mux > myw && mux < mye)) {
 				errors += "Home Range Center X coordinate must be between the Western value (" + myw +") and the Eastern Value (" + mye + ").";
 			}
@@ -270,10 +270,10 @@
 			alert(errors);
 		}
 		else {	
-			var startX = Math.ceil((myw-w)/dpcC);
-			var XDist = Math.ceil((mye-myw)/dpcC);
-			var startY = Math.ceil((mys-s)/dpcR);
-			var YDist = Math.ceil((myn-mys)/dpcR);
+			var startX = Math.floor((myw - w + Coffset) / dpcC);
+			var XDist = Math.floor((mye - myw) / dpcC);
+			var startY = Math.floor((mys - s + Roffset) / dpcR);
+			var YDist = Math.floor((myn - mys) / dpcR);
 			$("#mux").val((mux - myw)/(mye - myw));
 			$("#muy").val((muy - mys)/(myn - mys));
 			//Parse the userSensorList
@@ -289,9 +289,10 @@
 					var r = parseFloat(userSensorList[2*i+1]);
 					var tc = ((c-myw));
 					var tr = ((r-mys));
-					c = Math.ceil((c-myw)/dpcC);
-					r = Math.ceil((r-mys)/dpcR);
-
+					c = Math.floor((c - myw) / dpcC);
+					r = Math.floor((r - mys) / dpcR);
+					console.log("r=("+ r + " -" + mys + "+" + Roffset + ")/" + dpcR + "=" + r);
+					console.log("c=("+ c + "-" + myw + "+" + Coffset +  ")/" + dpcC + "=" + r);
 					sensorList += c + "," + r + ",";
 				}
 				sensorList = sensorList.substring(0, sensorList.length - 1).replace(/\,/g,"%2C");

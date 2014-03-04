@@ -197,3 +197,5 @@ parseJSON <- function(params) {
 	parser$addData(params)
 	return(parser$getObject())
 }
+
+acousticTest()

@@ -158,6 +158,8 @@ testplot = function(x, y, myn, mys, mye, myw, timestamp, ...) {
 		print(paste("r=(",y," - ",mys,")/",dpcR,"=",r))
 		print(paste("c=(",x," - ",myw,")/",dpcC,"=",c))
 		
+		print(paste("startx=",startX))
+		print(paste("starty=",startY))
 	    # Create/Load the Bathy grid for the area of interest
 		library(ncdf)
 		ncdfObj = open.ncdf(inputFile)		# open the netCDF file
@@ -247,3 +249,17 @@ myw=-161.93
 mye=-161.83
 timestamp="NW"
 testplot(x, y, myn, mys, mye, myw, timestamp)
+
+
+
+x=-161.8
+y=25
+
+myn=25
+mys=17.1
+myw=-161.9
+mye=-153
+timestamp="OB"
+testplot(x, y, myn, mys, mye, myw, timestamp)
+
+
