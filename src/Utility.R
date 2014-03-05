@@ -1,6 +1,6 @@
-#' Contains core functions used by the program.
-source('src/ShapeFunctions.R')
 #' @include src/ShapeFunctions.R
+source('src/ShapeFunctions.R')
+
 
 
 
@@ -891,6 +891,10 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 #' @param zip If true, writes a zip file containing the txt dump, and images of a run.
 #' @return A dictionary containing the filenames of the generated images.
 writeFiles = function(filenames, result, path, time, zip=TRUE) {
+	if (grepl("Rcheck",getwd())) {
+		setwd("..")
+	}
+	print(getwd())	
 	## Write results to a text file
 	filename = paste(path, "txt/", time, "-Results.txt", sep="")
 	jsonFile = paste(path, "txt/", time, "-Results.json", sep="")

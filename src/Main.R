@@ -184,18 +184,4 @@ appendError = function(msg, time) {
 	gErrors[toString(time)] <<- msg[1]
 	print(gErrors[toString(time)])
 }
-
-#' @name parseJSON
-#' @title ???
-#' @description ???
-#' @param params ???
-#' @return ???
-#' @export
-parseJSON <- function(params) {
-	params = paste("{",params,"}", sep="")
-	parser = newJSONParser()
-	parser$addData(params)
-	return(parser$getObject())
-}
-
-acousticTest()
+#acousticTest()
