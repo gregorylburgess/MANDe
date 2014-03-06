@@ -13,13 +13,70 @@ source('src/Utility.R')
 #' First the input parameters are checked for validity and default values are assigned if input 
 #' values are missing. Then bathymetry is loaded and the fish distribution generated. Then the
 #' goodness grid (goodnessGrid) is calculated depending on the design parameters (this is the heavy part).
-#' When the goodnessGrid is finished sensors can be placed optimally and stats and figures generated.
+#' When the goodnessGrid is finished sensors can be placed optimally and stats and figures can be generated.
+#' @section params:
+#' - Behaviour parameters
+#' 
+#' $fishmodel: defines the fish model algorithm. Possible values are random walk ('rw') or Ornstein-Uhlenbeck ('ou'). Default: RW. The choice here should reflect the prior knowledge about the long-term distribution of fish within the study region.
 #'
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' 'rw' means purely diffusive movements with no locational or directional preference. This results in a uniform distribution of fish over the study region. A random walk is useful when no knowledge about fish behaviour is available or can be assumed.
+#'
+#' 'ou' results in movements within a limited region mimicking fish with a home range. This results in a normal distribution with two parameters: 1) the home range center (mean) specified by $mux and $muy as proportions of the X and Y axes. 2) the home range extents (variance) and shape (covariance) specified by the standard deviations in X and Y directions in meters, $ousdx and $ousdy respectively, and by the correlation between X and Y specified by $oucor. This is useful if the study species is known to prefer a specific geographic region. A rule of thumb says that for each direction in isolation approximately 95% of the time is spent within plus minus two standard deviations. The correlation is used if the elliptical home range shape is angled relative to the X,Y coordinate system. The correlation must be in the range [-1; 1].
+#' 
+#' $vHabitatRange (optional): Enables vertical habitat restriction. Possible values are TRUE or FALSE. Default: FALSE. This parameter is useful if the fish is known to live in a certain vertical habitat say from -10 to -50 meters. If FALSE the species is assumed to be able to utilize the whole water column. If TRUE the minimum and maximum depth must be specified in meters using $mindepth (shallow) and $maxdepth (deep), for example $mindepth = -5 and $maxdepth = -10. Only areas withing the vertical habitat are considered in the network design.
+#'
+#' $depthPref (optional): Enables preferred depth relative to bottom. Possible values are TRUE or FALSE. Default: FALSE. The fish may have a preference to linger at a certain height relative to the bottom. This is specified by a normal distribution with a mean preferred height relative to the bottom ($dp) given in meters off the bottom, and a standard deviation ($dpsd) given in meters.
+#'
+#' - Sensor parameters
+#' 
+#' $bias: Specify how the "goodness" of a cell is determined. Possible values are 1, 2, or 3. Default: 1. $bias = 1 indicates that a "good" cell has a high number of animals within detection range (ignoring line of sight). This is useful for sensors not restricted to line-of-sight detection. $bias = 2 indicates that a "good" cell has the best visibility (taking into account bathymetry and shadowing, but completely ignoring fish density). This is useful for networks restricted to line-of-sight detection and having no prior knowledge of animal habitat. $bias = 3 indicates that a "good" cell has a high number of visible fish (incorporating both bathymetry and animal density). This is useful for networks restricted to line-of-sight detection, and having some idea of animal habitat.
+#'
+#' $shapeFcn: Sensor detection function (or shape function). Currently the only possible value is 'shape.gauss'. The detection function determines which functional shape to represent horizontal acoustic attenuation in the water. The detection function specifies how the chance of signal detection declines as a function of distance to sensor. Ranging experiments should preferably be carried out locally at the study site to determine appropriate values of the two detection function parameters:
+#' 
+#'  $peak: The probability of detecting a fish located right next to the sensor. Specifies a maximum value for the shape function. Values should be a decimal between 0.05 and 1.
+#' 
+#'  $detectionRange: The distance in meters from the sensor where the chance of detecting a signal is 0.05.
+#'
+#' - Bathymetry parameters
+#' 
+#' $inputFile: Path of a bathymetry file relative to the current working directory.
+#' 
+#' $inputFileType: Specifies the file type of the bathymetry file. Possible values are 'netcdf, 'arcgis', and 'asc'.
+#' 
+#' $seriesName: For $inputFileType = 'netcdf' or 'arcgis', this specifies the name of the data series to use.
+#' 
+#' $cellSize: Specifies the size of the grid cell in meters.
+#' 
+#' $startX: Specifies the starting X cell-index of the area of interest for the file chosen. Valid values are non-negative integers.
+#' 
+#' $startY: Specifies the starting Y cell-index of the area of interest for the file chosen. Valid values are non-negative integers.
+#' 
+#' $XDist: Specifies how far the area of interest extends along the X axis. Units are in number of bathymetric grid cells. Valid values are non-negative integers.
+#' 
+#' $YDist: Specifies how far the area of interest extends along the Y axis. Units are in number of bathymetric grid cells. Valid values are non-negative integers.
+#'
+#' - Suppression parameters
+#' 
+#' To prevent the program from placing sensors too near or on top of each other, a suppression function is used to reduce the goodness of cells around already placed sensors. Another way to think of this mechanism is that the program tries to enforce a minimum bound on the sparsity of the sensor network with the result that sensors are more spread out.
+#'
+#' $suppressionFcn: Specify the suppression function to use. Possible values are 'suppression.static', 'suppression.scale', 'detection.function', 'detection.function.shadow', and 'detection.function.exact'. Default is 'detection.function'.
+#'
+#' 'suppression.static' will replace all cells within range of a sensor with the value specified by $minsuppressionValue.
+#'
+#' 'suppression.scale' will multiply the values of cells within range of a sensor by a scaling factor according to the cell's distance from the sensor. Nearby cells receive a higher scaling factor, and more distant cells receive a lower scaling factor. The scaling factor is linearly related to the distance between the sensor and cell. Minimum and maximum values for scaling factors are specified by $minsuppressionValue and $maxsuppressionValue.
+#'
+#' 'detection.function' will use the inverse of the detection function (that is 'one minus the detection function') to down scale goodness of grid cells near the sensor, however it does not account for objects that block signals. Grid cells' goodness will increase as a function of distance to the sensor.
+#'
+#' 'detection.function.shadow' will use the inverse of the detection function to down scale goodness of grid cells near the sensor, and does take objects that block signal into account. This means that sensors on opposite sides of a blocking wall will not affect each other's goodness. Unblocked grid cells' goodness will increase as a function of distance to the sensor.
+#'
+#' 'detection.function.exact' the above suppression functions do not recalculate the goodness grid after placing a new sensor and therefore only provide an approximately optimal solution. This suppression function provides an exact solution by iteratively recalculating the goodness after each sensor placement, and is therefore slower by a factor equal to the number of sensors.
+#'
+#' $suppressionRangeFactor: Specifies the range of suppression in multiples of the detection range. Valid values are non-negative real numbers. Default is 2. A suppression factor of 2 enforces a suppression range of two times the detection range. Cells within the suppression range of a sensor will be subject to the specified suppression function. To deter sensor detection overlap, a good value to use is equal to or higher than the sensor detection range specified above.
+#' @param params A dictionary (list) of parameters, see below for more details.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
-#' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
+#' @return A dictionary (list) of return objects, see RETURN_DESCRIPTIONS.html for more info.
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE) {
     startTime = Sys.time()
