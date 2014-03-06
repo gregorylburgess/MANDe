@@ -985,7 +985,7 @@ plotUniqueRR = function(result){
     nsmax = length(result$stats$uniqRRs)
     ## Calculate the max value to use for the y-axis in TOP PLOT
     ## It looks good to show 1 as the max y val, but only if we are relatively ce (above 0.7)
-    ymax = ifelse(max(result$stats$uniqRRs)>0.7,1.02,max(result$stats$uniqRRs))
+    ymax = ifelse(max(result$stats$uniqRRs)>0.7,1.02,max(result$stats$uniqRRs)+0.2)
     ## Make two way plot
     par(mfrow=c(2,1),las=1)
     ## TOP PLOT
@@ -1060,7 +1060,7 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @param behaviorGrid A valid behaviorGrid.
 #' @param sensors The result of a successful call to sensorFun().
 #' @param debug If enabled, turns on debug printing (console only).
-#' @return A dictionary of statistical values containing the keys: "delta", "sensorMat"         
+#' @return A dictionary (list) of statistical values containing the keys: "delta", "sensorMat"         
 #' "uniqRRs", "coverageGrid", "absRecoveryRate", "uniqRecoveryRate".
 getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) {
 	if(debug) {

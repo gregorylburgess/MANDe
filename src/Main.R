@@ -14,7 +14,7 @@ source('src/Utility.R')
 #' values are missing. Then bathymetry is loaded and the fish distribution generated. Then the
 #' goodness grid (goodnessGrid) is calculated depending on the design parameters (this is the heavy part).
 #' When the goodnessGrid is finished sensors can be placed optimally and stats and figures can be generated.
-#' @section params:
+#' @section INPUT DETAILS params:
 #' - Behaviour parameters
 #' 
 #' $fishmodel: defines the fish model algorithm. Possible values are random walk ('rw') or Ornstein-Uhlenbeck ('ou'). Default: RW. The choice here should reflect the prior knowledge about the long-term distribution of fish within the study region.
@@ -28,9 +28,13 @@ source('src/Utility.R')
 #' $depthPref (optional): Enables preferred depth relative to bottom. Possible values are TRUE or FALSE. Default: FALSE. The fish may have a preference to linger at a certain height relative to the bottom. This is specified by a normal distribution with a mean preferred height relative to the bottom ($dp) given in meters off the bottom, and a standard deviation ($dpsd) given in meters.
 #'
 #' - Sensor parameters
-#' 
-#' $bias: Specify how the "goodness" of a cell is determined. Possible values are 1, 2, or 3. Default: 1. $bias = 1 indicates that a "good" cell has a high number of animals within detection range (ignoring line of sight). This is useful for sensors not restricted to line-of-sight detection. $bias = 2 indicates that a "good" cell has the best visibility (taking into account bathymetry and shadowing, but completely ignoring fish density). This is useful for networks restricted to line-of-sight detection and having no prior knowledge of animal habitat. $bias = 3 indicates that a "good" cell has a high number of visible fish (incorporating both bathymetry and animal density). This is useful for networks restricted to line-of-sight detection, and having some idea of animal habitat.
 #'
+#' $numSensors: Specifies the number of sensors to be placed. Positive integer values are accepted.
+#' 
+#' $bias: Specifies how the "goodness" of a cell is determined. Possible values are 1, 2, or 3. Default: 1. $bias = 1 indicates that a "good" cell has a high number of animals within detection range (ignoring line of sight). This is useful for sensors not restricted to line-of-sight detection. $bias = 2 indicates that a "good" cell has the best visibility (taking into account bathymetry and shadowing, but completely ignoring fish density). This is useful for networks restricted to line-of-sight detection and having no prior knowledge of animal habitat. $bias = 3 indicates that a "good" cell has a high number of visible fish (incorporating both bathymetry and animal density). This is useful for networks restricted to line-of-sight detection, and having some idea of animal habitat.
+#'
+#' $sensorElevation: Specifies the sensor vertical placement height in meters over the bottom. This value is important if accounting for line of sight ($bias = 2 or 3).
+#' 
 #' $shapeFcn: Sensor detection function (or shape function). Currently the only possible value is 'shape.gauss'. The detection function determines which functional shape to represent horizontal acoustic attenuation in the water. The detection function specifies how the chance of signal detection declines as a function of distance to sensor. Ranging experiments should preferably be carried out locally at the study site to determine appropriate values of the two detection function parameters:
 #' 
 #'  $peak: The probability of detecting a fish located right next to the sensor. Specifies a maximum value for the shape function. Values should be a decimal between 0.05 and 1.
@@ -76,7 +80,64 @@ source('src/Utility.R')
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
-#' @return A dictionary (list) of return objects, see RETURN_DESCRIPTIONS.html for more info.
+#' @return A dictionary (list) containing the following return objects:
+#'
+#' $stats: A dictionary (list) containing summary statistics of the designed network.
+#'
+#' $stats$delta: The network sparsity is a measure of sensor closeness. If the sparsity is smaller than 1, the network mostly has detection functions that overlap, whereas a sparsity is larger than 1 implies a sparser network with mostly non-overlapping detection functions. Thus, for sparsity < 1 the spatial density of sensors is high, which will make the network suited for estimating detailed animal movements. Sparser arrays (sparsity > 1) will result in higher uncertainty of location estimates, but will in turn have larger spatial extents for a fixed number of sensors thus improving the ability of the network to detect extreme movements.
+#'
+#' $stats$absRecoveryRate: The absolute recovery rate is the expected total number of detections relative to emitted signals of the network. The absolute recovery rate can exceed a value of 1. This happens if a fish often is detected simultaneously on multiple sensors.
+#'
+#' $stats$uniqRecoveryRate: The unique recovery rate is an indicator of the overall performance of the network. In short, the unique recovery rate is calculated as the expected proportion of all emitted signals that would be detected by at least one sensor. The unique recovery rate is bounded between zero and one ranging from no coverage to perfect coverage.
+#'
+#' $stats$uniqRRs: A vector of length equal to the number of sensors indicating the unique recovery rate after each sensor is placed. This is useful to see the improvement in unique recovery rate when placing additional sensors.
+#'
+#' $stats$coverageGrid: A matrix indicating the acoustic coverage of the study area represented as the probability of at least one sensor detecting a fish located in a given cell.
+#'
+#' $stats$sensorMat: A matrix containing the indices found by the algorithm where sensors should be placed in the grid matrix.
+#' 
+#' $runTime: Clock time spent designing the network.
+#'
+#' $params: parameters used to design network. This also contains parameters that were not necessarily defined by the user and therefore were assigned default values.
+#'
+#' $errors: errors encountered during run time.
+#'
+#' $filenames: list of filenames where output was stored.
+#'
+#' $topographyGrid: A matrix containing the topography of the study area.
+#'
+#' $behaviorGrid: A matrix highlighting the concentration of animals. This is a result of the selected animal movement model.
+#'
+#' $goodnessGrid: A matrix containing in each cell the goodness of placing the first sensor in that cell. This is useful to get an impression of potential shadowing effects if params$bias = 2 or 3.
+#' @examples params = list()
+#' params$timestamp = 'madeup'
+#' params$numSensors = 4
+#' params$bias = 3
+#' params$sensorElevation = 1
+#' params$shapeFcn = "shape.gauss"
+#' params$peak = 0.98
+#' params$detectionRange <- 120
+#' params$inputFile = "dummy"
+#' params$cellSize = 40
+#' params$startX = 50
+#' params$XDist = 20
+#' params$startY = 200
+#' params$YDist = 20
+#' params$suppressionRangeFactor = 1
+#' params$suppressionFcn = "suppression.scale"
+#' params$maxsuppressionValue = 1
+#' params$minsuppressionValue = 0.5
+#' params$fishmodel <- "ou"
+#' params$mux <- 0.3
+#' params$muy <- 0.3
+#' params$ousdx <- 120
+#' params$ousdy <- 120
+#' params$oucor <- 0
+#' params$mindepth <- -2
+#' params$maxdepth <- -15
+#' params$dp <- 3
+#' params$dpsd <- 3
+#' res <- acousticRun(params, showPlots=TRUE, debug=FALSE)
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE) {
     startTime = Sys.time()
