@@ -37,7 +37,8 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
                 topographyGrid = raster(inputFile)
             }
 	    else if(inputFileType == "asc") {
-                load(inputFile)
+                bath = loadASC(inputFile)
+                ##load(inputFile)
                 topographyGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
             } else {
                 topographyGrid = simulatetopographyGrid(XDist,YDist)
@@ -74,3 +75,34 @@ simulatetopographyGrid <- function(XDist, YDist) {
 	topographyGrid[topographyGrid>0] <- 0
 	return(topographyGrid)
 }
+
+#' @name loadASC
+#' @title Loads a topography grid from an ASC file.
+#' @description The first five lines of the file must have this format:\cr
+#' ncols         4026\cr
+#' nrows         1039\cr
+#' xllcorner     812625\cr
+#' yllcorner     648140\cr
+#' cellsize      5\cr
+#' NODATA_value  -9999\cr
+#'
+#' Then come the data separated by " " (blank spaces).
+#' @param inputFile Path to the asc file.
+#' @return The loaded topograhy.
+loadASC <- function(inputFile) {
+    ncols <- as.numeric(scan(file=inputFile,what='character',nmax=2,sep='')[2])
+    nrows <- as.numeric(scan(file=inputFile,what='character',skip=1,nmax=2,sep='')[2])
+    xll <- as.numeric(scan(file=inputFile,what='character',skip=2,nmax=2,sep='')[2])
+    yll <- as.numeric(scan(file=inputFile,what='character',skip=3,nmax=2,sep='')[2])
+    dx <- as.numeric(scan(file=inputFile,what='character',skip=4,nmax=2,sep='')[2])
+    nodata <- as.numeric(scan(file=inputFile,what='character',skip=5,nmax=2,sep='')[2])
+
+    dat <- scan(file=inputFile,skip=6)
+
+    dat[dat==nodata] <- NA
+    bath <- matrix(dat,nrows,ncols,byrow=TRUE)
+    bath <- bath[nrows:1,]
+    bath <- t(bath)
+    return(bath)
+}
+

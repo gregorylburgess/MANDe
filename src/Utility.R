@@ -19,7 +19,7 @@ source('src/ShapeFunctions.R')
 #' @param behaviorGrid A valid behaviorGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @param silent If set to TRUE, disables status printing.
@@ -105,7 +105,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
 #' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param range The range of the sensor in bathymetric cells.
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated behaviorGrid.
 sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE) {
@@ -126,7 +126,7 @@ sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE
 #'
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns the grids parameter, with an updated behaviorGrid.
 updatebehaviorGrid = function(loc, grids, params, debug=FALSE){
@@ -187,7 +187,7 @@ updatebehaviorGrid = function(loc, grids, params, debug=FALSE){
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
 #' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param range The range of the sensor in bathymetric cells.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, disables status printing.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
@@ -243,7 +243,7 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 #'
 #' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param key A key to the dictionary provided in the 'grids' parameter specifying which grid should be summed.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, disables status printing.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
@@ -294,7 +294,7 @@ goodnessGrid.sumSimple.opt = function (grids, key, params, debug=FALSE, silent=F
 #' bias is 3 both bathymetry and fish distribution (behaviorGrid) are used. This function uses vectorized calculations.
 #' 
 #' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, turns off status printing.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
@@ -375,7 +375,7 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
 #' @param sensorDepth Depth of sensor in current cell.
 #' @param dpflag If TRUE depth preference is used meaning that the percentage of visible 
 #' fish is calculated, if FALSE visible water column is calculated.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @return Returns a dictionary with three keys (all vectors): percentVisibility contains
 #' the percentage fish/signals visible in the surrounding cells, linearIndex contains the linear
 #' indices in the topographyGrid to which the visibilities pertain, dists contains the distance
@@ -499,7 +499,7 @@ calc.percent.viz = function(r, c, rind, cind, topographyGrid, land, sensorDepth,
 #' @param goodnessGrid A valid goodnessGrid.
 #' @param dims The dimensions of the topographyGrid.  Just call dim() on the topographyGrid for this.
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param topographyGrid valid topographyGrid.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a suppressed goodnessGrid.
@@ -593,7 +593,7 @@ suppress.opt = function(goodnessGrid, dims, loc, params, topographyGrid, debug=F
 #' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
 #' @param minsuppressionValue The minimum allowable value to return.
 #' @param maxsuppressionValue The maximum allowable value to return (also the return value for suppression.static()).
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns The value given in maxSuppression Value.
 suppression.static = function (dist, suppressionRange, minsuppressionValue, 
@@ -609,7 +609,7 @@ suppression.static = function (dist, suppressionRange, minsuppressionValue,
 #' @param suppressionRange How far out to apply suppression penalties, in bathymetric cells.
 #' @param minsuppressionValue The minimum allowable value to return.
 #' @param maxsuppressionValue The maximum allowable value to return (also the return value for suppression.static()).
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns The value given in maxSuppression Value.
 suppression.scale = function (dist, suppressionRange, minsuppressionValue, 
@@ -792,7 +792,7 @@ offset= function(point){
 #' R working directory that the program is executed from.  Additionally, ensure that an 'img' folder exists there.
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return A dictionary containing the filenames of the generated images.
@@ -868,13 +868,13 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
             dev.new()
         }
 	print("[graph]")
-	print(result$stats)
-    plotUniqueRR(result)
+	##print(result$stats)
+        plotUniqueRR(result)
 	if(!showPlots) dev.off()
 
 	
 	filenames = writeFiles(filenames, result, path, time, zip=TRUE)
-	print(filenames)
+	##print(filenames)
 	return(filenames)
 }
 
@@ -979,8 +979,8 @@ plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.
 plotUniqueRR = function(result){
     ## Find number of placed sensors
     ns = length(result$sensors)
-	print(result$sensors)
-	print(ns)
+	##print(result$sensors)
+	##print(ns)
     ## Find number of sensors for which unique recovery rate was calculated
     nsmax = length(result$stats$uniqRRs)
     ## Calculate the max value to use for the y-axis in TOP PLOT
@@ -995,7 +995,7 @@ plotUniqueRR = function(result){
     plotIntersect(ns,result$stats$uniqRecoveryRate,col='orange',lty=1)
     grid()
     text(0.05*length(result$stats$uniqRRs),result$stats$uniqRecoveryRate,round(result$stats$uniqRecoveryRate,digits=4),pos=3)
-    legend('bottomright',c('Calculated','Requested','Projected'),lty=c(1,1,2),col=c(1,'orange',1),bg='white')
+    ##legend('bottomright',c('Calculated','Requested','Projected'),lty=c(1,1,2),col=c(1,'orange',1),bg='white')
     duRR = diff(c(0,result$stats$uniqRRs))
     ## BOTTOM PLOT
     plot(1:ns,duRR[1:ns],typ='l',xlab='Number of sensors',ylab='Increase in unique RR',ylim=c(0,max(duRR)),xlim=c(0,nsmax))
@@ -1014,17 +1014,17 @@ plotUniqueRR = function(result){
 #' @return Nothing.
 plotSensors = function(result,circles=TRUE,circlty=3){
   ns = dim(result$stats$sensorMat)[1]
-  print("[plotSensors]")
-  print("result$stats")
-  print(result$stats)
+  ##print("[plotSensors]")
+  ##print("result$stats")
+  ##print(result$stats)
   #if (is.null(ns)) {
 #	  ns = matrix(result$stats$sensorMat,nrow=length(result$stats$sensorMat)/2,ncol=2)
  # }
-  print(length(result$stats$sensorMat))
-  print(result$stats$sensorMat)
-  print(dim(result$sensorMat))
-  print("ns")
-  print(ns)
+  ##print(length(result$stats$sensorMat))
+  ##print(result$stats$sensorMat)
+  ##print(dim(result$sensorMat))
+  ##print("ns")
+  ##print(ns)
   ## Radius of circle
   r = result$params$detectionRange
   ## Radian values for a full circle
@@ -1055,7 +1055,7 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' Additionally, the acoustic coverage map, unique recovery rate, absolute recovery rate, and sparsity
 #' are calculated and returned after placing the requested number of sensors.
 #' 
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param topographyGrid A valid topographyGrid.
 #' @param behaviorGrid A valid behaviorGrid.
 #' @param sensors The result of a successful call to sensorFun().
@@ -1224,7 +1224,7 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
 #' @title Check model parameters.
 #' @description Provides default parameter values if none are provided.
 #' 
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param stop If TRUE, stops the program when an error occurs.
 #' @return The 'params' parameter, populated with default values where necessary.
 checkParams = function(params, stop=TRUE) {
@@ -1325,7 +1325,7 @@ checkParams = function(params, stop=TRUE) {
 		params$inputFileType = 'ncdf'
 	}
 	else {
-		supportedFileTypes = c("netcdf", "arcgis")
+		supportedFileTypes = c("netcdf", "arcgis", "asc")
 		if(!(params$inputFileType %in% supportedFileTypes)) {
 			printError("Invalid 'inputFileType' value.", stop)
 		}
@@ -1566,7 +1566,7 @@ checkForMax = function(name, value, maxVal, stop=TRUE){
 #' @title Converts input parameters from meters to grid cells.
 #' @description These are used for internal calculations and are invisible to the user.
 #' 
-#' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param topographyGrid A valid topographyGrid.
 #' @return The 'params' parameter, populated with necessary internal variables ("sd",
 #' "suppsd", "range", "suppressionRange") with unit 'grid cells'.
