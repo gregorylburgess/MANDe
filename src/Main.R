@@ -80,6 +80,7 @@ source('src/Utility.R')
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
+#' @param multi If set to TRUE, uses multicore to parallelize calculations.
 #' @return A dictionary (list) containing the following return objects:
 #'
 #' $stats: A dictionary (list) containing summary statistics of the designed network.
@@ -139,7 +140,7 @@ source('src/Utility.R')
 #' params$dpsd <- 3
 #' res <- acousticRun(params, showPlots=TRUE, debug=FALSE)
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE) {
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, multi=FALSE) {
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
@@ -178,7 +179,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE) 
 	    behaviorGrid = fish(params, topographyGrid)
 	
 	    ## Find good sensor placements
-	    sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter)
+	    sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, multi=multi)
 	
 	    ## Stat analysis of proposed setup.
 	    statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)

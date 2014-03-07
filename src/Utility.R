@@ -23,8 +23,9 @@ source('src/ShapeFunctions.R')
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @param silent If set to TRUE, disables status printing.
+#' @param multi If set to TRUE, uses multicore to parallelize calculations.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, params, debug=FALSE, silent = FALSE, save.inter=FALSE) {
+sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, params, debug=FALSE, silent = FALSE, save.inter=FALSE, multi=FALSE) {
     if (debug) {
         cat("\n[sensorFun]\n")
         print("topographyGrid")
@@ -46,7 +47,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
     # calculate the goodnessGrid
-    grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent)
+    grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
     goodnessGrid = grids$goodnessGrid
     if(save.inter) inter[[1]] = grids
 	
@@ -107,13 +108,14 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
 #' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
 #' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
+#' @param multi If set to TRUE, uses multicore to parallelize calculations.
 #' @return Returns the grids parameter, with an updated behaviorGrid.
-sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE) {
+sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE, multi=FALSE) {
 	if(params$suppressionFcn != 'detection.function.exact'){
 		grids$goodnessGrid = suppress.opt(grids$goodnessGrid, dim(grids$behaviorGrid), loc, params, grids$topographyGrid$topographyGrid, debug)
 	}else{
 		grids = updatebehaviorGrid(loc,grids,params,debug)
-		grids = goodnessGridFun(grids, range, bias, params, debug)
+		grids = goodnessGridFun(grids, range, bias, params, debug, multi)
 	}
 	return(grids)
 }
@@ -190,8 +192,9 @@ updatebehaviorGrid = function(loc, grids, params, debug=FALSE){
 #' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, disables status printing.
+#' @param multi If set to TRUE, uses multicore to parallelize calculations.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
-goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALSE) {
+goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALSE, multi=FALSE) {
     if (debug) {
         cat("\n[goodnessGrid]\n")
         print("topographyGrid")
@@ -221,7 +224,13 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 		if(debug) {
 			print("bias=2; Calling goodnessGrid.sumBathy.opt")
 		}
-        return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
+                if(multi) {
+                    print("Multicore LOS")
+                    require(multicore)
+                    return(goodnessGrid.sumBathy.multi(grids, params, debug, silent))
+                }else{
+                    return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
+                }
     }
     #Combo
 	else if (bias == 3) {
@@ -229,7 +238,13 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 		if(debug) {
 			print("bias=3; Calling goodnessGrid.sumBathy.opt")
 		}
-        return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
+                if(multi) {
+                    print("Multicore LOS")
+                    require(multicore)
+                    return(goodnessGrid.sumBathy.multi(grids, params, debug, silent))
+                }else{
+                    return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
+                }
     }
     else {
         stop("ERROR: Invalid Bias")
@@ -320,32 +335,33 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
     usebehaviorGrid = params$bias==3
     for(c in 1:nc){
         comp = c/nc
-		if(!silent) {
-        	print(sprintf("LOS progress: %g", comp))
-		}
-		status[toString(params$timestamp)] <<- comp
+        if(!silent) {
+            print(sprintf("LOS progress: %g", comp))
+        }
+        status[toString(params$timestamp)] <<- comp
+        goodnessGrid[,c] <- goodness.multi.helper(c, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, debug=debug)
         ## Column indices
-        cind = max(c(1,c-rng)):min(c(nc,c+rng))
-        for(r in 1:nr){
+        #cind = max(c(1,c-rng)):min(c(nc,c+rng))
+        #for(r in 1:nr){
             ## Only calculate if sensor is below surface
             ## {{Patch}}
-            cell = belowSurf[r,c]
-            if(!is.na(cell) && cell){
+        #    cell = belowSurf[r,c]
+        #    if(!is.na(cell) && cell){
                 ## Row indices
-                rind = max(c(1,r-rng)):min(c(nr,r+rng))
+        #        rind = max(c(1,r-rng)):min(c(nr,r+rng))
                 ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at (r,c)
 				#pV has the following keys: percentVisibility, dists, linearIndex
-                pV = calc.percent.viz(r, c, rind, cind, bG, land, sensorDepth[r,c], dpflag, params, debug)
+        #        pV = calc.percent.viz(r, c, rind, cind, bG, land, sensorDepth[r,c], dpflag, params, debug)
                 ## Calculate the detection function value at all grid points
-                probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
+        #        probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
                 ## If bias == 3 include the behaviorGrid in the calculations, if not just use bathymetry and detection function
-				if(usebehaviorGrid) {
-					probOfRangeDetection = probOfRangeDetection * grids$behaviorGrid[pV$linearIndex]
-				}
+	#			if(usebehaviorGrid) {
+	#				probOfRangeDetection = probOfRangeDetection * grids$behaviorGrid[pV$linearIndex]
+	#			}
                 ## Calculate goodness of cell (r,c) by summing detection probabilities of all visible cells
-                goodnessGrid[r,c] = sum(probOfRangeDetection * pV$percentVisibility)
-            }
-        }
+        #        goodnessGrid[r,c] = sum(probOfRangeDetection * pV$percentVisibility)
+        #    }
+        #}
     }
 	status[toString(params$timestamp)] <<- 1
     grids$goodnessGrid = goodnessGrid
@@ -356,6 +372,110 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
     }
     return(grids)
 }
+
+
+#' @title Calculates the goodnessGrid when a line of sight bias is chosen (bias 2 or 3) using multicore!
+#' @description Loops through all cells where sensor placement is valid (where sensor would be below surface)
+#' and calculates goodness. If bias is 2 only bathymetry (line of sight) is used to calculate goodness, whereas if
+#' bias is 3 both bathymetry and fish distribution (behaviorGrid) are used. This function uses vectorized and parallel calculations using the multicore library.
+#' 
+#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param silent If set to TRUE, turns off status printing.
+#' @return Returns the grids parameter, with an updated goodnessGrid.
+goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE) {
+    nr = dim(grids$topographyGrid$topographyGrid)[1]
+    nc = dim(grids$topographyGrid$topographyGrid)[2]
+    ## Calculate the number of cells in the topographyGrid
+    ng = nr*nc
+    ## Make a copy of the topographyGrid to make code look nicer (could get rid of to save memory)
+    bG = grids$topographyGrid$topographyGrid
+    ## Initialize the goodnessGrid matrix (allocate memory)
+    goodnessGrid = matrix(0,nr,nc)
+    ## Make sure we use an integer range
+    rng = round(params$range)
+    ## Calculate a matrix containing the depth of hypothetical sensors placed in each cell as an offset from the bottom
+    sensorDepth = bG + params$sensorElevation
+    ## Calculate a matrix where TRUE values indicate that a grid cell could contain a sensor below the surface
+    belowSurf = sensorDepth < 0
+    ## Create a matrix where land cells have value TRUE
+    land = bG >= 0
+    ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+    dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+    usebehaviorGrid = params$bias==3
+
+    CS <- 1:nc
+    ## mclapply is a function of the multicore package parallelizing the LOS calculation
+    ## Need to implement a progress indicator, see: http://stackoverflow.com/questions/10984556/is-there-way-to-track-progress-on-a-mclapply
+    goodnesslist <- mclapply(CS,goodness.multi.helper, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, debug)
+    ## goodnesslist is a list of vectors, which must be combined as a matrix
+    goodnessGrid <- matrix(unlist(goodnesslist),nr,nc)
+    status[toString(params$timestamp)] <<- 1
+    grids$goodnessGrid = goodnessGrid
+    if(debug){
+        cat("\n[goodnessGrid.sumBathy.multi]\n")
+        print("grids")
+        print(grids)
+    }
+    return(grids)
+}
+
+
+
+#' @title Helper function for multicore LOS calculation.
+#' @description This is the function that goes into mclapply
+#' 
+#' @param r Row of the current cell in the topographyGrid.
+#' @param c Column of the current cell in the topographyGrid.
+#' @param rind Row indices of the topographyGrid to calculate visibility percentage.
+#' @param cind Column indices of the topographyGrid to calculate visibility percentage.
+#' @param topographyGrid A valid topographyGrid.
+#' @param land Matrix containing logicals (TRUE = land cell) indicating wheter a cell 
+#' in the topographyGrid is a land cell.
+#' @param debug If enabled, turns on debug printing (console only).
+#' @param sensorDepth Depth of sensor in current cell.
+#' @param dpflag If TRUE depth preference is used meaning that the percentage of visible 
+#' fish is calculated, if FALSE visible water column is calculated.
+#' @param params A dictionary of parameters, see ?acousticRun for more info.
+#' @return Returns a dictionary with three keys (all vectors): percentVisibility contains
+#' the percentage fish/signals visible in the surrounding cells, linearIndex contains the linear
+#' indices in the topographyGrid to which the visibilities pertain, dists contains the distance
+#' from the current cell to each of the returned cells as given by linearIndex.
+goodness.multi.helper = function(c, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, debug=FALSE){
+    ##comp = c/nc
+    ##if(!silent) {
+    ##    print(sprintf("LOS progress: %g", comp))
+    ##}
+    ##status[toString(params$timestamp)] <<- comp
+    ## Initialize goodnessVec (allocate memory)
+    goodnessVec = rep(0,nr)
+
+    ## Column indices
+    cind = max(c(1,c-rng)):min(c(nc,c+rng))
+    for(r in 1:nr){
+        ## Only calculate if sensor is below surface
+        ## {{Patch}}
+        cell = belowSurf[r,c]
+        if(!is.na(cell) && cell){
+            ## Row indices
+            rind = max(c(1,r-rng)):min(c(nr,r+rng))
+            ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at (r,c)
+            ##pV has the following keys: percentVisibility, dists, linearIndex
+            pV = calc.percent.viz(r, c, rind, cind, bG, land, sensorDepth[r,c], dpflag, params, debug)
+            ## Calculate the detection function value at all grid points
+            probOfRangeDetection = do.call(params$shapeFcn, list(pV$dists, params))
+            ## If bias == 3 include the behaviorGrid in the calculations, if not just use bathymetry and detection function
+            if(usebehaviorGrid) {
+                probOfRangeDetection = probOfRangeDetection * grids$behaviorGrid[pV$linearIndex]
+            }
+            ## Calculate goodness of cell (r,c) by summing detection probabilities of all visible cells
+            goodnessVec[r] = sum(probOfRangeDetection * pV$percentVisibility)
+        }
+    }
+    return(goodnessVec)
+}
+
 
 #' @name calc.percent.viz
 #' @title Calculates the percentage of the water column in the surrounding cells that is visible to a sensor placed in the current cell.
