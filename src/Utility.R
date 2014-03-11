@@ -47,8 +47,25 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
     # calculate the goodnessGrid
+	
+	save = FALSE
+	loadSave=FALSE
+	
+	if(loadSave) {
+		goodnessGrid =  as.matrix(read.table("test.txt"))
+		grids$goodnessGrid = goodnessGrid
+	}
+	
+	else {
     grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
     goodnessGrid = grids$goodnessGrid
+	}
+	
+	if (save) {
+		library(MASS)
+		write.matrix(goodnessGrid,file="test.txt") 
+	}
+	
     if(save.inter) inter[[1]] = grids
 	
 	# place user-defined sensors, and down weigh them
@@ -211,7 +228,6 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 	topographyGrid[is.na(topographyGrid)] = 0
 	grids$topographyGrid$topographyGrid = topographyGrid
 	grids$behaviorGrid[is.na(grids$behaviorGrid)] = 0
-	
 	#Fish
     if (bias == 1) {
 		if(debug) {
@@ -943,7 +959,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## topographyGrid
 	if(!showPlots){
           filenames$topographyGrid = paste(path, "img/", time, "-TopographyGrid.png", sep="")
-          png(filenames$topographyGrid)
+          png(filenames$topographyGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -953,7 +969,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## behaviorGrid
 	if(!showPlots){
           filenames$behaviorGrid = paste(path, "img/", time, "-BehaviorGrid.png", sep="")
-          png(filenames$behaviorGrid)
+          png(filenames$behaviorGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -963,7 +979,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## goodnessGrid
 	if(!showPlots){
           filenames$goodnessGrid = paste(path, "img/", time, "-GoodnessGrid.png", sep="")
-          png(filenames$goodnessGrid)
+          png(filenames$goodnessGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -973,7 +989,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## Acoustic Coverage
 	if(!showPlots){
             filenames$coverageGrid = paste(path, "img/", time, "-CoverageGrid.png", sep="")
-            png(filenames$coverageGrid)
+            png(filenames$coverageGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -1380,6 +1396,38 @@ checkParams = function(params, stop=TRUE) {
 		checkForMin("projectedSensors", as.numeric(params$projectedSensors), 0, stop)
 	}
 	
+	# startX
+	if(!('startX' %in% names)) {
+		params$startX = 308
+	}
+	else {
+		checkForMin("startX", as.numeric(params$startX), 1, stop)
+	}
+	
+	# startY
+	if(!('startY' %in% names)) {
+		params$startY = 452
+	}
+	else {
+		checkForMin("startY", as.numeric(params$startY), 1, stop)
+	}
+	
+	#XDist
+	if(!('XDist' %in% names)) {
+		params$XDist = 50
+	}
+	else {
+		checkForMin("XDist", as.numeric(params$XDist), 1, stop)
+	}
+	
+	#YDist
+	if(!('YDist' %in% names)) {
+		params$YDist = 50
+	}
+	else {
+		checkForMin("YDist", as.numeric(params$YDist), 1, stop)
+	}
+	
 	#userSensorList
 	if('userSensorList' %in% names) {
 		# if params$userSensorList exists, clean it and parse it into params$sensorList
@@ -1395,7 +1443,8 @@ checkParams = function(params, stop=TRUE) {
 			if (!(is.finite(r) && is.finite(c))) {
 				printError("A user-defined point containing NaN, NA, or Inf was found.", stop)
 			}
-			if (r <= 0 || c <= 0) {
+			if (r <= 0 || c <= 0 || r > params$YDist || c > params$XDist) {
+				print(c(r=r,c=c))
 				printError("A user-defined point is out of bounds.", stop)
 			}
 			point = list(r=r,c=c )
@@ -1469,38 +1518,6 @@ checkParams = function(params, stop=TRUE) {
 	}
 	if(params$detectionRange <= params$cellSize) {
 		printError("Detection Range of a sensor must greater than a cell's width.", stop)
-	}
-	
-	# startX
-    if(!('startX' %in% names)) {
-        params$startX = 308
-    }
-	else {
-		checkForMin("startX", as.numeric(params$startX), 1, stop)
-	}
-	
-	# startY
-    if(!('startY' %in% names)) {
-        params$startY = 452
-    }
-	else {
-		checkForMin("startY", as.numeric(params$startY), 1, stop)
-	}
-	
-	#XDist
-    if(!('XDist' %in% names)) {
-        params$XDist = 50
-    }
-	else {
-		checkForMin("XDist", as.numeric(params$XDist), 1, stop)
-	}
-	
-	#YDist
-    if(!('YDist' %in% names)) {
-        params$YDist = 50
-    }
-	else {
-		checkForMin("YDist", as.numeric(params$YDist), 1, stop)
 	}
 	
 	#seriesName
