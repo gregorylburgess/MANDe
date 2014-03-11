@@ -105,15 +105,15 @@
 			$(".link").tooltip();
 
 
-			$('#resolution').change(function () {
+			$('#inputFile').change(function () {
+				
 				var img = "<a id=\"maplinkR\" href=\"images/Palmyra_40m.jpg\" target=\"_blank\">" +
 						  "See a fullscreen map</a><img src=\"images/Palmyra_40m.jpg\"></img>";
 						  
 				var gmap = "<a id=\"maplinkR\" href=\"gmap.html\" target=\"_blank\">" +
 						   "See a fullscreen map</a><iframe id=\"gridR\" src=\"gmap.html\"></iframe>";
 
-				var choice = $("#resolution option:selected").val();
-				
+				var choice = $("#inputFile").val();
 				//Show the Hawaii map
 				if(choice == "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd" ||
 				   choice == "src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd") {
@@ -130,7 +130,7 @@
 					$('#gridLBox').html(img);
 					$('#north').val('6.040205');
 					$('#south').val('5.772680');
-					$('#east').val('-161.916750');
+					$('#east').val('-161.91676');
 					$('#west').val('-162.357355');
 				} 
 			}); //end $(resolution).change
@@ -217,8 +217,8 @@
 			s = 17;
 			e = -153;
 			w = -162;
-			Roffset = 2 * dpcR;
-			Coffset = 2 * dpcC;
+			Roffset = 1 * dpcR;
+			Coffset = 1 * dpcC;
 		}
 		//Data for the palmyra dataset
 		if (cells == 40){
@@ -226,11 +226,11 @@
 			//lat delta: 0.267529
 		    //Row_Count: 734   0.267529/734 = 0.00036448092
 		    //Column_Count: 1217  0.440605/1217 = 0.0003620419
-			dpcR = 0.267529/734.0;
-			dpcC = 0.440605/1217.0;
+			dpcR =  0.0003635
+			dpcC =  0.000362
 			n = 6.040206;
 			s = 5.772677;
-			e = -161.916751;
+			e = -161.9167522;
 			w = -162.357356;
 			Roffset = 0;
 			Coffset = 0;
@@ -270,9 +270,9 @@
 			alert(errors);
 		}
 		else {	
-			var startX = Math.floor((myw - w + Coffset) / dpcC);
+			var startX = Math.floor((myw - w + Coffset) / dpcC) + 1;
 			var XDist = Math.floor((mye - myw) / dpcC);
-			var startY = Math.floor((mys - s + Roffset) / dpcR);
+			var startY = Math.floor((mys - s + Roffset) / dpcR) + 1;
 			var YDist = Math.floor((myn - mys) / dpcR);
 			$("#mux").val((mux - myw)/(mye - myw));
 			$("#muy").val((muy - mys)/(myn - mys));

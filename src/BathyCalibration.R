@@ -133,26 +133,53 @@ sim1km = function() {
 #' @param mye The test Eastern limit of the area to graph.
 #' @param myw The test Western limit of the area to graph.
 #' @param timestamp A unique string/integer to prevent graph file overwrites.
-testplot = function(x, y, myn, mys, mye, myw, timestamp, ...) {
+testplot = function(inputFile="1km", x, y, myn, mys, mye, myw, timestamp, ...) {
+		print(timestamp)
+		dpcC = 0
+		dpcR = 0
+		xoffset=0
+		yoffset=0
 	    #Data specific to the 1km grid file.
-		inputFile = "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd" 	#path to the 1km v19 bathy data grid file
-		inputFileType = "netcdf" 		#tells getBathy that this is a netcdf file 
-		seriesName = 'z' 		#netcdf variable name
-		n = 25; 			#Northern limit of the netcdf file
-		s = 17; 			# Southern limit of hte netcdf file
-		e = -153; 		#Eastern limit of the netcdf file
-		w = -162;		#Western limit of the netcdf file
-		dpcC = .00999;		#Degrees per cell in the Y direction, as given by the bathy dataset
-		dpcR = .00999;		#Degrees per cell in the X direction, as given by the bathy dataset
+		if (inputFile == "1km") {
+			inputFile = "src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd" 	#path to the 1km v19 bathy data grid file
+			seriesName = 'z' 		#netcdf variable name
+			n = 25; 			#Northern limit of the netcdf file
+			s = 17; 			# Southern limit of hte netcdf file
+			e = -153; 		#Eastern limit of the netcdf file
+			w = -162;		#Western limit of the netcdf file
+			dpcC = .00999;		#Degrees per cell in the Y direction, as given by the bathy dataset
+			dpcR = .00999;		#Degrees per cell in the X direction, as given by the bathy dataset
+			xoffset = 1*dpcC
+			yoffset= 1*dpcR
+		}
+		if (inputFile == "pal") {
+			w= -162.357356
+			e= -161.916751
+			n= 6.040206
+			s= 5.772677
+			rows= 734
+			cols = 1217
+			dpcR = (n-s)/rows
+			dpcC = (e-w)/cols
+			inputFile = "src/palmyra_40m.grd"
+			print(dpcR)
+			print(dpcC)
+			#dpcR =  0.000363
+			#dpcC =  0.0003615
+			dpcR =  0.0003635
+			dpcC =  0.000362
+			xoffset = 0*dpcC
+			yoffset= 0*dpcR
+		}
 		
+		inputFileType = "netcdf" 		#tells getBathy that this is a netcdf file 
 		startX = floor((myw-w)/dpcC)  		#Western most x index (in grid cells) for the area of interest
 		XDist = floor((mye-myw)/dpcC)		#the extent (in grid cells) for the area of interest in the x direction
 		startY = floor((mys-s)/dpcR)    		#Southern most y index (in grid cells) for the area of interest
 		YDist = floor((myn-mys)/dpcR)  		#the extent (in grid cells) for the area of interest in the y direction
-		xoffset = 2*dpcC
-		yoffset= 2*dpcR
-		r=(y + yoffset - mys)/dpcR 		#the y coordinate of the test point
-		c=(x + xoffset -myw)/dpcC	# the x coordinate of the test point
+
+		r=(y + yoffset - mys)/dpcR + 1	#the y coordinate of the test point
+		c=(x + xoffset -myw)/dpcC + 1  # the x coordinate of the test point
 		
 		#Print out the calulation of the test point's x/y coordinates
 		print(paste("r=(",y," - ",mys,")/",dpcR,"=",r))
@@ -179,7 +206,14 @@ testplot = function(x, y, myn, mys, mye, myw, timestamp, ...) {
 		sensy = list(r)		# Graphing library expects a vector containng y values
 		points(sensx,sensy,pch=20,bg='red',cex=3)		# Plot the test point
 		dev.off()
+		print(dpcR)
+		print(dpcC)
 }
+
+#############################################################
+#####################   1Km Grid file   #############################
+#############################################################
+tryCatch({
 #plot a test point around Big Island
 x= -155.003
 y=19.333
@@ -187,8 +221,8 @@ myn=20
 mys=19
 mye=-154.66
 myw=-156.0
-timestamp="BI"
-testplot(x, y, myn, mys, mye, myw, timestamp)
+timestamp="1km BI"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
 
 #plot a test point around the western most tip of Oahu (Kaena point)
 x= -158.28
@@ -197,8 +231,8 @@ myn=21.76
 mys=21.13
 mye=-157.7
 myw=-158.39
-timestamp="Oahu"
-testplot(x, y, myn, mys, mye, myw, timestamp)
+timestamp="1km Oahu"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
 
 #plot a test point around the south western most tip of Niihau (pueo point)
 x=-160.072
@@ -207,8 +241,8 @@ myn=22.02
 mys=21.767
 myw=-160.3
 mye=-160.02
-timestamp="NI"
-testplot(x, y, myn, mys, mye, myw, timestamp)
+timestamp="1km NI"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
 
 #plot a test point around a south western sea mount
 x=-161.335
@@ -217,8 +251,8 @@ myn=17.78
 mys=17.7
 myw=-161.35
 mye=-161.257
-timestamp="SW"
-testplot(x, y, myn, mys, mye, myw, timestamp)
+timestamp="1km SW"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
 
 #plot a test point around a south eastern sea mount
 x=-154.083
@@ -227,8 +261,8 @@ myn=17.267
 mys=17.032
 myw=-154.192
 mye=-153.942
-timestamp="SE"
-testplot(x, y, myn, mys, mye, myw, timestamp)
+timestamp="1km SE"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
 
 #plot a test point around a north eastern sea mount
 x=-153.212
@@ -237,8 +271,8 @@ myn=24.937
 mys=24.825
 myw=-153.281
 mye=-153.151
-timestamp="NE"
-testplot(x, y, myn, mys, mye, myw, timestamp)
+timestamp="1km NE"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
 
 #plot a test point around a north western sea mount
 x=-161.902
@@ -247,19 +281,89 @@ myn=24.61
 mys=24.51
 myw=-161.93
 mye=-161.83
-timestamp="NW"
-testplot(x, y, myn, mys, mye, myw, timestamp)
-
+timestamp="1km NW"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
 
 
 x=-161.8
 y=25
-
 myn=25
 mys=17.1
 myw=-161.9
 mye=-153
-timestamp="OB"
-testplot(x, y, myn, mys, mye, myw, timestamp)
+timestamp="1km OB"
+testplot("1km", x, y, myn, mys, mye, myw, timestamp)
+
+#############################################################
+##################   Palmyra 40m Grid file   ##########################
+#############################################################
+
+#plot a test point at a SW seamount
+x=-162.338578
+y=5.810512
+myn=5.816
+mys=5.804
+myw=-162.346
+mye=-162.332
+timestamp="pal SW"
+testplot("pal", x, y, myn, mys, mye, myw, timestamp)
 
 
+#plot a test point at a SE seamount
+x=-161.967772
+y=5.835041
+myn=5.838137
+mys=5.832621
+myw=-161.972155
+mye=-161.963516
+timestamp="pal SE"
+testplot("pal", x, y, myn, mys, mye, myw, timestamp)
+
+
+#plot a test point at a NW seamount
+x=-162.3089
+y=5.9616
+myn=5.9656
+mys=5.9579
+myw=-162.3142
+mye=-162.3050
+timestamp="pal NW"
+testplot("pal", x, y, myn, mys, mye, myw, timestamp)
+
+
+#plot a test point at a NE seamount
+x=-161.985725
+y=5.932767
+myn=5.935234
+mys=5.929459
+myw=-161.988445
+mye=-161.982807
+timestamp="pal NE"
+testplot("pal", x, y, myn, mys, mye, myw, timestamp)
+
+
+#plot a test point on a central seamount
+x=-162.210943
+y=5.905199
+myn=5.907465
+mys=5.903092
+myw=-162.214591
+mye=-162.208389
+timestamp="pal CN"
+testplot("pal", x, y, myn, mys, mye, myw, timestamp)
+
+
+
+x=-161.932719
+y=5.786884
+myn=6.040206
+mys= 5.7735
+myw= -162.356
+mye=-161.916751
+timestamp="pal BO"
+#testplot("pal", x, y, myn, mys, mye, myw, timestamp)
+
+},
+error = function(e){
+	print(e)
+})
