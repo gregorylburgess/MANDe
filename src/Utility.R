@@ -48,28 +48,47 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     
     # calculate the goodnessGrid
     print("Calculating initial goodness grid")
+	
+	save = FALSE
+	loadSave=FALSE
+	
+	if(loadSave) {
+		goodnessGrid =  as.matrix(read.table("test.txt"))
+		grids$goodnessGrid = goodnessGrid
+	}
+	
+	else {
     grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
     goodnessGrid = grids$goodnessGrid
+	}
+	
+	if (save) {
+		library(MASS)
+		write.matrix(goodnessGrid,file="test.txt") 
+	}
+	
     if(save.inter) inter[[1]] = grids
-    ## place user-defined sensors, and down weigh them
-    if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
-        i = length(params$sensorList)
-        while(i > 0) {
-            print(paste("Placing predefined sensor number",length(params$sensorList)-i+1),"of",length(params$sensorList))
-            loc = params$sensorList[[i]]
-            ## invert the incoming r/c values
-            placement = list(c=loc$r, r=loc$c)
-            grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug=debug, multi=multi)
-            sensorList = c(sensorList, list(placement))
-            i = i - 1
-        }
-    }
-    
-    ## for each sensor, find a good placement
-    i = numSensors
-    while(i > 0) {
-        print(paste("Placing sensor number",numSensors-i+1,"of",numSensors))
-        ## find the max location 
+	
+	# place user-defined sensors, and down weigh them
+	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
+		i = length(params$sensorList)
+		while(i > 0) {
+			print(paste("Placing predefined sensor number",length(params$sensorList)-i+1),"of",length(params$sensorList))
+			loc = params$sensorList[[i]]
+			# invert the incoming r/c values
+			placement = list(c=loc$r, r=loc$c)
+			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug)
+			sensorList = c(sensorList, list(placement))
+			i = i - 1
+		}
+		
+	}
+	
+    # for each sensor, find a good placement
+	i = numSensors
+	while(i > 0) {
+		print(paste("Placing sensor number",numSensors-i+1,"of",numSensors))        
+		# find the max location 
         maxLoc = which.max(grids$goodnessGrid)
         ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
         c = ceiling(maxLoc/rows)
@@ -955,7 +974,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## topographyGrid
 	if(!showPlots){
           filenames$topographyGrid = paste(path, "img/", time, "-TopographyGrid.png", sep="")
-          png(filenames$topographyGrid)
+          png(filenames$topographyGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -965,7 +984,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## behaviorGrid
 	if(!showPlots){
           filenames$behaviorGrid = paste(path, "img/", time, "-BehaviorGrid.png", sep="")
-          png(filenames$behaviorGrid)
+          png(filenames$behaviorGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -975,7 +994,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## goodnessGrid
 	if(!showPlots){
           filenames$goodnessGrid = paste(path, "img/", time, "-GoodnessGrid.png", sep="")
-          png(filenames$goodnessGrid)
+          png(filenames$goodnessGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -985,7 +1004,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 	## Acoustic Coverage
 	if(!showPlots){
             filenames$coverageGrid = paste(path, "img/", time, "-CoverageGrid.png", sep="")
-            png(filenames$coverageGrid)
+            png(filenames$coverageGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -1226,9 +1245,9 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @return A dictionary (list) of statistical values containing the keys: "delta", "sensorMat"         
 #' "uniqRRs", "coverageGrid", "absRecoveryRate", "uniqRecoveryRate".
 getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) {
-    if(debug) {
-        print("[getstats]")
-    }
+	if(debug) {
+		print("[getstats]")
+	}
     statDict = list()
     ## Number of requested sensors
     numSensors = length(sensors$sensorList)
@@ -1242,33 +1261,33 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     goodnessGridSupp = sensors$goodnessGridSupp
     sensorList = sensors$sensorList
     ## Calculate locations of projected sensors
-    ns = numProj-numSensors
-    i = ns
+	ns = numProj-numSensors
+	i = ns
     while (i > 0) { 
-        ## find the max location 
-        maxLoc = which.max(goodnessGridSupp)
-        ## Switch the row/col vals since R references Grid coords differently
-        c=ceiling(maxLoc/rows)
-        r=(maxLoc %% rows)
-        if (r==0) {
-            r=rows
-        }
-        maxLoc = list(c=c,r=r)
-        ## append maxLoc to the sensor list.
-        sensorList = c(sensorList, list(maxLoc))
-        ## down-weigh all near-by cells to discourage them from being chosen by the program
-        goodnessGridSupp = suppress.opt(goodnessGridSupp, dim(behaviorGrid), maxLoc, params, topographyGrid$topographyGrid, debug)
-        i = i - 1
+      ## find the max location 
+      maxLoc = which.max(goodnessGridSupp)
+      ## Switch the row/col vals since R references Grid coords differently
+      c=ceiling(maxLoc/rows)
+      r=(maxLoc %% rows)
+      if (r==0) {
+        r=rows
+      }
+      maxLoc = list(c=c,r=r)
+      ## append maxLoc to the sensor list.
+      sensorList = c(sensorList, list(maxLoc))
+      ## down-weigh all near-by cells to discourage them from being chosen by the program
+      goodnessGridSupp = suppress.opt(goodnessGridSupp, dim(behaviorGrid), maxLoc, params, topographyGrid$topographyGrid, debug)
+	  i = i - 1
     }
 
     xSens = rep(0,numProj)
     ySens = rep(0,numProj)
-    i = numProj
+	i = numProj
     while(i > 0){
-        k = numProj-i+1
+		k = numProj-i+1
         xSens[k] = sensorList[[k]]$c
         ySens[k] = sensorList[[k]]$r
-        i = i - 1
+		i = i - 1
     }
     
     ## Distance maps (the distance from any grid cell to a receiver)
@@ -1277,52 +1296,52 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     X = matrix(rep(1:cols,rows),rows,cols,byrow=TRUE)
     Y = matrix(rep(1:rows,cols),rows,cols,byrow=FALSE)
     dimap = array(0,dim=c(rows,cols,numProj))
-    i = numProj
+	i = numProj
     while(i > 0) {
-        k = numProj-i+1
-        ## Distance to receiver
-        dimap[,,k] = sqrt( (X-xSens[k])^2 + (Y-ySens[k])^2 )
-        i = i - 1
-    }
+		k = numProj-i+1
+		## Distance to receiver
+		dimap[,,k] = sqrt( (X-xSens[k])^2 + (Y-ySens[k])^2 )
+		i = i - 1
+	}
     
     ## Horizontal detection maps using detection function
     demap = array(0,dim=c(rows,cols,numProj))
-    i = numProj
-    while(i > 0) {
-        k = numProj-i+1
-        demap[,,k] = do.call(params$shapeFcn, list(dimap[,,k], params))
-        i = i - 1
-    } 
+	i = numProj
+	while(i > 0) {
+		k = numProj-i+1
+		demap[,,k] = do.call(params$shapeFcn, list(dimap[,,k], params))
+		i = i - 1
+	} 
 
     ## Incorporate vertical detection probability using line of sight
     if(params$bias!=1){
-        bG = topographyGrid$topographyGrid
-        ## Create a matrix where land cells have value TRUE
-        land = bG >= 0
-        ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
-        sensorDepth = bG + params$sensorElevation
-        ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-        dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
-        i = numProj
-        while(i > 0) {
+      bG = topographyGrid$topographyGrid
+      ## Create a matrix where land cells have value TRUE
+      land = bG >= 0
+      ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
+      sensorDepth = bG + params$sensorElevation
+      ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+      dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+	  i = numProj
+	  while(i > 0) {
 	    k = numProj-i+1
-            r = ySens[k]
-            c = xSens[k]
-            cind = max(c(1,c-rng)):min(c(cols,c+rng))
-            rind = max(c(1,r-rng)):min(c(rows,r+rng))
-            ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-            pctviz = calc.percent.viz(ySens[k], xSens[k], rind, cind, bG, land, sensorDepth[ySens[k], xSens[k]], dpflag, params, debug)
-            ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
-            ## Initialize
-            testmap = matrix(0,rows,cols)
-            ## Insert values at correct indices
-            testmap[pctviz$linearIndex] = pctviz$percentVisibility
-            ## 100% detected in self cell
-            testmap[r,c] = 1
-            ## Update demap (detection map)
-            demap[,,k] = demap[,,k] * testmap
-            i = i - 1
-        }
+        r = ySens[k]
+        c = xSens[k]
+        cind = max(c(1,c-rng)):min(c(cols,c+rng))
+        rind = max(c(1,r-rng)):min(c(rows,r+rng))
+        ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
+        pctviz = calc.percent.viz(ySens[k], xSens[k], rind, cind, bG, land, sensorDepth[ySens[k], xSens[k]], dpflag, params, debug)
+        ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+        ## Initialize
+        testmap = matrix(0,rows,cols)
+        ## Insert values at correct indices
+        testmap[pctviz$linearIndex] = pctviz$percentVisibility
+        ## 100% detected in self cell
+        testmap[r,c] = 1
+        ## Update demap (detection map)
+        demap[,,k] = demap[,,k] * testmap
+		i = i - 1
+      }
     }
 
     ## Coverage map
@@ -1361,12 +1380,12 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
 
     ## Calculate distance matrix needed to calculate sparsity
     distVec = rep(0,numSensors)
-    i = numProj
-    while(i > 0) {
-        k = numProj-i+1
+	i = numProj
+	while(i > 0) {
+		k = numProj-i+1
         dists = sqrt((topographyGrid$x[xSens[srt$ix[k]]]-topographyGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (topographyGrid$y[ySens[srt$ix[k]]]-topographyGrid$y[ySens[srt$ix[1:numSensors]]])^2)
         distVec[k] = min(dists[dists>0])
-        i = i - 1
+		i = i - 1
     }
     ## a is the median of the distances between the receivers
     if(debug){
@@ -1427,6 +1446,38 @@ checkParams = function(params, stop=TRUE) {
 		checkForMin("projectedSensors", as.numeric(params$projectedSensors), 0, stop)
 	}
 	
+	# startX
+	if(!('startX' %in% names)) {
+		params$startX = 308
+	}
+	else {
+		checkForMin("startX", as.numeric(params$startX), 1, stop)
+	}
+	
+	# startY
+	if(!('startY' %in% names)) {
+		params$startY = 452
+	}
+	else {
+		checkForMin("startY", as.numeric(params$startY), 1, stop)
+	}
+	
+	#XDist
+	if(!('XDist' %in% names)) {
+		params$XDist = 50
+	}
+	else {
+		checkForMin("XDist", as.numeric(params$XDist), 1, stop)
+	}
+	
+	#YDist
+	if(!('YDist' %in% names)) {
+		params$YDist = 50
+	}
+	else {
+		checkForMin("YDist", as.numeric(params$YDist), 1, stop)
+	}
+	
 	#userSensorList
 	if('userSensorList' %in% names) {
 		# if params$userSensorList exists, clean it and parse it into params$sensorList
@@ -1442,7 +1493,8 @@ checkParams = function(params, stop=TRUE) {
 			if (!(is.finite(r) && is.finite(c))) {
 				printError("A user-defined point containing NaN, NA, or Inf was found.", stop)
 			}
-			if (r <= 0 || c <= 0) {
+			if (r <= 0 || c <= 0 || r > params$YDist || c > params$XDist) {
+				print(c(r=r,c=c))
 				printError("A user-defined point is out of bounds.", stop)
 			}
 			point = list(r=r,c=c )
