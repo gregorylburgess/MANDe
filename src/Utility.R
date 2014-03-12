@@ -47,30 +47,31 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
     # calculate the goodnessGrid
+    print("Calculating initial goodness grid")
     grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
     goodnessGrid = grids$goodnessGrid
     if(save.inter) inter[[1]] = grids
-	
-	# place user-defined sensors, and down weigh them
-	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
-		i = length(params$sensorList)
-		while(i > 0) {
-			loc = params$sensorList[[i]]
-			# invert the incoming r/c values
-			placement = list(c=loc$r, r=loc$c)
-			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug)
-			sensorList = c(sensorList, list(placement))
-			i = i - 1
-		}
-		
-	}
-	
-    # for each sensor, find a good placement
-	i = numSensors
-	while(i > 0) {
-        # find the max location 
+    ## place user-defined sensors, and down weigh them
+    if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
+        i = length(params$sensorList)
+        while(i > 0) {
+            print(paste("Placing predefined sensor number",length(params$sensorList)-i+1),"of",length(params$sensorList))
+            loc = params$sensorList[[i]]
+            ## invert the incoming r/c values
+            placement = list(c=loc$r, r=loc$c)
+            grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug=debug, multi=multi)
+            sensorList = c(sensorList, list(placement))
+            i = i - 1
+        }
+    }
+    
+    ## for each sensor, find a good placement
+    i = numSensors
+    while(i > 0) {
+        print(paste("Placing sensor number",numSensors-i+1,"of",numSensors))
+        ## find the max location 
         maxLoc = which.max(grids$goodnessGrid)
-        # Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
+        ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
         c = ceiling(maxLoc/rows)
         r = (maxLoc %% rows)
         if (r==0) {
@@ -78,17 +79,18 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
         }
         maxLoc = list(c=c,r=r)
         ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
-		
-        # append maxLoc to the sensor list.
+        
+        ## append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
-        # down-weigh all near-by cells to discourage them from being chosen by the program
-		grids = sensorFun.suppressHelper(maxLoc, grids, range, bias, params, debug)
+        ## down-weigh all near-by cells to discourage them from being chosen by the program
+        grids = sensorFun.suppressHelper(maxLoc, grids, range, bias, params, debug=debug, multi=multi)
         if(save.inter){
-          ## Save intermediary grids
-          inter[[numSensors-i+1+1]] = grids
+            ## Save intermediary grids
+            inter[[numSensors-i+1+1]] = grids
         }
-		i = i - 1
+        i = i - 1
     }
+    print("Done placing sensors")
     if(save.inter){
         return(list(sensorList=sensorList, goodnessGrid=goodnessGrid, goodnessGridSupp=grids$goodnessGrid, inter=inter))
     }else{
@@ -97,7 +99,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
 }
 
 #' @title Performs suppression on the goodnessGrid/behaviorGrid depending upon the suppressionFcn specified.
-#' @description The suppressionFcn 'detection.functino.exact' indicates that the behaviorGrid must be suppressed, then the entire 
+#' @description The suppressionFcn 'detection.function.exact' indicates that the behaviorGrid must be suppressed, then the entire 
 #' goodnessGrid recalculated based upon the new behaviorGrid.  Any other suppressionFcn simply calls suppress.opt, which just suppresses
 #' the goodnessGrid, avoiding the need to recalculate the whole goodnessGrid (a very expensive operation).  The latter approach can be
 #' considered a 'fast approximation', while the former an 'exact count'.
@@ -114,8 +116,10 @@ sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE
 	if(params$suppressionFcn != 'detection.function.exact'){
 		grids$goodnessGrid = suppress.opt(grids$goodnessGrid, dim(grids$behaviorGrid), loc, params, grids$topographyGrid$topographyGrid, debug)
 	}else{
-		grids = updatebehaviorGrid(loc,grids,params,debug)
-		grids = goodnessGridFun(grids, range, bias, params, debug, multi)
+            print("Updating goodness grid")
+            ## Downweigh observed region
+            grids = updatebehaviorGrid(loc,grids,params,debug)
+            grids = goodnessGridFun(grids, range, bias, params, debug=debug, multi=multi)
 	}
 	return(grids)
 }
@@ -205,14 +209,14 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
         print("params")
         print(params)
     }
-	status [toString(params$timestamp)] <<- 0
-	topographyGrid = grids$topographyGrid$topographyGrid
-	# Remove all NAs from the Grids
-	topographyGrid[is.na(topographyGrid)] = 0
-	grids$topographyGrid$topographyGrid = topographyGrid
-	grids$behaviorGrid[is.na(grids$behaviorGrid)] = 0
+    status [toString(params$timestamp)] <<- 0
+    topographyGrid = grids$topographyGrid$topographyGrid
+    ## Remove all NAs from the Grids
+    topographyGrid[is.na(topographyGrid)] = 0
+    grids$topographyGrid$topographyGrid = topographyGrid
+    grids$behaviorGrid[is.na(grids$behaviorGrid)] = 0
 	
-	#Fish
+    ##Fish
     if (bias == 1) {
 		if(debug) {
 			print("bias=1; Calling goodnessGrid.sumSimple")
@@ -225,7 +229,6 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 			print("bias=2; Calling goodnessGrid.sumBathy.opt")
 		}
                 if(multi) {
-                    print("Multicore LOS")
                     require(multicore)
                     return(goodnessGrid.sumBathy.multi(grids, params, debug, silent))
                 }else{
@@ -239,7 +242,6 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 			print("bias=3; Calling goodnessGrid.sumBathy.opt")
 		}
                 if(multi) {
-                    print("Multicore LOS")
                     require(multicore)
                     return(goodnessGrid.sumBathy.multi(grids, params, debug, silent))
                 }else{
@@ -385,6 +387,18 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
 #' @param silent If set to TRUE, turns off status printing.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
 goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE) {
+    ## Open fifo progress file
+    progfile <- fifo(tempfile(), open="w+b", blocking=T)
+    if (inherits(fork(), "masterProcess")) {
+        ## Child
+        progress <- 0.0
+        while (progress < 1 && !isIncomplete(progfile)) {
+            msg <- readBin(progfile, "double")
+            progress <- progress + as.numeric(msg)
+            cat(sprintf("Multi LOS progress: %.2f%%\r", progress * 100))
+        } 
+        exit()
+    }
     nr = dim(grids$topographyGrid$topographyGrid)[1]
     nc = dim(grids$topographyGrid$topographyGrid)[2]
     ## Calculate the number of cells in the topographyGrid
@@ -408,7 +422,7 @@ goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE
     CS <- 1:nc
     ## mclapply is a function of the multicore package parallelizing the LOS calculation
     ## Need to implement a progress indicator, see: http://stackoverflow.com/questions/10984556/is-there-way-to-track-progress-on-a-mclapply
-    goodnesslist <- mclapply(CS,goodness.multi.helper, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, debug)
+    goodnesslist <- mclapply(CS,goodness.multi.helper, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, progfile, debug)
     ## goodnesslist is a list of vectors, which must be combined as a matrix
     goodnessGrid <- matrix(unlist(goodnesslist),nr,nc)
     status[toString(params$timestamp)] <<- 1
@@ -418,6 +432,8 @@ goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE
         print("grids")
         print(grids)
     }
+    ## Close progress file
+    close(progfile)
     return(grids)
 }
 
@@ -442,13 +458,7 @@ goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE
 #' the percentage fish/signals visible in the surrounding cells, linearIndex contains the linear
 #' indices in the topographyGrid to which the visibilities pertain, dists contains the distance
 #' from the current cell to each of the returned cells as given by linearIndex.
-goodness.multi.helper = function(c, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, debug=FALSE){
-    ##comp = c/nc
-    ##if(!silent) {
-    ##    print(sprintf("LOS progress: %g", comp))
-    ##}
-    ##status[toString(params$timestamp)] <<- comp
-    ## Initialize goodnessVec (allocate memory)
+goodness.multi.helper = function(c, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, progfile=NA, debug=FALSE){
     goodnessVec = rep(0,nr)
 
     ## Column indices
@@ -473,6 +483,8 @@ goodness.multi.helper = function(c, nc, nr, rng, belowSurf, bG, land, sensorDept
             goodnessVec[r] = sum(probOfRangeDetection * pV$percentVisibility)
         }
     }
+    ## Send progress update
+    if(class(progfile)[1]=='fifo') writeBin(1/nc, progfile)
     return(goodnessVec)
 }
 
@@ -1018,10 +1030,14 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
 	## Write results to a text file
 	filename = paste(path, "txt/", time, "-Results.txt", sep="")
 	jsonFile = paste(path, "txt/", time, "-Results.json", sep="")
+        rdataFile = paste(path, "txt/", time, "-Results.RData", sep="")
+        shortresFile = paste(path, "txt/", time, "-shortResults.txt", sep="")
 	file.create(filename)
 	capture.output(print(result), file=filename)
 	filenames$txt = filename
 	filenames$jsonFile = jsonFile
+	filenames$rdataFile = rdataFile
+	filenames$shortresFile = shortresFile
 	# If true, write a zipped copy of files
 	if (zip) {
 		# Zip the text results and image files
@@ -1029,7 +1045,34 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
 		zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
 		filenames$zip = filename
 	}
-	
+        ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
+
+        save('result',file=rdataFile)
+        ## Save formatted text files with statistics
+
+        cat(paste('- Acoustic network design results, generated:',Sys.time(),'\n\n'),file=shortresFile)
+        if(is.null(result$errors)){
+            cat(paste('Number of sensors placed:',params$numSensors,'\n'),file=shortresFile,append=TRUE)
+            cat(paste('Detection range:',params$detectionRange,'meters\n'),file=shortresFile,append=TRUE)
+            cat(paste('Using line of sight?:',!params$bias==1,'\n'),file=shortresFile,append=TRUE)
+            cat(paste('Using fish behavior?:',!params$bias==2,'\n'),file=shortresFile,append=TRUE)
+            cat(paste('Number of grid cells (row,col): ',params$XDist*params$YDist,' (',params$YDist,',',params$XDist,')\n',sep=''),file=shortresFile,append=TRUE)
+            cat(paste('Suppression function:',params$suppressionFcn,'\n'),file=shortresFile,append=TRUE)
+            cat(paste('Run time:',round(as.numeric(result$runTime, units='mins'),2),'mins\n'),file=shortresFile,append=TRUE)
+            sensors <- result$stats$sensorMat[,c(2,1)]
+            sensors <- cbind(sensors,sensors+matrix(c(rep(params$startX,params$numSensors),rep(params$startY,params$numSensors)),params$numSensors,2),round(result$stats$uniqRRs,3),round(c(result$stats$uniqRRs[1],diff(result$stats$uniqRRs)),3))
+            colnames(sensors) <- c('loc_row','loc_col','glob_row','glob_col','Uniq_RR','d_Uniq_RR')
+            rownames(sensors) <- paste('Sensor_',1:params$numSensors,sep='')
+            cat(paste('\nOptimal sensor indices:\n'),file=shortresFile,append=TRUE)
+            capture.output(sensors,file=shortresFile,append=TRUE)
+            cat(paste('\nNetwork sparsity (delta):',round(result$stats$delta,3),'\n'),file=shortresFile,append=TRUE)
+            cat(paste('Absolute recovery rate:',round(result$stats$absRecoveryRate,3),'\n'),file=shortresFile,append=TRUE)
+            cat(paste('Unique recovery rate:',round(result$stats$uniqRecoveryRate,3),'\n'),file=shortresFile,append=TRUE)
+            ##write.table(sensors,file=shortresFile,append=TRUE,sep='\t',row.names=FALSE)
+        }else{
+            cat(paste('Errors:',result$errors,'\n'),file=shortresFile,append=TRUE)
+        }
+
 	# Append the new txt and zip file locations, and clear all the old data from the result set.
 	result$filenames = filenames
 	result$topographyGrid = NULL
@@ -1183,9 +1226,9 @@ plotSensors = function(result,circles=TRUE,circlty=3){
 #' @return A dictionary (list) of statistical values containing the keys: "delta", "sensorMat"         
 #' "uniqRRs", "coverageGrid", "absRecoveryRate", "uniqRecoveryRate".
 getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) {
-	if(debug) {
-		print("[getstats]")
-	}
+    if(debug) {
+        print("[getstats]")
+    }
     statDict = list()
     ## Number of requested sensors
     numSensors = length(sensors$sensorList)
@@ -1199,33 +1242,33 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     goodnessGridSupp = sensors$goodnessGridSupp
     sensorList = sensors$sensorList
     ## Calculate locations of projected sensors
-	ns = numProj-numSensors
-	i = ns
+    ns = numProj-numSensors
+    i = ns
     while (i > 0) { 
-      ## find the max location 
-      maxLoc = which.max(goodnessGridSupp)
-      ## Switch the row/col vals since R references Grid coords differently
-      c=ceiling(maxLoc/rows)
-      r=(maxLoc %% rows)
-      if (r==0) {
-        r=rows
-      }
-      maxLoc = list(c=c,r=r)
-      ## append maxLoc to the sensor list.
-      sensorList = c(sensorList, list(maxLoc))
-      ## down-weigh all near-by cells to discourage them from being chosen by the program
-      goodnessGridSupp = suppress.opt(goodnessGridSupp, dim(behaviorGrid), maxLoc, params, topographyGrid$topographyGrid, debug)
-	  i = i - 1
+        ## find the max location 
+        maxLoc = which.max(goodnessGridSupp)
+        ## Switch the row/col vals since R references Grid coords differently
+        c=ceiling(maxLoc/rows)
+        r=(maxLoc %% rows)
+        if (r==0) {
+            r=rows
+        }
+        maxLoc = list(c=c,r=r)
+        ## append maxLoc to the sensor list.
+        sensorList = c(sensorList, list(maxLoc))
+        ## down-weigh all near-by cells to discourage them from being chosen by the program
+        goodnessGridSupp = suppress.opt(goodnessGridSupp, dim(behaviorGrid), maxLoc, params, topographyGrid$topographyGrid, debug)
+        i = i - 1
     }
 
     xSens = rep(0,numProj)
     ySens = rep(0,numProj)
-	i = numProj
+    i = numProj
     while(i > 0){
-		k = numProj-i+1
+        k = numProj-i+1
         xSens[k] = sensorList[[k]]$c
         ySens[k] = sensorList[[k]]$r
-		i = i - 1
+        i = i - 1
     }
     
     ## Distance maps (the distance from any grid cell to a receiver)
@@ -1234,52 +1277,52 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     X = matrix(rep(1:cols,rows),rows,cols,byrow=TRUE)
     Y = matrix(rep(1:rows,cols),rows,cols,byrow=FALSE)
     dimap = array(0,dim=c(rows,cols,numProj))
-	i = numProj
+    i = numProj
     while(i > 0) {
-		k = numProj-i+1
-		## Distance to receiver
-		dimap[,,k] = sqrt( (X-xSens[k])^2 + (Y-ySens[k])^2 )
-		i = i - 1
-	}
+        k = numProj-i+1
+        ## Distance to receiver
+        dimap[,,k] = sqrt( (X-xSens[k])^2 + (Y-ySens[k])^2 )
+        i = i - 1
+    }
     
     ## Horizontal detection maps using detection function
     demap = array(0,dim=c(rows,cols,numProj))
-	i = numProj
-	while(i > 0) {
-		k = numProj-i+1
-		demap[,,k] = do.call(params$shapeFcn, list(dimap[,,k], params))
-		i = i - 1
-	} 
+    i = numProj
+    while(i > 0) {
+        k = numProj-i+1
+        demap[,,k] = do.call(params$shapeFcn, list(dimap[,,k], params))
+        i = i - 1
+    } 
 
     ## Incorporate vertical detection probability using line of sight
     if(params$bias!=1){
-      bG = topographyGrid$topographyGrid
-      ## Create a matrix where land cells have value TRUE
-      land = bG >= 0
-      ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
-      sensorDepth = bG + params$sensorElevation
-      ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-      dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
-	  i = numProj
-	  while(i > 0) {
+        bG = topographyGrid$topographyGrid
+        ## Create a matrix where land cells have value TRUE
+        land = bG >= 0
+        ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
+        sensorDepth = bG + params$sensorElevation
+        ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+        dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+        i = numProj
+        while(i > 0) {
 	    k = numProj-i+1
-        r = ySens[k]
-        c = xSens[k]
-        cind = max(c(1,c-rng)):min(c(cols,c+rng))
-        rind = max(c(1,r-rng)):min(c(rows,r+rng))
-        ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(ySens[k], xSens[k], rind, cind, bG, land, sensorDepth[ySens[k], xSens[k]], dpflag, params, debug)
-        ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
-        ## Initialize
-        testmap = matrix(0,rows,cols)
-        ## Insert values at correct indices
-        testmap[pctviz$linearIndex] = pctviz$percentVisibility
-        ## 100% detected in self cell
-        testmap[r,c] = 1
-        ## Update demap (detection map)
-        demap[,,k] = demap[,,k] * testmap
-		i = i - 1
-      }
+            r = ySens[k]
+            c = xSens[k]
+            cind = max(c(1,c-rng)):min(c(cols,c+rng))
+            rind = max(c(1,r-rng)):min(c(rows,r+rng))
+            ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
+            pctviz = calc.percent.viz(ySens[k], xSens[k], rind, cind, bG, land, sensorDepth[ySens[k], xSens[k]], dpflag, params, debug)
+            ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+            ## Initialize
+            testmap = matrix(0,rows,cols)
+            ## Insert values at correct indices
+            testmap[pctviz$linearIndex] = pctviz$percentVisibility
+            ## 100% detected in self cell
+            testmap[r,c] = 1
+            ## Update demap (detection map)
+            demap[,,k] = demap[,,k] * testmap
+            i = i - 1
+        }
     }
 
     ## Coverage map
@@ -1318,14 +1361,18 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
 
     ## Calculate distance matrix needed to calculate sparsity
     distVec = rep(0,numSensors)
-	i = numProj
-	while(i > 0) {
-		k = numProj-i+1
+    i = numProj
+    while(i > 0) {
+        k = numProj-i+1
         dists = sqrt((topographyGrid$x[xSens[srt$ix[k]]]-topographyGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (topographyGrid$y[ySens[srt$ix[k]]]-topographyGrid$y[ySens[srt$ix[1:numSensors]]])^2)
         distVec[k] = min(dists[dists>0])
-		i = i - 1
+        i = i - 1
     }
     ## a is the median of the distances between the receivers
+    if(debug){
+        print("distVec")
+        print(distVec)
+    }
     a = median(distVec)
     ## delta is a sparsity measure (see Pedersen & Weng 2013)
     statDict$delta = a/(2*params$detectionRange)

@@ -191,12 +191,12 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 		if(save.inter) {
 			results$inter = sensors$inter
 		}
+		endTime = Sys.time()
+		results$runTime = endTime - startTime
 		
 		## Graph results and make data file.
 		results$filenames = graph(results,params,showPlots)
 		
-		endTime = Sys.time()
-		results$runTime = endTime - startTime
 		return(results)
 		
 	}, error = function(e) {
