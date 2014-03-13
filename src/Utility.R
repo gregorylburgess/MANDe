@@ -414,7 +414,7 @@ goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE
         while (progress < 1 && !isIncomplete(progfile)) {
             msg <- readBin(progfile, "double")
             progress <- progress + as.numeric(msg)
-            cat(sprintf("Multi LOS progress: %.2f%%\r", progress * 100))
+            cat(sprintf("Multicore LOS progress: %.2f%%\r", progress * 100))
         } 
         exit()
     }
@@ -1652,46 +1652,52 @@ checkParams = function(params, stop=TRUE) {
     ## result in too large suppression so a trade-off is 1.5. (we could think more about this)
     maxSuppressionRangeFactor = max(c(2,1.5*requiredDetectionRange/params$detectionRange))
     
-    # SuppressionFcn
+    ## SuppressionFcn
     if(!('suppressionFcn' %in% names)) {
         params$suppressionFcn = "detection.function"
     }	
-	else {
-		validFcns = c("suppression.static", "suppression.scale", "detection.function",
-					  "detection.function.shadow", "detection.function.exact")
-		if (!(as.character(params$suppressionFcn) %in% validFcns)) {
-			printError("Invalid 'suppressionFcn' value.", stop)
-		}
-		params$suppressionFcn = as.character(params$suppressionFcn)
-	}
-	# 0 < max/min suppressionValue < 1
-	if(!('maxsuppressionValue' %in% names)) {
-		params$maxsuppressionValue = .5
-	}
-	else {
-		checkForMin("maxsuppressionValue", params$maxsuppressionValue, 0, stop)
-		checkForMax("maxsuppressionValue", params$maxsuppressionValue, 1, stop)
-	}
-	if(!('minsuppressionValue' %in% names)) {
-		params$minsuppressionValue = .1
-	}
-	else {
-		checkForMin("minsuppressionValue", params$minsuppressionValue, 0, stop)
-		checkForMax("minsuppressionValue", params$minsuppressionValue, 1, stop)
-	}
-	# minsuppressionValue < maxsuppressionValue
-	if(!(params$minsuppressionValue < params$maxsuppressionValue)) {
-		printError("'minsuppressionValue' must be greater than 'maxsuppressionValue'.")
-	}
-	
-	# SuppressionRange Factor
+    else {
+        validFcns = c("suppression.static", "suppression.scale", "detection.function",
+            "detection.function.shadow", "detection.function.exact")
+        if (!(as.character(params$suppressionFcn) %in% validFcns)) {
+            printError("Invalid 'suppressionFcn' value.", stop)
+        }
+        params$suppressionFcn = as.character(params$suppressionFcn)
+    }
+    ## 0 < max/min suppressionValue < 1
+    if(!('maxsuppressionValue' %in% names)) {
+        params$maxsuppressionValue = .5
+    }
+    else {
+        checkForMin("maxsuppressionValue", params$maxsuppressionValue, 0, stop)
+        checkForMax("maxsuppressionValue", params$maxsuppressionValue, 1, stop)
+    }
+    if(!('minsuppressionValue' %in% names)) {
+        params$minsuppressionValue = .1
+    }
+    else {
+        checkForMin("minsuppressionValue", params$minsuppressionValue, 0, stop)
+        checkForMax("minsuppressionValue", params$minsuppressionValue, 1, stop)
+    }
+    ## minsuppressionValue < maxsuppressionValue
+    if(!(params$minsuppressionValue < params$maxsuppressionValue)) {
+        printError("'minsuppressionValue' must be greater than 'maxsuppressionValue'.")
+    }
+    
+    ## SuppressionRange Factor
     if(!('suppressionRangeFactor' %in% names)) {
         params$suppressionRangeFactor = 2
     }	
-	else {
-		checkForMin("suppressionRangeFactor", as.numeric(params$suppressionRangeFactor), 0, stop)
-		params$suppressionRangeFactor = as.numeric(params$suppressionRangeFactor)
-	}
+    else {
+        if(params$suppressionRangeFactor != 1 & params$suppressionFcn == 'detection.function.exact') {
+            print("Warning: params$suppressionRangeFactor different from 1. This option is not compatible with params$suppressionFcn = 'detection.function.exact', changing to params$suppressionFcn = 'detection.function'")
+            params$suppressionFcn = "detection.function"
+        }
+        checkForMin("suppressionRangeFactor", as.numeric(params$suppressionRangeFactor), 0, stop)
+        params$suppressionRangeFactor = as.numeric(params$suppressionRangeFactor)
+    }
+
+    ## Constrain suppressionRangeFactor
     if(params$suppressionRangeFactor > maxSuppressionRangeFactor){
         params$suppressionRangeFactor = maxSuppressionRangeFactor
     }
@@ -1752,7 +1758,7 @@ checkParams = function(params, stop=TRUE) {
 
 #' @name checkForMin
 #' @title Checks that value is greater than the provided minVal, throwing an error if it isn't.
-#' @description Checks taht value is greater than minVal, printing an error with the provided name
+#' @description Checks that value is greater than minVal, printing an error with the provided name
 #' if it isn't.
 #' 
 #' @param name A text name for the value variable (this is what gets printed in the error message.
