@@ -14,6 +14,8 @@
 </div>
 <script type="text/javascript">
 	loadForm();
+	for (object in $())
+	
 	var numericNames = new Array();
 	function loadForm() {
 		var form = "";
@@ -88,7 +90,9 @@
 								  + "$(\"#" + groupID + "\").change(function() {"
 								  + "$('#" + groupID + "-toggle').toggle(this.value == 'True');"
 							 	  + "});"
+							 	  + "if ($(\"#" + groupID + "\").val() == 'False') {"
 							 	  + "$('#" + groupID + "-toggle').toggle();"
+							 	  + "}"
 							 	  + "<\/script>";
 						}
 					}
