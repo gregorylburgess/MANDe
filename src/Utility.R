@@ -1065,15 +1065,8 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
 	filenames$jsonFile = jsonFile
 	filenames$rdataFile = rdataFile
 	filenames$shortresFile = shortresFile
-	# If true, write a zipped copy of files
-	if (zip) {
-		# Zip the text results and image files
-		filename = paste(path, "zip/", time, ".zip", sep="")
-		zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
-		filenames$zip = filename
-	}
-        ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
 
+        ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
         save('result',file=rdataFile)
         ## Save formatted text files with statistics
 
@@ -1136,6 +1129,13 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
 		else {
             cat(paste('Errors:',result$errors,'\n'),file=shortresFile,append=TRUE)
         }
+	# If true, write a zipped copy of files
+	if (zip) {
+		# Zip the text results and image files
+		filename = paste(path, "zip/", time, ".zip", sep="")
+		zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
+		filenames$zip = filename
+	}
 
 	# Append the new txt and zip file locations, and clear all the old data from the result set.
 	result$filenames = filenames
