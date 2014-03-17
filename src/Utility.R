@@ -71,9 +71,10 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
 	
 	# place user-defined sensors, and down weigh them
 	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
-		i = length(params$sensorList)
+		len = length(params$sensorList)
+		i = len
 		while(i > 0) {
-			print(paste("Placing predefined sensor number",length(params$sensorList)-i+1),"of",length(params$sensorList))
+			print(paste("Placing predefined sensor number", len-i+1, "of", len))
 			loc = params$sensorList[[i]]
 			# invert the incoming r/c values
 			placement = list(c=loc$r, r=loc$c)
@@ -947,7 +948,11 @@ offset= function(point){
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @return A dictionary containing the filenames of the generated images.
-graph = function(result, params, showPlots, plot.bathy=TRUE) {
+graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
+	if (debug) {
+		print("[graph]")
+	}
+	
 	time = "1"
 	path = ""
         if(!showPlots) {
@@ -1018,13 +1023,13 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
         }else{
             dev.new()
         }
-	print("[graph]")
+
 	##print(result$stats)
-        plotUniqueRR(result)
+        plotUniqueRR(result, debug)
 	if(!showPlots) dev.off()
 
 	
-	filenames = writeFiles(filenames, result, path, time, zip=TRUE)
+	filenames = writeFiles(filenames, result, path, time, zip=TRUE, debug)
 	##print(filenames)
 	return(filenames)
 }
@@ -1041,7 +1046,10 @@ graph = function(result, params, showPlots, plot.bathy=TRUE) {
 #' @param time The timestamp label to include in all filenames.
 #' @param zip If true, writes a zip file containing the txt dump, and images of a run.
 #' @return A dictionary containing the filenames of the generated images.
-writeFiles = function(filenames, result, path, time, zip=TRUE) {
+writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
+	if(debug) {
+		print("[writeFiles]")
+	}
 	if (grepl("Rcheck",getwd())) {
 		setwd("..")
 	}
@@ -1070,25 +1078,62 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
         ## Save formatted text files with statistics
 
         cat(paste('- Acoustic network design results, generated:',Sys.time(),'\n\n'),file=shortresFile)
-        if(is.null(result$errors)){
+        if (is.null(result$errors)) {
+			params = result$params
             cat(paste('Number of sensors placed:',params$numSensors,'\n'),file=shortresFile,append=TRUE)
             cat(paste('Detection range:',params$detectionRange,'meters\n'),file=shortresFile,append=TRUE)
             cat(paste('Using line of sight?:',!params$bias==1,'\n'),file=shortresFile,append=TRUE)
             cat(paste('Using fish behavior?:',!params$bias==2,'\n'),file=shortresFile,append=TRUE)
-            cat(paste('Number of grid cells (row,col): ',params$XDist*params$YDist,' (',params$YDist,',',params$XDist,')\n',sep=''),file=shortresFile,append=TRUE)
-            cat(paste('Suppression function:',params$suppressionFcn,'\n'),file=shortresFile,append=TRUE)
-            cat(paste('Run time:',round(as.numeric(result$runTime, units='mins'),2),'mins\n'),file=shortresFile,append=TRUE)
-            sensors <- result$stats$sensorMat[,c(2,1)]
-            sensors <- cbind(sensors,sensors+matrix(c(rep(params$startX,params$numSensors),rep(params$startY,params$numSensors)),params$numSensors,2),round(result$stats$uniqRRs,3),round(c(result$stats$uniqRRs[1],diff(result$stats$uniqRRs)),3))
-            colnames(sensors) <- c('loc_row','loc_col','glob_row','glob_col','Uniq_RR','d_Uniq_RR')
-            rownames(sensors) <- paste('Sensor_',1:params$numSensors,sep='')
+            cat(paste('Number of grid cells (row,col): ', params$XDist*params$YDist,' (',params$YDist,',',params$XDist,')\n',sep=''),file=shortresFile,append=TRUE)
+            cat(paste('Suppression function:', params$suppressionFcn, '\n'), file=shortresFile, append=TRUE)
+            cat(paste('Run time:', round(as.numeric(result$runTime, units='mins'), 2),'mins\n'), file=shortresFile, append=TRUE)
+			
+			totaNumSensors = params$numSensors + length(params$sensorList) + params$projectedSensors
+            sensors = result$stats$sensorMat
+			## smat translates relative coordinates to absoloute coordinates for the bathymetry file
+			smat =matrix(c(rep(params$startX, params$numSensors),
+												rep( params$startY, params$numSensors)
+										),
+										totaNumSensors,
+										2
+					  ) 
+		   smat = smat + sensors
+
+			
+			## smat2 contains the running total of unique RR rounded to 5 decimal palces
+			smat2 = round(result$stats$uniqRRs, 5)
+			## smat3 contains the unique RR per sensor rounded to 5 decimal palces
+			smat3  = round(c(result$stats$uniqRRs[1], diff(result$stats$uniqRRs)),5)
+			# make a table of sensor data and print it to the shortResult file
+            sensors = cbind(sensors, smat, smat2, smat3 )
+            colnames(sensors) = c('loc_row', 'loc_col', 'glob_row', 'glob_col', 'Uniq_RR', 'd_Uniq_RR')
+            rownames(sensors) = paste('Sensor_', 1:totaNumSensors, sep="")
+			
+			if (debug) {
+				print("smat =")
+				print(smat)
+				print("sensors=")
+				print(sensors)
+				print("numsensors =")
+				print(params$numSensors)
+				print("sensorList =")
+				print(params$sensorList)
+				print("projectedSensors")
+				print(params$projectedSensors)
+				print("sensorMat")
+				print(result$stats$sensorMat)
+				print("Sensors")
+				print(sensors)
+			}
+			
             cat(paste('\nOptimal sensor indices:\n'),file=shortresFile,append=TRUE)
             capture.output(sensors,file=shortresFile,append=TRUE)
             cat(paste('\nNetwork sparsity (delta):',round(result$stats$delta,3),'\n'),file=shortresFile,append=TRUE)
             cat(paste('Absolute recovery rate:',round(result$stats$absRecoveryRate,3),'\n'),file=shortresFile,append=TRUE)
             cat(paste('Unique recovery rate:',round(result$stats$uniqRecoveryRate,3),'\n'),file=shortresFile,append=TRUE)
             ##write.table(sensors,file=shortresFile,append=TRUE,sep='\t',row.names=FALSE)
-        }else{
+        }
+		else {
             cat(paste('Errors:',result$errors,'\n'),file=shortresFile,append=TRUE)
         }
 
@@ -1158,7 +1203,10 @@ plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.
 #' 
 #' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
 #' @return Nothing.
-plotUniqueRR = function(result){
+plotUniqueRR = function(result, debug=FALSE){
+	if(debug) {
+		print("[plotUniqueRR]")
+	}
     ## Find number of placed sensors
     ns = length(result$sensors)
 	##print(result$sensors)
@@ -1261,9 +1309,10 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     goodnessGridSupp = sensors$goodnessGridSupp
     sensorList = sensors$sensorList
     ## Calculate locations of projected sensors
-	ns = numProj-numSensors
-	i = ns
+	numProjected = params$projectedSensors
+	i = numProjected
     while (i > 0) { 
+	  print(paste("Projecting sensor number",numProjected-i+1,"of",numProjected))    
       ## find the max location 
       maxLoc = which.max(goodnessGridSupp)
       ## Switch the row/col vals since R references Grid coords differently
@@ -1283,7 +1332,7 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     xSens = rep(0,numProj)
     ySens = rep(0,numProj)
 	i = numProj
-    while(i > 0){
+    while(i > 0){ 
 		k = numProj-i+1
         xSens[k] = sensorList[[k]]$c
         ySens[k] = sensorList[[k]]$r

@@ -195,7 +195,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 		results$runTime = endTime - startTime
 		
 		## Graph results and make data file.
-		results$filenames = graph(results,params,showPlots)
+		results$filenames = graph(results,params,showPlots, debug=debug)
 		
 		return(results)
 		
@@ -210,7 +210,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=gErrors[toString(params$timestamp)])
 	
 	# writeFiles returns json and txt file locations
-	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), zip=FALSE)
+	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), zip=FALSE, debug)
 	print(results$filenames)
 
 	return(results)
