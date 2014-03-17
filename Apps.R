@@ -71,7 +71,7 @@ getStatus <- function(env) {
 	res = Rook::Response$new()
 	params = parseJSON(req$params())
 	for(job in jobs) {
-		print(collect(job, wait, 1))
+		print(collect(job, wait=FALSE, timeout=1))
 	}
 	jobStatus = checkStatus(toString(params$timestamp))
 	res$write(jobStatus)
