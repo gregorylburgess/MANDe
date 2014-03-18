@@ -461,8 +461,10 @@ goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE
 #' @title Helper function for multicore LOS calculation.
 #' @description This is the function that goes into mclapply
 #' 
-#' @param r Row of the current cell in the topographyGrid.
 #' @param c Column of the current cell in the topographyGrid.
+#' @param nc Number of columns in grid.
+#' @param nr Number of rows in grid.
+#' @param rng Range (in cells) of suppression
 #' @param rind Row indices of the topographyGrid to calculate visibility percentage.
 #' @param cind Column indices of the topographyGrid to calculate visibility percentage.
 #' @param topographyGrid A valid topographyGrid.
@@ -1114,9 +1116,12 @@ writeFiles = function(filenames, result, path, time, zip=TRUE) {
 #' @param ylab Set label of y axis.
 #' @param plot.bathy Specifies whether bathymetry contour lines should be added to plots.
 #' @param plot.sensors Specifies if sensors should be added to plot.
+#' @param bcol Specifies the color of bathymetry contour lines.
+#' @param nlevels Specifies the number of bathymetry contour lines.
+#' @param drawlabels Specifies if bathymetry contour labels should be drawn.
 #' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
-plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,...){
+plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,bcol=1,nlevels=5,drawlabels=TRUE,...){
     ## n is number of colors in palette
     n = 24
     col = heat.colors(n)
@@ -1126,22 +1131,26 @@ plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.
         grid = result$topographyGrid$topographyGrid
     }
     if(type=='behaviorGrid'){
-        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        col = colorRampPalette(c("white","lightseagreen","mediumvioletred"))(n)
+        ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
+        ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
         grid = result$behaviorGrid
     }
     if(type=='goodnessGrid'){
-        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$goodnessGrid
     }
     if(type=='coverageGrid'){
-        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$stats$coverageGrid
     }
     ## Plot the actual grid as an image
     image(result$topographyGrid$x,result$topographyGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col,...)
     if(plot.bathy) {
         ## Add bathymetry contour
-        contour(result$topographyGrid$x,result$topographyGrid$y,result$topographyGrid$topographyGrid,add=TRUE,nlevels=5)
+        contour(result$topographyGrid$x,result$topographyGrid$y,result$topographyGrid$topographyGrid,add=TRUE,col=bcol,nlevels=nlevels,drawlabels=drawlabels)
     }
     if(plot.sensors){
         ## Add sensors and their numbers
