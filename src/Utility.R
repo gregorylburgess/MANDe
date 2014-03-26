@@ -74,7 +74,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
 		len = length(params$sensorList)
 		i = len
 		while(i > 0) {
-			print(paste("Placing predefined sensor number", len-i+1, "of", len))
+			print(paste("- Placing predefined sensor number", len-i+1, "of", len))
 			loc = params$sensorList[[i]]
 			# invert the incoming r/c values
 			placement = list(c=loc$r, r=loc$c)
@@ -88,17 +88,19 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     # for each sensor, find a good placement
 	i = numSensors
 	while(i > 0) {
-		print(paste("Placing sensor number",numSensors-i+1,"of",numSensors))        
-		# find the max location 
-        maxLoc = which.max(grids$goodnessGrid)
-        ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
-        c = ceiling(maxLoc/rows)
-        r = (maxLoc %% rows)
-        if (r==0) {
-            r=rows
-        }
-        maxLoc = list(c=c,r=r)
-        ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
+            print(paste("- Placing sensor number",numSensors-i+1,"of",numSensors))
+            if("depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)) print('Using depth preference ($depth_off_bottom and $depth_off_bottom_sd)')
+
+            ## find the max location 
+            maxLoc = which.max(grids$goodnessGrid)
+            ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
+            c = ceiling(maxLoc/rows)
+            r = (maxLoc %% rows)
+            if (r==0) {
+                r=rows
+            }
+            maxLoc = list(c=c,r=r)
+            ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
         
         ## append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
@@ -185,7 +187,7 @@ updatebehaviorGrid = function(loc, grids, params, debug=FALSE){
   ## Create the depth value of a sensor placed at loc
   sensorDepth = bG[loc$r,loc$c] + params$sensorElevation
   ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-  dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+  dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
   ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
   pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, bG, land, sensorDepth, dpflag, params, debug)
   ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
@@ -353,7 +355,7 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
     ## Create a matrix where land cells have value TRUE
     land = bG >= 0
     ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-    dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+    dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
     usebehaviorGrid = params$bias==3
     for(c in 1:nc){
         comp = c/nc
@@ -436,7 +438,7 @@ goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE
     ## Create a matrix where land cells have value TRUE
     land = bG >= 0
     ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-    dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+    dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
     usebehaviorGrid = params$bias==3
 
     CS <- 1:nc
@@ -714,7 +716,7 @@ suppress.opt = function(goodnessGrid, dims, loc, params, topographyGrid, debug=F
         ## Create the depth value of a sensor placed at loc
         sensorDepth = topographyGrid[loc$r,loc$c] + params$sensorElevation
         ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-        dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
+        dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
         ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
         pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, topographyGrid, land, sensorDepth, dpflag, params, debug)
         ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
@@ -1379,12 +1381,12 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
       ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
       sensorDepth = bG + params$sensorElevation
       ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-      dpflag = "depth_off_bottom" %in% params && "depth_off_bottom_sd" %in% params
-	  i = numProj
-	  while(i > 0) {
-	    k = numProj-i+1
-        r = ySens[k]
-        c = xSens[k]
+      dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
+      i = numProj
+      while(i > 0) {
+          k = numProj-i+1
+          r = ySens[k]
+          c = xSens[k]
         cind = max(c(1,c-rng)):min(c(cols,c+rng))
         rind = max(c(1,r-rng)):min(c(rows,r+rng))
         ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
@@ -1583,7 +1585,7 @@ checkParams = function(params, stop=TRUE) {
 	
 	# Warn users if they use depth pref without knowing what the map looks like
 	if('depth_off_bottom' %in% names  && !('inputFile' %in% names)) {
-		printError("Error: Using dp option without a known input file may be bad!.
+		printError("Error: Using depth preference ($depth_off_bottom) option without a known input file may be bad!.
 				For example, if the generated habitat grid contains no cells near
 				the depth specified, no fish will be generated.", stop)
 	}

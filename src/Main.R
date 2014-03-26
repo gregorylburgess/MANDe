@@ -23,9 +23,9 @@ source('src/Utility.R')
 #'
 #' 'ou' results in movements within a limited region mimicking fish with a home range. This results in a normal distribution with two parameters: 1) the home range center (mean) specified by $mux and $muy as proportions of the X and Y axes. 2) the home range extents (variance) and shape (covariance) specified by the standard deviations in X and Y directions in meters, $ousdx and $ousdy respectively, and by the correlation between X and Y specified by $oucor. This is useful if the study species is known to prefer a specific geographic region. A rule of thumb says that for each direction in isolation approximately 95% of the time is spent within plus minus two standard deviations. The correlation is used if the elliptical home range shape is angled relative to the X,Y coordinate system. The correlation must be in the range [-1; 1].
 #' 
-#' $vHabitatRange (optional): Enables vertical habitat restriction. Possible values are TRUE or FALSE. Default: FALSE. This parameter is useful if the fish is known to live in a certain vertical habitat say from -10 to -50 meters. If FALSE the species is assumed to be able to utilize the whole water column. If TRUE the minimum and maximum depth must be specified in meters using $mindepth (shallow) and $maxdepth (deep), for example $mindepth = -5 and $maxdepth = -10. Only areas withing the vertical habitat are considered in the network design.
+#' Optional: Vertical habitat restriction. Useful if the fish is known to live in a certain vertical habitat say from -10 to -50 meters. If unspecified the species is assumed to be able to utilize the whole water column. The minimum and maximum depth must be specified in meters using $mindepth (shallow) and $maxdepth (deep), for example $mindepth = -5 and $maxdepth = -10. Only areas within the vertical habitat are considered in the network design.
 #'
-#' $depthPref (optional): Enables preferred depth relative to bottom. Possible values are TRUE or FALSE. Default: FALSE. The fish may have a preference to linger at a certain height relative to the bottom. This is specified by a normal distribution with a mean preferred height relative to the bottom ($dp) given in meters off the bottom, and a standard deviation ($dpsd) given in meters.
+#' Optional: Preferred depth relative to bottom. This is specified by a normal distribution with a mean preferred height relative to the bottom ($depth_off_bottom) given in meters off the bottom, and a standard deviation ($depth_off_bottom_sd) given in meters.
 #'
 #' - Sensor parameters
 #'
@@ -136,8 +136,8 @@ source('src/Utility.R')
 #' params$oucor <- 0
 #' params$mindepth <- -2
 #' params$maxdepth <- -15
-#' params$dp <- 3
-#' params$dpsd <- 3
+#' params$depth_off_bottom <- 3
+#' params$depth_off_bottom_sd <- 3
 #' res <- acousticRun(params, showPlots=TRUE, debug=FALSE)
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, multi=FALSE) {
@@ -284,9 +284,9 @@ acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
 	depthPref = FALSE
 	if(depthPref){
 	    ## Depth preference of fish relative to bottom (in meters off the bottom)
-	    params$dp <- 2
+            params$depth_off_bottom <- 2
 	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
-	    params$dpsd <- 2
+            params$depth_off_bottom_sd <- 2
 	}
 	return(acousticRun(params, showPlots, debug))
 }
