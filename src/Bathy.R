@@ -48,12 +48,21 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
             topographyGrid = simulatetopographyGrid(XDist,YDist)
 	}
 
-        ## Quick fix to get rid of NA in topographyGrid, should probably be interpolated (or something)
-        if(any(is.na(topographyGrid))){
-            print("Warning: NAs found in topographyGrid! setting to zero. This may be inappropriate so you may want to manually remove them.")
-            topographyGrid[is.na(topographyGrid)] <- 0
+        ## Check if all values in topographyGrid are NA
+        if(all(is.na(topographyGrid))){
+            printError("all values in topographyGrid are NA!", stop=TRUE)
+        } else {
+            ## Check if all values in topographyGrid are positive and if so make them negative
+            if(all(topographyGrid >= 0)){
+                print("Warning: No negative values found in topography grid and therefore nowhere to place sensors. Multiplying all values by -1. This may be inappropriate!!")
+                topographyGrid <- -topographyGrid
+            }
+            ## Quick fix to get rid of NA in topographyGrid, should probably be interpolated (or something)
+            if(any(is.na(topographyGrid))){
+                print("Warning: NAs found in topographyGrid! setting to zero. This may be inappropriate so you may want to manually remove them.")
+                topographyGrid[is.na(topographyGrid)] <- 0
         }
-
+    }
 	#print(topographyGrid)
     return(topographyGrid)
 }

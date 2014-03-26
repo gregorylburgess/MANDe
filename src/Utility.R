@@ -963,20 +963,20 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 	time = "1"
 	path = ""
         if(!showPlots) {
-			if('timestamp' %in%  names(params)) {
-				# Prevent R from using scientific notation (messes up filenames on windows)
-				time = as.numeric(params$timestamp)
-			}
-			if(!file.exists(paste(path,"img", sep=""))) {
-				dir.create(paste(path,"img", sep=""))
-			}
-			if(!file.exists(paste(path,"txt", sep=""))) {
-				dir.create(paste(path,"txt", sep=""))
-			}
-			if(!file.exists(paste(path,"zip", sep=""))) {
-				dir.create(paste(path,"zip", sep=""))
-			}
-		}
+            if('timestamp' %in%  names(params)) {
+                ## Prevent R from using scientific notation (messes up filenames on windows)
+                time = as.numeric(params$timestamp)
+            }
+            if(!file.exists(paste(path,"img", sep=""))) {
+                dir.create(paste(path,"img", sep=""))
+            }
+            if(!file.exists(paste(path,"txt", sep=""))) {
+                dir.create(paste(path,"txt", sep=""))
+            }
+            if(!file.exists(paste(path,"zip", sep=""))) {
+                dir.create(paste(path,"zip", sep=""))
+            }
+        }
 	## Plotting
 	graphics.off()
 	filenames = {}
@@ -985,8 +985,8 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 	
 	## topographyGrid
 	if(!showPlots){
-          filenames$topographyGrid = paste(path, "img/", time, "-TopographyGrid.png", sep="")
-          png(filenames$topographyGrid, width = 900, height = 600)
+            filenames$topographyGrid = paste(path, "img/", time, "-TopographyGrid.png", sep="")
+            png(filenames$topographyGrid, width = 900, height = 600)
         }else{
             dev.new()
         }
@@ -1077,7 +1077,6 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
     ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
     save('result',file=rdataFile)
     ## Save formatted text files with statistics
-
     cat(paste('- Acoustic network design results, generated:',Sys.time(),'\n\n'),file=shortresFile)
     if (is.null(result$errors)) {
         params = result$params
@@ -1104,7 +1103,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
         smat2 = round(result$stats$uniqRRs, 5)
         ## smat3 contains the unique RR per sensor rounded to 5 decimal palces
         smat3  = round(c(result$stats$uniqRRs[1], diff(result$stats$uniqRRs)),5)
-                                        # make a table of sensor data and print it to the shortResult file
+        ## make a table of sensor data and print it to the shortResult file
         sensors = cbind(sensors, smat, smat2, smat3 )
         colnames(sensors) = c('loc_row', 'loc_col', 'glob_row', 'glob_col', 'Uniq_RR', 'd_Uniq_RR')
         rownames(sensors) = paste('Sensor_', 1:totaNumSensors, sep="")
@@ -1159,7 +1158,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
 #' with numbers indicating the order in which sensors were placed. Furthermore, bathymetry
 #' contours can be overlayed using the plot.bathy flag.
 #' 
-#' @param result A dictionary of return objects, the result of a successfull call to run() or sensorFun().
+#' @param result A dictionary of return objects, the result of a successfull call to acousticRun().
 #' @param type Character specifying grid type. Available grids: 'topographyGrid', 'behaviorGrid', 'goodnessGrid', or 'coverageGrid'.
 #' @param main Set title of plot.
 #' @param xlab Set label of x axis.
@@ -1171,6 +1170,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
 #' @param drawlabels Specifies if bathymetry contour labels should be drawn.
 #' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
+#' @export
 plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,bcol=1,nlevels=5,drawlabels=TRUE,...){
     ## n is number of colors in palette
     n = 24

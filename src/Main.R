@@ -185,8 +185,8 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 	# writeFiles returns json and txt file locations
 	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), zip=FALSE, debug)
 	print(results$filenames)
-
-	return(results)
+    ## Return results invisibly (don't print to screen if unassigned because they are usually very long)
+    invisible(results)
 }
 
 #' @name acousticTest
