@@ -110,35 +110,8 @@ source('src/Utility.R')
 #' $behaviorGrid: A matrix highlighting the concentration of animals. This is a result of the selected animal movement model.
 #'
 #' $goodnessGrid: A matrix containing in each cell the goodness of placing the first sensor in that cell. This is useful to get an impression of potential shadowing effects if params$bias = 2 or 3.
-#' @examples params = list()
-#' params$timestamp = 'madeup'
-#' params$numSensors = 4
-#' params$bias = 3
-#' params$sensorElevation = 1
-#' params$shapeFcn = "shape.gauss"
-#' params$peak = 0.98
-#' params$detectionRange <- 120
-#' params$inputFile = "dummy"
-#' params$cellSize = 40
-#' params$startX = 50
-#' params$XDist = 20
-#' params$startY = 200
-#' params$YDist = 20
-#' params$suppressionRangeFactor = 1
-#' params$suppressionFcn = "suppression.scale"
-#' params$maxsuppressionValue = 1
-#' params$minsuppressionValue = 0.5
-#' params$fishmodel <- "ou"
-#' params$mux <- 0.3
-#' params$muy <- 0.3
-#' params$ousdx <- 120
-#' params$ousdy <- 120
-#' params$oucor <- 0
-#' params$mindepth <- -2
-#' params$maxdepth <- -15
-#' params$depth_off_bottom <- 3
-#' params$depth_off_bottom_sd <- 3
-#' res <- acousticRun(params, showPlots=TRUE, debug=FALSE)
+#' @examples 
+#' result <- acousticTest() # check the code of acousticTest for details
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, multi=FALSE) {
     startTime = Sys.time()
@@ -220,75 +193,69 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 #' @title Executes a test run of the program, using default parameters.
 #' @description Executes a test run of the program, using default parameters.  No additional 
 #' parameters are necessary. The code for this function can be used as a template for new projects.
-#' @param bias Choose between bias 1 (fish only), 2 (shadowing only) or 3 (fish and shadowing).
+#' @param bias Determines whether to account for species behavior and/or detection shadows when designing network. Choose between bias 1 (behavior only), 2 (shadowing only) or 3 (behavior and shadowing).
+#' @param real If TRUE real topographical data are downloaded and used, if FALSE a made-up topography is used.
+#' @param exact If TRUE use exact calculations (slow because goodness grid is updated with line of sight after each sensor placement), if FALSE use approximate calculations (faster).
+#' @param multi If TRUE use multicore package to speed up calculations, if FALSE don't.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
+#' @return A dictionary of return objects, see ?acousticRun for all details.
 #' @export
-acousticTest <- function(bias=1, showPlots=TRUE, debug=FALSE) {
+acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots=TRUE, debug=FALSE) {
 	library("rjson")
 	status <<- {}
 	#### TEST RUN
 	params = list()
-	
+        
 	## Sensor variables
 	params$timestamp = 00
 	params$numSensors = 4
 	params$bias = bias
 	params$sensorElevation = 1
 	params$shapeFcn = 'shape.gauss'
-	params$peak = .98 
-        params$detectionRange <- 120
+	params$peak = .98
+        params$detectionRange <- 20
 	
 	# topographyGrid Variables
-	params$inputFile = "src/palmyra_40m.grd"
-	params$inputFileType = "netcdf"
-	params$seriesName = 'z'
-	params$cellSize = 40 
-	params$startX = 50
-	params$XDist = 20
-	params$startY = 200
-	params$YDist = 20
+        if(real){
+            params$inputFile = "pal_dbmb.asc"
+            params$inputFileType = "asc"
+            if(!file.exists(params$inputFile)){
+                print("Downloading real topography...")
+                dest <- 'Pal_IKONOS.zip'
+                download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
+                unzip(zipfile=dest)
+            }
+        }
+	params$cellSize = 5
+	params$startX = 290
+	params$XDist = 30
+	params$startY = 1125
+	params$YDist = 30
 	
 	## Suppression Variables
-	params$suppressionRangeFactor = 1
-	params$suppressionFcn = "suppression.scale"
-	## This is only relevant with suppression.scale
-	params$maxsuppressionValue = 1
-	## This is only relevant with suppression.scale
-	params$minsuppressionValue = .5 
-	## Choose random walk type movement model
+        if(exact){
+            params$suppressionFcn = "detection.function.exact"
+        } else {
+            params$suppressionRangeFactor = 1
+            params$suppressionFcn = "detection.function"
+        }
+
+	## Behaviour variables
 	params$fishmodel <- 'ou'
-	if(params$fishmodel == 'ou'){
-            ## OU parameter: center of home range
-            params$mux <- .3 ## Proportion of x scale
-            params$muy <- .3 ## Proportion of y scale
-		
-            ## ----- OU: Home range shape and size parameters: -----
-            ## SD of home range in x direction, sdx > 0 in meters
-            params$ousdx <- 120
-            ## SD of home range in y direction, sdy > 0 in meters
-            params$ousdy <- 120
-            ## Correlation between directions, -1 < cor < 1
-            params$oucor <- 0
-	}
-	## Apply vertical habitat range?
-	vHabitatRange = FALSE
-	if(vHabitatRange){
-	    ## Minimum depth (shallowest depth)
-	    params$mindepth <- -5
-	    ## Maximum depth (deepest depth)
-	    params$maxdepth <- -10
-	}
-	## Apply depth preference?
-	depthPref = FALSE
-	if(depthPref){
-	    ## Depth preference of fish relative to bottom (in meters off the bottom)
-            params$depth_off_bottom <- 2
-	    ## Strength of depth preference as a standard deviation, 95% of the time is spent within plus minus two dpsd
-            params$depth_off_bottom_sd <- 2
-	}
-	return(acousticRun(params, showPlots, debug))
+        params$mux <- .3 
+        params$muy <- .3 
+        params$ousdx <- 45
+        params$ousdy <- 45
+        params$oucor <- 0
+
+	## Depth preference
+        if(real){
+            params$depth_off_bottom <- 3
+            params$depth_off_bottom_sd <- 3
+        }
+
+	return(acousticRun(params=params, showPlots=showPlots, debug=debug, multi=multi))
 }
 
 #' @name appendError
