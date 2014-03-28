@@ -1492,7 +1492,7 @@ checkParams = function(params, stop=TRUE) {
 	}
 	# timestamp
 	if(!('timestamp' %in% names)) {
-		params$timestamp = -1
+		params$timestamp = 0
 	}
 	
 	# numSensors
@@ -1908,7 +1908,7 @@ conv.1D = function(fun, kern){
 #' @param timestamp A timestamp reference for status updates.
 #' @param silent If set to TRUE, disables status printing.
 #' @return A matrix containing the result of the convolution operation with same dimensions as mat.
-conv.2D = function(mat, kx, ky, timestamp=1, silent=FALSE){
+conv.2D = function(mat, kx, ky, timestamp=0, silent=FALSE){
 	
   dimmat = dim(mat)
   ## Initialize return matrix

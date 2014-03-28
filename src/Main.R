@@ -191,7 +191,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 
 #' @name acousticTest
 #' @title Executes a test run of the program, using default parameters.
-#' @description Executes a test run of the program, using default parameters.  No additional 
+#' @description Executes a test run of the program, using default parameters.  No addFitional 
 #' parameters are necessary. The code for this function can be used as a template for new projects.
 #' @param bias Determines whether to account for species behavior and/or detection shadows when designing network. Choose between bias 1 (behavior only), 2 (shadowing only) or 3 (behavior and shadowing).
 #' @param real If TRUE real topographical data are downloaded and used, if FALSE a made-up topography is used.
@@ -208,7 +208,7 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
 	params = list()
         
 	## Sensor variables
-	params$timestamp = 00
+	params$timestamp = 0
 	params$numSensors = 4
 	params$bias = bias
 	params$sensorElevation = 1
@@ -263,11 +263,11 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
 #' @description Creates an entry in the global 'gErrors' dictionary with the 'time' value as a key, and
 #' msg as a value, then prints msg to the terminal.
 #' @param msg The error message to print.
-#' @param time A timestamp to use as a key.
+#' @param time A timestamp to use as an identifier for associating related outputs.
 #' @return The error message that was passed in.
 #' @export
 appendError = function(msg, time) {
 	gErrors[toString(time)] <<- msg[1]
 	print(gErrors[toString(time)])
 }
-#acousticTest()
+acousticTest()
