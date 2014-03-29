@@ -16,11 +16,11 @@ query <- function(env) {
 	
 	#if this is the first package of data, create a new index for it
 	if(params$part==1) {
-		queries[toString(params$timestamp)] <<- data
+		acousticQueries[toString(params$timestamp)] <<- data
 	}
 	#otherwise append the data to an existing index
 	else {
-		queries[toString(params$timestamp)] <<- paste(queries[toString(params$timestamp)], data, sep="") 
+		acousticQueries[toString(params$timestamp)] <<- paste(queries[toString(params$timestamp)], data, sep="") 
 	}
 
 	#Once we have all the packets, run the request.
@@ -29,7 +29,7 @@ query <- function(env) {
 		# Try and run an asynchrynous request if multicore is present
 		if(require('multicore')) {
 			library('multicore')
-			jobs[toString(params$timestamp)] <<- parallel(execute(res, parameters))
+			acousticJobs[toString(params$timestamp)] <<- parallel(execute(res, parameters))
 		}
 		# Run a serial request otheriwse.
 		else {

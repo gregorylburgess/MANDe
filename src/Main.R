@@ -81,6 +81,7 @@ source('src/Utility.R')
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @param multi If set to TRUE, uses multicore to parallelize calculations.
+#' @param silent If set to TRUE, the program will not print status updates for LOS calculation (which may take a very long time).
 #' @return A dictionary (list) containing the following return objects:
 #'
 #' $stats: A dictionary (list) containing summary statistics of the designed network.
@@ -113,15 +114,15 @@ source('src/Utility.R')
 #' @examples 
 #' result <- acousticTest() # check the code of acousticTest for details
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, multi=FALSE) {
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, silent=FALSE, multi=FALSE) {
     startTime = Sys.time()
     if(debug) {
         cat("\n[acousticRun]\n")
     }
-	if (!exists("status", where = -1, mode = "any",inherits = TRUE)) {
-		status <<- {}
+	if (!exists("acousticStatus", where = -1, mode = "any",inherits = TRUE)) {
+		acousticStatus <<- {}
 	}
-	gErrors <<- {}
+	acousticErrors <<- {}
 	topographyGrid = {}
 	behaviorGrid = {}
 	goodnessGrid = {}
@@ -152,7 +153,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 	    behaviorGrid = fish(params, topographyGrid)
 	
 	    ## Find good sensor placements
-	    sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, multi=multi)
+	    sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, silent=silent, multi=multi)
 	
 	    ## Stat analysis of proposed setup.
 	    statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)
@@ -168,7 +169,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 		results$runTime = endTime - startTime
 		
 		## Graph results and make data file.
-		results$filenames = graph(results,params,showPlots, debug=debug)
+		results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
 		
 		return(results)
 		
@@ -183,7 +184,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=gErrors[toString(params$timestamp)])
 	
 	# writeFiles returns json and txt file locations
-	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), zip=FALSE, debug)
+	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
 	print(results$filenames)
     ## Return results invisibly (don't print to screen if unassigned because they are usually very long)
     invisible(results)
@@ -199,11 +200,11 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 #' @param multi If TRUE use multicore package to speed up calculations, if FALSE don't.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param debug If enabled, turns on debug printing (console only).
+#' @param silent If set to TRUE, the program will not print status updates for LOS calculation (which may take a very long time).
 #' @return A dictionary of return objects, see ?acousticRun for all details.
 #' @export
-acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots=TRUE, debug=FALSE) {
-	library("rjson")
-	status <<- {}
+acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots=TRUE, silent=FALSE, debug=FALSE) {
+	acousticStatus <<- {}
 	#### TEST RUN
 	params = list()
         
@@ -255,7 +256,7 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
             params$depth_off_bottom_sd <- 3
         }
 
-	return(acousticRun(params=params, showPlots=showPlots, debug=debug, multi=multi))
+	return(acousticRun(params=params, showPlots=showPlots, silent=silent, debug=debug, multi=multi))
 }
 
 #' @name appendError
@@ -267,7 +268,7 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
 #' @return The error message that was passed in.
 #' @export
 appendError = function(msg, time) {
-	gErrors[toString(time)] <<- msg[1]
-	print(gErrors[toString(time)])
+	acousticErrors[toString(time)] <<- msg[1]
+	print(acousticErrors[toString(time)])
 }
-acousticTest()
+results = acousticTest(showPlots=FALSE, silent=TRUE)

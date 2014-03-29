@@ -7,9 +7,9 @@ myInterface <- "0.0.0.0"
 status <- -1
 
 # Stores partial parameter sections
-queries <<- {}
+acousticQueries <<- {}
 # Status dictionary for parallel jobs
-jobs <<-{}
+acousticJobs <<-{}
 
 status <- .Call(tools:::startHTTPD, myInterface, myPort)
 if (status == 0) {

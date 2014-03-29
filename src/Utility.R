@@ -231,7 +231,7 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
         print("params")
         print(params)
     }
-    status [toString(params$timestamp)] <<- 0
+    acousticStatus [toString(params$timestamp)] <<- 0
     topographyGrid = grids$topographyGrid$topographyGrid
     ## Remove all NAs from the Grids
     topographyGrid[is.na(topographyGrid)] = 0
@@ -362,7 +362,7 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
         if(!silent) {
             print(sprintf("LOS progress: %g", comp))
         }
-        status[toString(params$timestamp)] <<- comp
+        acousticStatus[toString(params$timestamp)] <<- comp
         goodnessGrid[,c] <- goodness.multi.helper(c, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, debug=debug)
         ## Column indices
         #cind = max(c(1,c-rng)):min(c(nc,c+rng))
@@ -387,7 +387,7 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
         #    }
         #}
     }
-	status[toString(params$timestamp)] <<- 1
+	acousticStatus[toString(params$timestamp)] <<- 1
     grids$goodnessGrid = goodnessGrid
     if(debug){
         cat("\n[goodnessGrid.sumBathy.opt]\n")
@@ -447,7 +447,7 @@ goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE
     goodnesslist <- mclapply(CS,goodness.multi.helper, nc, nr, rng, belowSurf, bG, land, sensorDepth, dpflag, params, usebehaviorGrid, grids, progfile, debug)
     ## goodnesslist is a list of vectors, which must be combined as a matrix
     goodnessGrid <- matrix(unlist(goodnesslist),nr,nc)
-    status[toString(params$timestamp)] <<- 1
+    acousticStatus[toString(params$timestamp)] <<- 1
     grids$goodnessGrid = goodnessGrid
     if(debug){
         cat("\n[goodnessGrid.sumBathy.multi]\n")
@@ -1928,7 +1928,7 @@ conv.2D = function(mat, kx, ky, timestamp=0, silent=FALSE){
   for(i in 1:x) {
 	  matout[i,] = conv.1D(mat[i,],kx)
 	  pct = (i/(2*x))
-	  status[toString(timestamp)] <<- pct
+	  acousticStatus[toString(timestamp)] <<- pct
 	  if(!silent) {
 		  print(sprintf("LOS Progress:%g", pct))
 	  }
@@ -1937,7 +1937,7 @@ conv.2D = function(mat, kx, ky, timestamp=0, silent=FALSE){
   for(i in 1:y) {
 	  matout[,i] = conv.1D(matout[,i],ky)
 	  pct = (i/(2*x) + .5)
-	  status[toString(timestamp)] <<- pct
+	  acousticStatus[toString(timestamp)] <<- pct
 	  if(!silent) {
 		  print(sprintf("LOS Progress:%g", pct))
 	  }
@@ -1945,7 +1945,7 @@ conv.2D = function(mat, kx, ky, timestamp=0, silent=FALSE){
   if(!silent) {
 	  print(sprintf("LOS Progress:%g", 1))
   }
-  status[toString(timestamp)] <<- 1
+  acousticStatus[toString(timestamp)] <<- 1
   return(matout)
 }
 
@@ -2003,7 +2003,7 @@ checkStatus = function(id) {
 #' @param value The percent completion of the job.
 #' @return None.
 setStatus = function(id, value) {
-	status[toString(id)] <<- value
+	acousticStatus[toString(id)] <<- value
 	if(require('multicore')) {
 		data = raw(2)
 		data[1] = id
