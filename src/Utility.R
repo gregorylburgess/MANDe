@@ -243,7 +243,7 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 		if(debug) {
 			print("bias=1; Calling goodnessGrid.sumSimple")
 		}
-        return(goodnessGrid.sumSimple.opt(grids, "behaviorGrid", params, debug, silent))
+        return(goodnessGrid.sumSimple.opt(grids, "behaviorGrid", params, debug=debug, silent=silent))
     }
     #Bathy
     else if (bias == 2) {
@@ -252,9 +252,9 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 		}
                 if(multi) {
                     require(multicore)
-                    return(goodnessGrid.sumBathy.multi(grids, params, debug, silent))
+                    return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
                 }else{
-                    return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
+                    return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
                 }
     }
     #Combo
@@ -265,9 +265,9 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 		}
                 if(multi) {
                     require(multicore)
-                    return(goodnessGrid.sumBathy.multi(grids, params, debug, silent))
+                    return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
                 }else{
-                    return(goodnessGrid.sumBathy.opt(grids, params, debug, silent))
+                    return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
                 }
     }
     else {
@@ -1036,7 +1036,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 	if(!showPlots) dev.off()
 
 	
-	filenames = writeFiles(filenames, result, path, time, zip=TRUE, debug)
+	filenames = writeFiles(filenames, result, path, time, zip=TRUE, showPlots=showPlots, debug)
 	##print(filenames)
 	return(filenames)
 }
@@ -1054,14 +1054,15 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 #' @param zip If true, writes a zip file containing the txt dump, and images of a run.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A dictionary containing the filenames of the generated images.
-writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
+writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, debug=FALSE) {
     if(debug) {
         print("[writeFiles]")
+		print(getwd())	
     }
     if (grepl("Rcheck",getwd())) {
         setwd("..")
     }
-    print(getwd())	
+	shortRes = ""
     ## Write results to a text file
     filename = paste(path, "txt/", time, "-Results.txt", sep="")
     jsonFile = paste(path, "txt/", time, "-Results.json", sep="")
@@ -1077,25 +1078,27 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
     ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
     save('result',file=rdataFile)
     ## Save formatted text files with statistics
-    cat(paste('- Acoustic network design results, generated:',Sys.time(),'\n\n'),file=shortresFile)
+ 	shortRes =  paste(shortRes,'- Acoustic network design results, generated:',Sys.time(),'\n\n')
     if (is.null(result$errors)) {
         params = result$params
-        cat(paste('Number of sensors placed:',params$numSensors,'\n'),file=shortresFile,append=TRUE)
-        cat(paste('Detection range:',params$detectionRange,'meters\n'),file=shortresFile,append=TRUE)
-        cat(paste('Using line of sight?:',!params$bias==1,'\n'),file=shortresFile,append=TRUE)
-        cat(paste('Using fish behavior?:',!params$bias==2,'\n'),file=shortresFile,append=TRUE)
-        cat(paste('Number of grid cells (row,col): ', params$XDist*params$YDist,' (',params$YDist,',',params$XDist,')\n',sep=''),file=shortresFile,append=TRUE)
-        cat(paste('Suppression function:', params$suppressionFcn, '\n'), file=shortresFile, append=TRUE)
-        cat(paste('Run time:', round(as.numeric(result$runTime, units='mins'), 2),'mins\n'), file=shortresFile, append=TRUE)
+
+        shortRes = paste(shortRes,'Number of sensors placed:',params$numSensors,'\n')
+        shortRes = paste(shortRes,'Detection range:',params$detectionRange,'meters\n')
+        shortRes = paste(shortRes,'Using line of sight?:',!params$bias==1,'\n')
+        shortRes = paste(shortRes,'Using fish behavior?:',!params$bias==2,'\n')
+        shortRes = paste(shortRes,'Number of grid cells (row,col): ', params$XDist*params$YDist,' (',params$YDist,',',params$XDist,')\n',sep='')
+        shortRes = paste(shortRes,'Suppression function:', params$suppressionFcn, '\n')
+        shortRes = paste(shortRes,'Run time:', round(as.numeric(result$runTime, units='mins'), 2),'mins\n')
         
         totaNumSensors = params$numSensors + length(params$sensorList) + params$projectedSensors
         sensors = result$stats$sensorMat
         ## smat translates relative coordinates to absoloute coordinates for the bathymetry file
         smat = matrix(
-            c(rep(params$startX, params$numSensors),
-              rep( params$startY, params$numSensors)),
-            totaNumSensors,
-            2) 
+            		c(rep(params$startX, params$numSensors),
+             		rep( params$startY, params$numSensors)),
+           	  		totaNumSensors,
+              		2
+	  			  )
         smat = smat + sensors
 
         
@@ -1124,21 +1127,27 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, debug=FALSE) {
             print("Sensors")
             print(sensors)
         }
-        
-        cat(paste('\nOptimal sensor indices:\n'),file=shortresFile,append=TRUE)
-        capture.output(sensors,file=shortresFile,append=TRUE)
-        cat(paste('\nNetwork sparsity (delta):',round(result$stats$delta,3),'\n'),file=shortresFile,append=TRUE)
-        cat(paste('Absolute recovery rate:',round(result$stats$absRecoveryRate,3),'\n'),file=shortresFile,append=TRUE)
-        cat(paste('Unique recovery rate:',round(result$stats$uniqRecoveryRate,3),'\n'),file=shortresFile,append=TRUE)
-        ##write.table(sensors,file=shortresFile,append=TRUE,sep='\t',row.names=FALSE)
+		
+        #shortRes = paste(shortRes,'\nOptimal sensor indices:\n')
+		tmp = capture.output(print(sensors ))
+		tmp = paste(tmp,collapse='\n')
+		shortRes = paste(shortRes,tmp)
+       # shortRes = paste(shortRes, sensors[1:totaNumSensors], sep='\n')
+        shortRes = paste(shortRes,'\nNetwork sparsity (delta):',round(result$stats$delta,3),'\n') 
+        shortRes = paste(shortRes,'Absolute recovery rate:',round(result$stats$absRecoveryRate,3),'\n')
+        shortRes = paste(shortRes,'Unique recovery rate:',round(result$stats$uniqRecoveryRate,3),'\n')
     }
     else {
-        cat(paste('Errors:',result$errors,'\n'),file=shortresFile,append=TRUE)
+        shortRes = paste(shortRes,'Errors:',result$errors,'\n')
     }
+	cat(shortRes)
+	if (!showPlots) {
+		cat(paste(shortRes,'\n'),file=shortresFile,append=FALSE)
+	}
     ## If true, write a zipped copy of files
     if (zip) {
         ## Zip the text results and image files
-        filename = paste(path, "zip/", time, ".zip", sep="")
+        filename = paste(shortRes,path, "zip/", time, ".zip", sep="")
         zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
         filenames$zip = filename
     }
