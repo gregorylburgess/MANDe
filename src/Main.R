@@ -160,7 +160,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 		
 		## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
 		results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
-				"stats" = statDict, "params"=params, "errors"=gErrors[toString(params$timestamp)])
+				"stats" = statDict, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
 		
 		if(save.inter) {
 			results$inter = sensors$inter
@@ -181,7 +181,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 	
 	# only params and errors should actually have values
 	results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
-			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=gErrors[toString(params$timestamp)])
+			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
 	
 	# writeFiles returns json and txt file locations
 	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
@@ -260,8 +260,8 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
 }
 
 #' @name appendError
-#' @title Appends execution errors to a global gErrors dictionary, with the 'time' variable as the key.
-#' @description Creates an entry in the global 'gErrors' dictionary with the 'time' value as a key, and
+#' @title Appends execution errors to a global acousticErrors dictionary, with the 'time' variable as the key.
+#' @description Creates an entry in the global 'acousticErrors' dictionary with the 'time' value as a key, and
 #' msg as a value, then prints msg to the terminal.
 #' @param msg The error message to print.
 #' @param time A timestamp to use as an identifier for associating related outputs.
@@ -271,4 +271,4 @@ appendError = function(msg, time) {
 	acousticErrors[toString(time)] <<- msg[1]
 	print(acousticErrors[toString(time)])
 }
-results = acousticTest(showPlots=FALSE, silent=TRUE)
+##results = acousticTest(showPlots=FALSE, silent=TRUE)

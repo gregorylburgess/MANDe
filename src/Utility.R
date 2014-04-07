@@ -1051,7 +1051,8 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 #' recoveryRates.
 #' @param path A path to prepend to all the filenames.
 #' @param time The timestamp label to include in all filenames.
-#' @param zip If true, writes a zip file containing the txt dump, and images of a run.
+#' @param zip If TRUE, writes a zip file containing the txt dump, and images of a run.
+#' @param showPlots If TRUE, writes a zip file containing the txt dump, and images of a run.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A dictionary containing the filenames of the generated images.
 writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, debug=FALSE) {
@@ -1068,15 +1069,17 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     jsonFile = paste(path, "txt/", time, "-Results.json", sep="")
     rdataFile = paste(path, "txt/", time, "-Results.RData", sep="")
     shortresFile = paste(path, "txt/", time, "-shortResults.txt", sep="")
-    file.create(filename)
-    capture.output(print(result), file=filename)
+    if (!showPlots){
+        file.create(filename)
+        capture.output(print(result), file=filename)
+    }
     filenames$txt = filename
     filenames$jsonFile = jsonFile
     filenames$rdataFile = rdataFile
     filenames$shortresFile = shortresFile
 
     ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
-    save('result',file=rdataFile)
+    if (!showPlots) save('result',file=rdataFile)
     ## Save formatted text files with statistics
  	shortRes =  paste(shortRes,'- Acoustic network design results, generated:',Sys.time(),'\n\n')
     if (is.null(result$errors)) {
@@ -1129,9 +1132,9 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         }
 		
         #shortRes = paste(shortRes,'\nOptimal sensor indices:\n')
-		tmp = capture.output(print(sensors ))
-		tmp = paste(tmp,collapse='\n')
-		shortRes = paste(shortRes,tmp)
+        tmp = capture.output(print(sensors ))
+        tmp = paste(tmp,collapse='\n')
+        shortRes = paste(shortRes,tmp)
        # shortRes = paste(shortRes, sensors[1:totaNumSensors], sep='\n')
         shortRes = paste(shortRes,'\nNetwork sparsity (delta):',round(result$stats$delta,3),'\n') 
         shortRes = paste(shortRes,'Absolute recovery rate:',round(result$stats$absRecoveryRate,3),'\n')
@@ -1140,14 +1143,16 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     else {
         shortRes = paste(shortRes,'Errors:',result$errors,'\n')
     }
-	cat(shortRes)
-	if (!showPlots) {
-		cat(paste(shortRes,'\n'),file=shortresFile,append=FALSE)
-	}
+    ## Print to screen
+    cat(shortRes)
+    ## Print to file
+    if (!showPlots) {
+        cat(paste(shortRes,'\n'),file=shortresFile,append=FALSE)
+    }
     ## If true, write a zipped copy of files
-    if (zip) {
+    if (!showPlots & zip) {
         ## Zip the text results and image files
-        filename = paste(shortRes,path, "zip/", time, ".zip", sep="")
+        filename = paste(path, "zip/", time, ".zip", sep="")
         zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
         filenames$zip = filename
     }
