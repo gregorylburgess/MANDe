@@ -7,7 +7,7 @@
 #' ArcGIS, and ASC file formats.
 #'
 #' @param inputFile The relative path to the file to open.
-#' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "asc".
+#' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "asc". The type "RData" can also be used and must refer to a file saved with the "save" command and containing a single variable, which must be a matrix containing bathymetry values.
 #' @param startX Starting index of the topographyGrid to take from the bathy file.
 #' @param startY Starting index of the topographyGrid to take from the bathy file.
 #' @param XDist The width of your desired topographyGrid.
@@ -38,8 +38,12 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
             }
 	    else if(inputFileType == "asc") {
                 bath = loadASC(inputFile)
-                ##load(inputFile)
                 topographyGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
+            }
+            else if(inputFileType == "RData") {
+                bathname = load(inputFile)
+                topographyGrid = get(bathname)
+                topographyGrid = topographyGrid[startY:(startY-1+YDist),startX:(startX-1+XDist)]
             } else {
                 topographyGrid = simulatetopographyGrid(XDist,YDist)
             }

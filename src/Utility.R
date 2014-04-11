@@ -1089,7 +1089,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         shortRes = paste(shortRes,'Detection range:',params$detectionRange,'meters\n')
         shortRes = paste(shortRes,'Using line of sight?:',!params$bias==1,'\n')
         shortRes = paste(shortRes,'Using fish behavior?:',!params$bias==2,'\n')
-        shortRes = paste(shortRes,'Number of grid cells (row,col): ', params$XDist*params$YDist,' (',params$YDist,',',params$XDist,')\n',sep='')
+        shortRes = paste(shortRes,' Number of grid cells (row,col): ', params$XDist*params$YDist,' (',params$YDist,',',params$XDist,')\n',sep='')
         shortRes = paste(shortRes,'Suppression function:', params$suppressionFcn, '\n')
         shortRes = paste(shortRes,'Run time:', round(as.numeric(result$runTime, units='mins'), 2),'mins\n')
         
@@ -1112,7 +1112,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         ## make a table of sensor data and print it to the shortResult file
         sensors = cbind(sensors, smat, smat2, smat3 )
         colnames(sensors) = c('loc_row', 'loc_col', 'glob_row', 'glob_col', 'Uniq_RR', 'd_Uniq_RR')
-        rownames(sensors) = paste('Sensor_', 1:totaNumSensors, sep="")
+        rownames(sensors) = paste(' Sensor_', 1:totaNumSensors, sep="")
         
         if (debug) {
             print("smat =")
@@ -1136,7 +1136,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         tmp = paste(tmp,collapse='\n')
         shortRes = paste(shortRes,tmp)
        # shortRes = paste(shortRes, sensors[1:totaNumSensors], sep='\n')
-        shortRes = paste(shortRes,'\nNetwork sparsity (delta):',round(result$stats$delta,3),'\n') 
+        shortRes = paste(shortRes,'\n Network sparsity (delta):',round(result$stats$delta,3),'\n') 
         shortRes = paste(shortRes,'Absolute recovery rate:',round(result$stats$absRecoveryRate,3),'\n')
         shortRes = paste(shortRes,'Unique recovery rate:',round(result$stats$uniqRecoveryRate,3),'\n')
     }
@@ -1623,7 +1623,7 @@ checkParams = function(params, stop=TRUE) {
 		params$inputFileType = 'ncdf'
 	}
 	else {
-		supportedFileTypes = c("netcdf", "arcgis", "asc")
+		supportedFileTypes = c("netcdf", "arcgis", "asc", "RData")
 		if(!(params$inputFileType %in% supportedFileTypes)) {
 			printError("Invalid 'inputFileType' value.", stop)
 		}

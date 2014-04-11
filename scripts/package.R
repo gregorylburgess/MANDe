@@ -108,3 +108,5 @@ conn <- file(path, "w+")
 cat(out,file=path)
 close(conn)
 
+## Copy DESCRIPTION file
+file.copy('DESCRIPTION',paste(packageName,'/DESCRIPTION'),overwrite=TRUE)
