@@ -1461,10 +1461,13 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     distVec = rep(0,numSensors)
 	i = numProj
 	while(i > 0) {
-		k = numProj-i+1
-        dists = sqrt((topographyGrid$x[xSens[srt$ix[k]]]-topographyGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (topographyGrid$y[ySens[srt$ix[k]]]-topographyGrid$y[ySens[srt$ix[1:numSensors]]])^2)
-        distVec[k] = min(dists[dists>0])
-		i = i - 1
+            k = numProj-i+1
+            ## Theres a bug somewhere in that x and y are swapped when indexing the topographyGrid!
+            diffx = topographyGrid$y[xSens[srt$ix[k]]]-topographyGrid$y[xSens[srt$ix[1:numSensors]]]
+            diffy = topographyGrid$x[ySens[srt$ix[k]]]-topographyGrid$x[ySens[srt$ix[1:numSensors]]]
+            dists = sqrt((diffx)^2 + (diffy)^2)
+            distVec[k] = min(dists[dists>0])
+            i = i - 1
     }
     ## a is the median of the distances between the receivers
     if(debug){
@@ -1497,13 +1500,16 @@ checkParams = function(params, stop=TRUE) {
 	## Cast all possible strings to numbers (JSON makes everything strings)
 	## Additionally, check for NA, NaN, +/-INF values.
 	for (name in names) {
-		if(!is.na(suppressWarnings(as.numeric(params[name])))) {
-			if(!is.finite(as.numeric(params[name]))) {
-				printError(sprintf("Found NA, NaN, or +/-INF values in %s.", name), stop=stop)
-			}
-			params[name] = as.numeric(params[name])
-		}
+            tmp <- suppressWarnings(as.numeric(params[[name]]))
+            if(!all(is.na(tmp))) {
+                if(!all(is.finite(tmp))) {
+                    printError(sprintf("Found NA, NaN, or +/-INF values in %s.", name), stop=stop)
+                }
+                ##params[name] = as.numeric(unlist(params[name]))
+                params[[name]] = tmp
+            }
 	}
+    
 	# timestamp
 	if(!('timestamp' %in% names)) {
 		params$timestamp = 0
@@ -1796,19 +1802,32 @@ checkParams = function(params, stop=TRUE) {
 			}
 			#validation for ou vars
 			else {
-				#mux, muy must be porportions of the x/y axis, between 0 and 1)
-				checkForMin('mux', params$mux, 0, stop)
-				checkForMin('muy', params$muy, 0, stop)
-				checkForMax('mux', params$mux, 1, stop)
-				checkForMax('muy', params$muy, 1, stop)
-				
-				#ousdx and ousdy need only be non negative
-				checkForMin('ousdx', params$ousdx, 0, stop)
-				checkForMin('ousdy', params$ousdy, 0, stop)
-				
-				# -1 < oucor < 1
-				checkForMin('oucor', params$oucor, -1, stop)
-				checkForMax('oucor', params$oucor, 1, stop)
+                                lengths <- c(length(params$mux),length(params$muy),length(params$ousdx),length(params$ousdy),length(params$oucor))
+                                if(all(lengths==1 | lengths==max(lengths))){
+                                    ## Repeat the parameters that are scalar to become vectors
+                                    if(lengths[1]==1) params$mux <- rep(params$mux,max(lengths))
+                                    if(lengths[2]==1) params$muy <- rep(params$muy,max(lengths))
+                                    if(lengths[3]==1) params$ousdx <- rep(params$ousdx,max(lengths))
+                                    if(lengths[4]==1) params$ousdy <- rep(params$ousdy,max(lengths))
+                                    if(lengths[5]==1) params$oucor <- rep(params$oucor,max(lengths))
+                                    for(i in 1:max(lengths)){
+                                        ##mux, muy must be proportions of the x/y axis, between 0 and 1)
+                                        checkForMin('mux', params$mux[i], 0, stop)
+                                        checkForMin('muy', params$muy[i], 0, stop)
+                                        checkForMax('mux', params$mux[i], 1, stop)
+                                        checkForMax('muy', params$muy[i], 1, stop)
+                                        
+                                        ##ousdx and ousdy need only be non negative
+                                        checkForMin('ousdx', params$ousdx[i], 0, stop)
+                                        checkForMin('ousdy', params$ousdy[i], 0, stop)
+                                        
+                                        ## -1 < oucor < 1
+                                        checkForMin('oucor', params$oucor[i], -1, stop)
+                                        checkForMax('oucor', params$oucor[i], 1, stop)
+                                    }
+                            } else {
+                                printError("OU model variable vectors should either be length 1 or equal to number of centers, currently they are not!")
+                            }
 			}
 		}
 		else if(params$fishmodel == "False" | params$fishmodel == "rw") {

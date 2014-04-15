@@ -21,7 +21,7 @@ source('src/Utility.R')
 #'
 #' 'rw' means purely diffusive movements with no locational or directional preference. This results in a uniform distribution of fish over the study region. A random walk is useful when no knowledge about fish behaviour is available or can be assumed.
 #'
-#' 'ou' results in movements within a limited region mimicking fish with a home range. This results in a normal distribution with two parameters: 1) the home range center (mean) specified by $mux and $muy as proportions of the X and Y axes. 2) the home range extents (variance) and shape (covariance) specified by the standard deviations in X and Y directions in meters, $ousdx and $ousdy respectively, and by the correlation between X and Y specified by $oucor. This is useful if the study species is known to prefer a specific geographic region. A rule of thumb says that for each direction in isolation approximately 95% of the time is spent within plus minus two standard deviations. The correlation is used if the elliptical home range shape is angled relative to the X,Y coordinate system. The correlation must be in the range [-1; 1].
+#' 'ou' results in movements within a limited region mimicking fish with a home range. This results in a normal distribution with two parameters: 1) the home range center (mean) specified by $mux and $muy as proportions of the X and Y axes. 2) the home range extents (variance) and shape (covariance) specified by the standard deviations in X and Y directions in meters, $ousdx and $ousdy respectively, and by the correlation between X and Y specified by $oucor. This is useful if the study species is known to prefer a specific geographic region. A rule of thumb says that for each direction in isolation approximately 95% of the time is spent within plus minus two standard deviations. The correlation is used if the elliptical home range shape is angled relative to the X,Y coordinate system. The correlation must be in the range [-1; 1]. Note: multiple home range centers can be specified by assigning vectors containing values for each home range, e.g. $mux = c(0.3, 0.6) etc..
 #' 
 #' Optional: Vertical habitat restriction. Useful if the fish is known to live in a certain vertical habitat say from -10 to -50 meters. If unspecified the species is assumed to be able to utilize the whole water column. The minimum and maximum depth must be specified in meters using $mindepth (shallow) and $maxdepth (deep), for example $mindepth = -5 and $maxdepth = -10. Only areas within the vertical habitat are considered in the network design.
 #'
@@ -134,7 +134,13 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 	filenames = {}
 	
 	tryCatch({
-	    params = checkParams(params)
+            if(!silent) {
+                cat("\n  Checking params\n")
+            }
+	    params = checkParams(params=params)
+            if(!silent) {
+                cat("\n  Parameters checked!\n")
+            }
 	
 	    ## Create/Load the Bathy grid for the area of interest
 	    topographyGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
@@ -150,6 +156,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 			topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
 		}
 	    ## Calculate fish grid
+            print('Calculate fish grid')
 	    behaviorGrid = fish(params, topographyGrid)
 	
 	    ## Find good sensor placements

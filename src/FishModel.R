@@ -22,17 +22,24 @@ fish <- function(params, topographyGrid) {
             ## Ornstein-Uhlenbeck case
             ou={
                 print("Using OU model")
-                mux <- min(topographyGrid$x) + diff(range(topographyGrid$x))*params$mux
-                muy <- min(topographyGrid$y) + diff(range(topographyGrid$y))*params$muy
-                varx <- params$ousdx^2
-                vary <- params$ousdy^2
-                covxy <- params$oucor * params$ousdx * params$ousdy
-                hrCov <- matrix(c(vary,covxy,covxy,varx),2,2)
                 Y <- matrix(rep(topographyGrid$y,rows),rows,cols,byrow=TRUE)
                 X <- matrix(rep(topographyGrid$x,cols),rows,cols,byrow=FALSE)
                 XY <- cbind(as.vector(X),as.vector(Y))
-                hrVals <- dmvnorm(XY,c(mux,muy),hrCov)
-                behaviorGrid <- matrix(hrVals,rows,cols,byrow=FALSE)
+                nocenters <- length(params$mux)
+                behaviorGrid <- matrix(0,rows,cols)
+                for(i in 1:nocenters){
+                    mux <- min(topographyGrid$x) + diff(range(topographyGrid$x))*params$mux[i]
+                    muy <- min(topographyGrid$y) + diff(range(topographyGrid$y))*params$muy[i]
+                    varx <- params$ousdx[i]^2
+                    vary <- params$ousdy[i]^2
+                    covxy <- params$oucor[i] * params$ousdx[i] * params$ousdy[i]
+                    hrCov <- matrix(c(vary,covxy,covxy,varx),2,2)
+                    hrVals <- dmvnorm(XY,c(mux,muy),hrCov)
+                    hrVals <- hrVals/max(hrVals)
+                    behaviorGridtmp <- matrix(hrVals,rows,cols,byrow=FALSE)
+                    ## Add contribution from center i to behaviorGrid
+                    behaviorGrid <- behaviorGrid + behaviorGridtmp
+                }
             }
     )
 	if('mindepth' %in% names(params) && 'maxdepth' %in% names(params)){
