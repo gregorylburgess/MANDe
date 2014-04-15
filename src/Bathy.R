@@ -4,18 +4,18 @@
 #' @name getBathy
 #' @title Generate a topographyGrid.
 #' @description Generates a Bathymetric Grid (topographyGrid) for the program to use.  Able to ingest NetCDF, 
-#' ArcGIS, and ASC file formats.
+#' ArcGIS, and RData file formats.
 #'
-#' @param inputFile The relative path to the file to open.
-#' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "asc". The type "RData" can also be used and must refer to a file saved with the "save" command and containing a single variable, which must be a matrix containing bathymetry values.
-#' @param startX Starting index of the topographyGrid to take from the bathy file.
-#' @param startY Starting index of the topographyGrid to take from the bathy file.
+#' @param inputFile The relative path to the file to open.  Note that for an ArcGIS file, this is the relative path to the folder containing the datafile (with no trailing slashes).
+#' @param inputFileType The type of file to open.  Vailid options are "netcdf", "arcgis", and "RData". "netcdf" indicates the file at the specified location is in the NetCDF file format.  "arcgis" indicates an ArcGIS file in an ASCII raster format. "RData" indicates a file saved with the "save" command and containing a single variable (which must be a matrix containing bathymetry values).
+#' @param startX Starting index of the topographyGrid to subset from the bathy file.
+#' @param startY Starting index of the topographyGrid to subset from the bathy file.
 #' @param XDist The width of your desired topographyGrid.
 #' @param YDist the height of your desired topographyGrid.
-#' @param seriesName If you specified netcdf or arcgis, this is the name of the data series to use.
+#' @param seriesName If you specified 'netcdf' or 'arcgis', this is the name of the data series to use.  For 'RData', this is the name of the R variable in the file.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param timestamp A timestamp of when the job was started (for logging purposes).
-#' @return A topographyGrid based on the parameters given.  If an error occurs, a default grid is provided.
+#' @return A topographyGrid based on the parameters given.  If an error occurs, a default grid (created by the 'simulatetopographyGrid' function) is provided.
 getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist, seriesName, timestamp, debug=FALSE) {
 	if (file.exists(as.character(inputFile))) {
 			if(startX < 1 || startY < 1) {
@@ -35,14 +35,16 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
                 library(rgdal)
                 ## For an arc/grid inputFile is the folder!:
                 topographyGrid = raster(inputFile)
+				dims = dim(topographyGrid)
+				topographyGrid = topographyGrid[1:dims[1],1:dims[2]]
             }
-	    else if(inputFileType == "asc") {
-                bath = loadASC(inputFile)
-                topographyGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
-            }
+	    #else if(inputFileType == "asc") {
+        #        bath = loadASC(inputFile)
+        #        topographyGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
+        #    }
             else if(inputFileType == "RData") {
                 bathname = load(inputFile)
-                topographyGrid = get(bathname)
+                topographyGrid = get(seriesName)
                 topographyGrid = topographyGrid[startY:(startY-1+YDist),startX:(startX-1+XDist)]
             } else {
                 topographyGrid = simulatetopographyGrid(XDist,YDist)
@@ -51,9 +53,8 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
             print("Bathymetry file not found.")
             topographyGrid = simulatetopographyGrid(XDist,YDist)
 	}
-
         ## Check if all values in topographyGrid are NA
-        if(all(is.na(topographyGrid))){
+        if(all(is.na(topographyGrid))) {
             printError("all values in topographyGrid are NA!", stop=TRUE)
         } else {
             ## Check if all values in topographyGrid are positive and if so make them negative
@@ -99,7 +100,7 @@ simulatetopographyGrid <- function(XDist, YDist) {
 #' cellsize      5\cr
 #' NODATA_value  -9999\cr
 #'
-#' Then come the data separated by " " (blank spaces).
+#' The remaining lines should be data values separated by " " (blank spaces).
 #' @param inputFile Path to the asc file.
 #' @return The loaded topograhy.
 loadASC <- function(inputFile) {
