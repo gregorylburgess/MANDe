@@ -20,12 +20,12 @@ query <- function(env) {
 	}
 	#otherwise append the data to an existing index
 	else {
-		acousticQueries[toString(params$timestamp)] <<- paste(queries[toString(params$timestamp)], data, sep="") 
+		acousticQueries[toString(params$timestamp)] <<- paste(acousticQueries[toString(params$timestamp)], data, sep="") 
 	}
 
 	#Once we have all the packets, run the request.
 	if(params$part == params$complete) {
-		parameters = parseJSON(gsub("\'", "\"", queries[toString(params$timestamp)]))
+		parameters = parseJSON(gsub("\'", "\"", acousticQueries[toString(params$timestamp)]))
 		# Try and run an asynchrynous request if multicore is present
 		if(require('multicore')) {
 			library('multicore')

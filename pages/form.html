@@ -19,6 +19,7 @@
 	var numericNames = new Array();
 	function loadForm() {
 		var form = "";
+		var disabled = "";
 		var timestamp = -1;
 		//Parse the xml file for field information and default values
 		$.get("Form.xml", function(data) {
@@ -33,17 +34,23 @@
 					id = $(this).attr("id");
 					var label = $(this).attr("label");
 					var type = $(this).attr("type");
+					var locked = $(this).attr("locked");
 					var toolTip = $(this).attr("toolTip");
 					var value = $(this).text().replace(/\s/g, "");
-					
 					//A text box users fill in
+					if(locked == "true") {
+						disabled = " disabled ";
+					}
+					else {
+						disabled = "";
+					}
 					if (type == 'text') {
 						numericNames.push(id);
 						form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
 							+ "<a class=\"link\" data-original-title=\"" + toolTip 
 							+ "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
 							+ "<div class=\"controls\">"
-							+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
+							+ "<input id=\"" + id + "\""+ disabled + "type=\"text\" value=\""+ value + "\">"
 							+ "</div>"
 							+ "</div></a>";
 					}
@@ -52,11 +59,12 @@
 						if (type == "toggle") {
 							groupID = id;
 						}
+			
 						form += "<div id=\"" + id + "-cg\" class=\"control-group\">" 
 						+ "<a class=\"link\" data-original-title=\"" + toolTip 
 						+ "\"><label class=\"control-label\" for=\"" + id + "\">" + label + "</label>"
 						+ "<div class=\"controls\">";
-						form += "<select id=\"" + id + "\">";
+						form += "<select id=\"" + id +  "\"" + disabled +">";
 						$(this).find("Options").find("Option").each(function() {
 							label = $(this).attr("label");
 							value = $(this).text().replace(/\s/g, "");
@@ -80,7 +88,7 @@
 									+ "\"><label class=\"control-label\" for=\"" + id + "\">"
 									+ label + "</label>"
 									+ "<div class=\"controls\">"
-									+ "<input id=\"" + id + "\" type=\"text\" value=\""+ value + "\">"
+									+ "<input id=\"" + id + "\"" + disabled + "type=\"text\"" +  "value=\""+ value + "\">"
 									+ "</div>"
 									+ "</div></a>";
 							});
@@ -98,6 +106,7 @@
 					}
 				});
 			});// end xml.find(Group)
+
 			// Add buttons
 			form += "</br><center><div >"
 			+ "<button type=\"submit\" class=\"btn btn-success\" "
@@ -107,7 +116,6 @@
 			// load the form data
 			$("#theForum").html(form);
 			$(".link").tooltip();
-
 
 			$('#inputFile').change(function () {
 				
