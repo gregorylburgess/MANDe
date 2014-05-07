@@ -80,33 +80,35 @@ for (file in rdFiles) {
 toPrint = paste(toPrint, "</Names>", sep="")
 cat(toPrint, file="pages/help_pages/index.xml", sep="\n")
 
-# Generate HTML files from Rd Files
-outPath = paste(packageName, "/man/", sep="")
-for (file in rdFiles) {
+if (FALSE) {
+    ## Generate HTML files from Rd Files
+    outPath = paste(packageName, "/man/", sep="")
+    for (file in rdFiles) {
 	command = paste("R CMD Rdconv -t html -o ", paste(outPath, file, ".html", sep=""),
-					" ", packageName, "/man/", sep="")
+            " ", packageName, "/man/", sep="")
 	print(paste(command, file, ".Rd", sep=""))
 	system(command=paste(command, file, ".Rd", sep=""))
-	# Copy files to the pages/help_pages folder
+	## Copy files to the pages/help_pages folder
 	file.copy(paste(outPath, file, ".html", sep=""), paste("pages/help_pages/", file, ".html", sep=""),
-			overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
-}
-# file.remove("pages/help_pages/acoustic-package.html")
-# Delete the examples{} section of the rd file
-# gsub won't let me match an open curly brace...
-path = paste(packageName, "/man/", packageName, "-package.Rd", sep="")
-conn <- file(path, "r")
-options(warn=-1)
-out =  readLines(conn, 1)
-lines = 0
-while(length(line <- readLines(conn, 1)) > 0 && lines < 38) {
+                  overwrite = TRUE, recursive = FALSE, copy.mode = TRUE)
+    }
+    ## file.remove("pages/help_pages/acoustic-package.html")
+    ## Delete the examples{} section of the rd file
+    ## gsub won't let me match an open curly brace...
+    path = paste(packageName, "/man/", packageName, "-package.Rd", sep="")
+    conn <- file(path, "r")
+    options(warn=-1)
+    out =  readLines(conn, 1)
+    lines = 0
+    while(length(line <- readLines(conn, 1)) > 0 && lines < 38) {
 	lines = lines + 1
 	out = paste(out, line, sep="\n")
+    }
+    close(conn)
+    conn <- file(path, "w+")
+    cat(out,file=path)
+    close(conn)
 }
-close(conn)
-conn <- file(path, "w+")
-cat(out,file=path)
-close(conn)
 
 ## Copy DESCRIPTION file
 file.copy('DESCRIPTION',paste(packageName,'/DESCRIPTION',sep=''),overwrite=TRUE)

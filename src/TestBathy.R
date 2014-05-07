@@ -1,6 +1,7 @@
 source('src/Bathy.R')
 ncdf = list("ncdf")
-arcgis = list("rgdal", "raster", "sp")
+arcgis = list("raster")
+##arcgis = list("rgdal", "raster", "sp")
 prereqs = list(ncdf=ncdf, arcgis=arcgis)
 
 ## Check that required packages installed
@@ -47,8 +48,7 @@ TestBathy.getBathy = function() {
 	#Ensure that the system is indeed pulling the results from our file and not simply
 	#simulating them.
 	if(isTRUE(all.equal(topographyGrid,fakeGrid))) {
-		printError(sprintf("Missing Test File: %s.  Please download it here: %s, unzip it, and place it in the src/ directory.",
-						inputFile, linkLocation))
+		printError(sprintf("Missing Test File: %s.  Please download it here: %s, unzip it, and place it in the src/ directory.", inputFile, linkLocation))
 	}
 	
 	#check that we got the right data

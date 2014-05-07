@@ -78,11 +78,10 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
 			loc = params$sensorList[[i]]
 			# invert the incoming r/c values
 			placement = list(c=loc$r, r=loc$c)
-			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug)
+			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug, multi=multi)
 			sensorList = c(sensorList, list(placement))
 			i = i - 1
 		}
-		
 	}
 	
     # for each sensor, find a good placement
@@ -1064,7 +1063,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     if (grepl("Rcheck",getwd())) {
         setwd("..")
     }
-	shortRes = ""
+
     ## Write results to a text file
     filename = paste(path, "txt/", time, "-Results.txt", sep="")
     jsonFile = paste(path, "txt/", time, "-Results.json", sep="")
@@ -1082,7 +1081,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
     if (!showPlots) save('result',file=rdataFile)
     ## Save formatted text files with statistics
- 	shortRes =  paste(shortRes,'- Acoustic network design results, generated:',Sys.time(),'\n\n')
+    shortRes =  paste('- Acoustic network design results, generated:',Sys.time(),'\n\n')
     if (is.null(result$errors)) {
         params = result$params
 
@@ -1097,14 +1096,9 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         totaNumSensors = params$numSensors + length(params$sensorList) + params$projectedSensors
         sensors = result$stats$sensorMat
         ## smat translates relative coordinates to absoloute coordinates for the bathymetry file
-        smat = matrix(
-            		c(rep(params$startX, params$numSensors),
-             		rep( params$startY, params$numSensors)),
-           	  		totaNumSensors,
-              		2
-	  			  )
-        smat = smat + sensors
-
+        smat = sensors
+        smat[,1] = smat[,1] + params$startX
+        smat[,2] = smat[,2] + params$startY
         
         ## smat2 contains the running total of unique RR rounded to 5 decimal palces
         smat2 = round(result$stats$uniqRRs, 5)
@@ -1113,7 +1107,10 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         ## make a table of sensor data and print it to the shortResult file
         sensors = cbind(sensors, smat, smat2, smat3 )
         colnames(sensors) = c('loc_row', 'loc_col', 'glob_row', 'glob_col', 'Uniq_RR', 'd_Uniq_RR')
-        rownames(sensors) = paste(' Sensor_', 1:totaNumSensors, sep="")
+        rownamesSensors = paste(' Sensor_', 1:totaNumSensors, sep="")
+        for (kk in 1:params$numUserSensors) rownamesSensors[kk] = paste(rownamesSensors[kk],'predef')
+        rownames(sensors) = rownamesSensors
+        
         
         if (debug) {
             print("smat =")
@@ -1172,7 +1169,6 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
 #' @description In addition to the grid itself sensor locations are also plotted along
 #' with numbers indicating the order in which sensors were placed. Furthermore, bathymetry
 #' contours can be overlayed using the plot.bathy flag.
-#' 
 #' @param result A dictionary of return objects, the result of a successfull call to acousticRun().
 #' @param type Character specifying grid type. Available grids: 'topographyGrid', 'behaviorGrid', 'goodnessGrid', or 'coverageGrid'.
 #' @param main Set title of plot.
@@ -1183,10 +1179,12 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
 #' @param bcol Specifies the color of bathymetry contour lines.
 #' @param nlevels Specifies the number of bathymetry contour lines.
 #' @param drawlabels Specifies if bathymetry contour labels should be drawn.
+#' @param circles Specifies if circles at the 5\% detection probability should be drawn (TRUE/FALSE).
+#' @param circlty Specifies line type for the circles at the 5\% detection probability.
 #' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
 #' @export
-plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,bcol=1,nlevels=5,drawlabels=TRUE,circles=plot.sensors,circlty=3,...){
+plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', plot.bathy=TRUE, plot.sensors=TRUE, bcol=1, nlevels=5, drawlabels=TRUE, circles=plot.sensors, circlty=3, ...){
     ## n is number of colors in palette
     n = 100
     col = heat.colors(n)
@@ -1445,7 +1443,9 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     ##print(uniqRRs)
     ##print(duniqRRs)
     ## Sort list so best sensors come first
-    srt = sort(duniqRRs,index=TRUE,decreasing=TRUE) 
+    ##srt = sort(duniqRRs,index=TRUE,decreasing=TRUE)
+    ## Turning off sorting
+    srt = list(ix=1:numSensors , x=duniqRRs)
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)
     ## Store the unsorted sensor list (this order may not have a decreasing value per sensor)
     ## That is, the sensor placed as say 10 may be better than sensor 9 (this can happen when
@@ -1591,9 +1591,10 @@ checkParams = function(params, stop=TRUE) {
 			i = i - 1
 		}
 		params$sensorList = points
+		params$numUserSensors = length(points)
 		
 		# if not enough sensors were specified, throw an error!
-		if((params$numSensors + length(points) + params$projectedSensors  <= 1)) {
+		if((params$numSensors + params$numUserSensors + params$projectedSensors  <= 1)) {
 			printError("Please specify/allow the program to place/project a total of at least two sensors.", stop)
 		}
 	}

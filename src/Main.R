@@ -33,6 +33,8 @@ source('src/Utility.R')
 #' $numSensors: Specifies the number of sensors to be placed. Positive integer values are accepted.
 #'
 #' $projectedSensors: Specifies the number of sensors to project. This is can be used to see the development in sensor value if more sensors were placed.
+#'
+#' $userSensorList: Userdefined sensor locations specified in grid cell coordinates. For example, pre-placed sensors in row1=3 col1=4 and row2=7 col2=9 are specified as $userSensorList <- '3, 4, 7, 9'.
 #' 
 #' $bias: Specifies how the "goodness" of a cell is determined. Possible values are 1, 2, or 3. Default: 1. $bias = 1 indicates that a "good" cell has a high number of animals within detection range (ignoring line of sight). This is useful for sensors not restricted to line-of-sight detection. $bias = 2 indicates that a "good" cell has the best visibility (taking into account bathymetry and shadowing, but completely ignoring fish density). This is useful for networks restricted to line-of-sight detection and having no prior knowledge of animal habitat. $bias = 3 indicates that a "good" cell has a high number of visible fish (incorporating both bathymetry and animal density). This is useful for networks restricted to line-of-sight detection, and having some idea of animal habitat.
 #'
@@ -122,90 +124,89 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
     if(debug) {
         cat("\n[acousticRun]\n")
     }
-	if (!exists("acousticStatus", where = -1, mode = "any",inherits = TRUE)) {
-		acousticStatus <<- {}
-	}
-	acousticErrors <<- {}
-	topographyGrid = {}
-	behaviorGrid = {}
-	goodnessGrid = {}
-	sensors = {}
-	sensors$goodnessGrid = {}
-	sensors$sensorList = {}
-	statDict = {}
-	results = {}
-	filenames = {}
+    if (!exists("acousticStatus", where = -1, mode = "any",inherits = TRUE)) {
+        acousticStatus <<- {}
+    }
+    acousticErrors <<- {}
+    topographyGrid = {}
+    behaviorGrid = {}
+    goodnessGrid = {}
+    sensors = {}
+    sensors$goodnessGrid = {}
+    sensors$sensorList = {}
+    statDict = {}
+    results = {}
+    filenames = {}
+    
+    tryCatch({
+        if(!silent) {
+            cat("\n  Checking params\n")
+        }
+        params = checkParams(params=params)
+        if(!silent) {
+            cat("\n  Parameters checked!\n")
+        }
 	
-	tryCatch({
-            if(!silent) {
-                cat("\n  Checking params\n")
-            }
-	    params = checkParams(params=params)
-            if(!silent) {
-                cat("\n  Parameters checked!\n")
-            }
+        ## Create/Load the Bathy grid for the area of interest
+        topographyGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
+            params$XDist, params$YDist, params$seriesName, debug)
+        topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
+        ## Convert parameter values from meters to number of grid cell 
+        params = convertMetersToGrid(params,topographyGrid)
+        ## Specify a standard scale of x and y axes if previously undefined
+        if(!("x" %in% names(topographyGrid))) {
+            topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
+        }
+        if(!("y" %in% names(topographyGrid))) {
+            topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
+        }
+        ## Calculate fish grid
+        print('Calculate fish grid')
+        behaviorGrid = fish(params, topographyGrid)
 	
-	    ## Create/Load the Bathy grid for the area of interest
-	    topographyGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
-	            params$XDist, params$YDist, params$seriesName, debug)
-	    topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
-	    ## Convert parameter values from meters to number of grid cell 
-	    params = convertMetersToGrid(params,topographyGrid)
-	    ## Specify a standard scale of x and y axes if previously undefined
-	    if(!("x" %in% names(topographyGrid))) {
-			topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
-		}
-	    if(!("y" %in% names(topographyGrid))) {
-			topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
-		}
-	    ## Calculate fish grid
-            print('Calculate fish grid')
-	    behaviorGrid = fish(params, topographyGrid)
+        ## Find good sensor placements
+        sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, silent=silent, multi=multi)
 	
-	    ## Find good sensor placements
-	    sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, silent=silent, multi=multi)
-	
-	    ## Stat analysis of proposed setup.
-	    statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)
-		
-		## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
-		results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
-				"stats" = statDict, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
-		
-		if(save.inter) {
-			results$inter = sensors$inter
-		}
-		endTime = Sys.time()
-		results$runTime = endTime - startTime
-		
-		## Graph results and make data file.
-		results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
-		
-		return(results)
-		
-	}, error = function(e) {
-		print("Error")
-		print(e)
-		appendError(e, toString(params$timestamp))
-	}, finally = function(e){})
-	
-	# only params and errors should actually have values
-	results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
-			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
-	
-	# writeFiles returns json and txt file locations
-	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
-	##print(results$filenames)
+        ## Stat analysis of proposed setup.
+        statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)
+        
+        ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
+        results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
+            "stats" = statDict, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
+        
+        if(save.inter) {
+            results$inter = sensors$inter
+        }
+        endTime = Sys.time()
+        results$runTime = endTime - startTime
+        
+        ## Graph results and make data file.
+        results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
+        
+        invisible(results)
+        
+    }, error = function(e) {
+        print("Error")
+        print(e)
+        appendError(e, toString(params$timestamp))
+    }, finally = function(e){}  )
+    
+    ## only params and errors should actually have values
+    results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, "stats" = statDict, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
+    
+    ## writeFiles returns json and txt file locations, but only if showPlots == FALSE
+    if(!showPlots) results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
+    ##print(results$filenames)
     ## Return results invisibly (don't print to screen if unassigned because they are usually very long)
     invisible(results)
 }
 
 #' @name acousticTest
 #' @title Executes a test run of the program, using default parameters.
-#' @description Executes a test run of the program, using default parameters.  No addFitional 
+#' @description Executes a test run of the program, using default parameters.  No additional 
 #' parameters are necessary. The code for this function can be used as a template for new projects.
 #' @param bias Determines whether to account for species behavior and/or detection shadows when designing network. Choose between bias 1 (behavior only), 2 (shadowing only) or 3 (behavior and shadowing).
-#' @param real If TRUE real topographical data are downloaded and used, if FALSE a made-up topography is used.
+#' @param real If TRUE real topographical data are DOWNLOADED (from ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip) and used for analysis, if FALSE a made-up topography is used.
 #' @param exact If TRUE use exact calculations (slow because goodness grid is updated with line of sight after each sensor placement), if FALSE use approximate calculations (faster).
 #' @param multi If TRUE use multicore package to speed up calculations, if FALSE don't.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
