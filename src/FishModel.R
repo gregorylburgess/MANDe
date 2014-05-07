@@ -1,5 +1,6 @@
 #' Generates the Behaviour Grid
 
+
 #' @name fish
 #' @title Generates a Fish Location Grid (behaviorGrid) for the program to use.  
 #' @description Values in the cells of this grid are expressed as a percentage of 
@@ -9,7 +10,6 @@
 #' @param topographyGrid A valid topographyGrid.
 #' @return An behaviorGrid of the same dimensions as the provided topographyGrid.
 fish <- function(params, topographyGrid) {
-    require(mvtnorm)
     rows <- dim(topographyGrid$topographyGrid)[1]
     cols <- dim(topographyGrid$topographyGrid)[2]
     land <- topographyGrid$topographyGrid>=0
@@ -34,7 +34,7 @@ fish <- function(params, topographyGrid) {
                     vary <- params$ousdy[i]^2
                     covxy <- params$oucor[i] * params$ousdx[i] * params$ousdy[i]
                     hrCov <- matrix(c(vary,covxy,covxy,varx),2,2)
-                    hrVals <- dmvnorm(XY,c(mux,muy),hrCov)
+                    hrVals <- dMVnorm(XY,c(mux,muy),hrCov)
                     hrVals <- hrVals/max(hrVals)
                     behaviorGridtmp <- matrix(hrVals,rows,cols,byrow=FALSE)
                     ## Add contribution from center i to behaviorGrid
@@ -65,3 +65,41 @@ fish <- function(params, topographyGrid) {
 verticalHabitat <- function(mindepth,maxdepth,topographyGrid) {
 	topographyGrid < mindepth & topographyGrid > maxdepth
 } 
+
+#' @name dMVnorm
+#' @title Multivariate normal density.
+#' @description Value of the probability density function of a multivariate normal distribution. Inspired by the mvtnorm package.
+#' @param x Vector or matrix of quantiles. If x is a matrix, each row is taken to be a quantile.
+#' @param mean Mean vector.
+#' @param sigma Covariance matrix.
+#' @param log Logical; if TRUE density values d are given as log(d).
+#' @return Multivariate normal probability density value.
+dMVnorm <- function (x, mean, sigma, log = FALSE) {
+    if (is.vector(x)) {
+        x <- matrix(x, ncol = length(x))
+    }
+    if (missing(mean)) {
+        mean <- rep(0, length = ncol(x))
+    }
+    if (missing(sigma)) {
+        sigma <- diag(ncol(x))
+    }
+    if (NCOL(x) != NCOL(sigma)) {
+        stop("x and sigma have non-conforming size")
+    }
+    if (!isSymmetric(sigma, tol = sqrt(.Machine$double.eps), 
+        check.attributes = FALSE)) {
+        stop("sigma must be a symmetric matrix")
+    }
+    if (length(mean) != NROW(sigma)) {
+        stop("mean and sigma have non-conforming size")
+    }
+    distval <- mahalanobis(x, center = mean, cov = sigma)
+    logdet <- sum(log(eigen(sigma, symmetric = TRUE, only.values = TRUE)$values))
+    logretval <- -(ncol(x) * log(2 * pi) + logdet + distval)/2
+    if (log) {
+        return(logretval)
+    } else {
+        return(exp(logretval))
+    }
+}

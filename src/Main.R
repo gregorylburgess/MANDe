@@ -14,6 +14,7 @@ source('src/Utility.R')
 #' values are missing. Then bathymetry is loaded and the fish distribution generated. Then the
 #' goodness grid (goodnessGrid) is calculated depending on the design parameters (this is the heavy part).
 #' When the goodnessGrid is finished sensors can be placed optimally and stats and figures can be generated.
+#' Source code for building the package and installing a web-based GUI can be downloaded from https://github.com/gregorylburgess/acoustic-deploy.
 #' @section INPUT DETAILS params:
 #' - Behaviour parameters
 #' 
@@ -30,6 +31,8 @@ source('src/Utility.R')
 #' - Sensor parameters
 #'
 #' $numSensors: Specifies the number of sensors to be placed. Positive integer values are accepted.
+#'
+#' $projectedSensors: Specifies the number of sensors to project. This is can be used to see the development in sensor value if more sensors were placed.
 #' 
 #' $bias: Specifies how the "goodness" of a cell is determined. Possible values are 1, 2, or 3. Default: 1. $bias = 1 indicates that a "good" cell has a high number of animals within detection range (ignoring line of sight). This is useful for sensors not restricted to line-of-sight detection. $bias = 2 indicates that a "good" cell has the best visibility (taking into account bathymetry and shadowing, but completely ignoring fish density). This is useful for networks restricted to line-of-sight detection and having no prior knowledge of animal habitat. $bias = 3 indicates that a "good" cell has a high number of visible fish (incorporating both bathymetry and animal density). This is useful for networks restricted to line-of-sight detection, and having some idea of animal habitat.
 #'
@@ -192,7 +195,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 	
 	# writeFiles returns json and txt file locations
 	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
-	print(results$filenames)
+	##print(results$filenames)
     ## Return results invisibly (don't print to screen if unassigned because they are usually very long)
     invisible(results)
 }
@@ -226,13 +229,17 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
 	
 	# topographyGrid Variables
         if(real){
-            params$inputFile = "pal_dbmb.asc"
-            params$inputFileType = "asc"
+            params$inputFile = "pal_dbmb.RData"
+            params$inputFileType = "RData"
+            params$seriesName = 'bath'
             if(!file.exists(params$inputFile)){
                 print("Downloading real topography...")
                 dest <- 'Pal_IKONOS.zip'
                 download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
                 unzip(zipfile=dest)
+                filename = "pal_dbmb.asc"
+                bath = loadASC(filename)
+                save(bath,file=params$inputFile)
             }
         }
 	params$cellSize = 5
@@ -273,7 +280,6 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
 #' @param msg The error message to print.
 #' @param time A timestamp to use as an identifier for associating related outputs.
 #' @return The error message that was passed in.
-#' @export
 appendError = function(msg, time) {
 	acousticErrors[toString(time)] <<- msg[1]
 	print(acousticErrors[toString(time)])
