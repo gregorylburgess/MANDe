@@ -1185,9 +1185,9 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
 #' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
 #' @export
-plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,bcol=1,nlevels=5,drawlabels=TRUE,...){
+plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,bcol=1,nlevels=5,drawlabels=TRUE,circles=plot.sensors,circlty=3,...){
     ## n is number of colors in palette
-    n = 24
+    n = 100
     col = heat.colors(n)
     if(type=='topographyGrid'){
         ##col = colorRampPalette(c("darkviolet","navy","white"))(n)
@@ -1201,13 +1201,14 @@ plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.
         grid = result$behaviorGrid
     }
     if(type=='goodnessGrid'){
-        ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
+        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$goodnessGrid
     }
     if(type=='coverageGrid'){
         ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
+        col = colorRampPalette(c("white","black"))(n)
+        ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$stats$coverageGrid
     }
     ## Plot the actual grid as an image
@@ -1218,7 +1219,7 @@ plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.
     }
     if(plot.sensors){
         ## Add sensors and their numbers
-        plotSensors(result)
+        plotSensors(result, circles=circles, circlty=circlty)
     }
 }
 
@@ -1272,7 +1273,7 @@ plotUniqueRR = function(result, debug=FALSE){
 #' @param circles If TRUE circles with radius equal to the detection range are drawn around sensors.
 #' @param circlty Line type for circles.
 #' @return Nothing.
-plotSensors = function(result,circles=TRUE,circlty=3){
+plotSensors = function(result,circles=TRUE,circlty=2){
   ns = dim(result$stats$sensorMat)[1]
   ##print("[plotSensors]")
   ##print("result$stats")
