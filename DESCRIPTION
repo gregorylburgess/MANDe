@@ -1,0 +1,18 @@
+Package: acoustic
+Type: Package
+Title: Designs acoustic sensor networks.
+Version: 1.0
+Date: 2014-04-07
+Author: Greg Burgess, Martin W. Pedersen, Kevin Weng
+Maintainer: Greg Burgess <gregory.l.burgess@gmail.com>
+Description: This package is useful in the design phase of an acoustic sensor network. The package requires information about bathymetry and detections conditions (detection function) and generates in return an optimal sensor configuration that accounts for fish behavior and detection shadows. Source code for building the package and installing a web-based GUI can be downloaded from the URL below.
+License: GPL (>= 2)
+URL: https://github.com/gregorylburgess/acoustic-deploy
+Suggests: MASS, multicore, ncdf, raster
+Collate:
+    'Bathy.R'
+    'Description.R'
+    'FishModel.R'
+    'ShapeFunctions.R'
+    'Utility.R'
+    'Main.R'

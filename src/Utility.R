@@ -1,9 +1,6 @@
 #' @include src/ShapeFunctions.R
 source('src/ShapeFunctions.R')
 
-
-
-
 #' @name sensorFun
 #' @title Calls functions to generate a 'goodness' grid and choose sensor locations.
 #' @details Finds a "good" set of sensor placements for a given setup [topographyGrid, behaviorGrid, params].
@@ -63,8 +60,11 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
 	}
 	
 	if (save) {
-		library(MASS)
-		write.matrix(goodnessGrid,file="test.txt") 
+		if (require(MASS)) {
+                    write.matrix(goodnessGrid,file="test.txt")
+                } else {
+                    printError('Could not load MASS package, please install using install.packages().', stop=stop)
+                }
 	}
 	
     if(save.inter) inter[[1]] = grids
@@ -251,7 +251,6 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 			print("bias=2; Calling goodnessGrid.sumBathy.opt")
 		}
                 if(multi) {
-                    require(multicore)
                     return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
                 }else{
                     return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
@@ -264,7 +263,6 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 			print("bias=3; Calling goodnessGrid.sumBathy.opt")
 		}
                 if(multi) {
-                    require(multicore)
                     return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
                 }else{
                     return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
@@ -409,6 +407,9 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
 #' @param silent If set to TRUE, turns off status printing.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
 goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE) {
+    if (!require(multicore)) {
+        printError('Could not load multicore package, please install using install.packages().', stop=stop)
+    }
     ## Open fifo progress file
     progfile <- fifo(tempfile(), open="w+b", blocking=T)
     if (inherits(fork(), "masterProcess")) {

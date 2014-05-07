@@ -23,7 +23,7 @@ change <- function(input, output, pattern, value, debug=TRUE) {
 }
 
 #install and load roxygen2
-install.packages("roxygen2", repos='http://cran.cnr.Berkeley.edu')
+##install.packages("roxygen2", repos='http://cran.cnr.Berkeley.edu')
 library(roxygen2)
 
 # name of the package to create (Fill in whatever you want)
@@ -38,7 +38,7 @@ files = c("Description.R",
 		"Main.R")
 
 # Delete any old packages of the same name
-unlink(packageName, TRUE)
+unlink(packageName, recursive=TRUE)
 
 # A bug in package.skeleton() requires us to import these...
 library(methods)
@@ -50,8 +50,7 @@ for (file in files) {
 }
 
 # Sets up the default package directories and files
-package.skeleton(packageName, 
-		code_files=code_files)
+package.skeleton(packageName, code_files=code_files)
 
 # Changes all file paths in source() calls to their new values.
 for (file in files) {
@@ -61,7 +60,8 @@ for (file in files) {
 
 # Call Roxygen to make the .Rd files
 print('--- Roxygenize ---')
-roxygenize(packageName, copy=FALSE)
+roxygen2::upgradeRoxygen(packageName)
+roxygenize(packageName)
 
 # Changes all file paths in source() calls to their new values.
 for (file in files) {
@@ -109,4 +109,4 @@ cat(out,file=path)
 close(conn)
 
 ## Copy DESCRIPTION file
-file.copy('DESCRIPTION',paste(packageName,'/DESCRIPTION'),overwrite=TRUE)
+file.copy('DESCRIPTION',paste(packageName,'/DESCRIPTION',sep=''),overwrite=TRUE)
