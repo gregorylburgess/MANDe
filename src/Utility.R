@@ -43,63 +43,59 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     cols = dims[2]
     grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
-    # calculate the goodnessGrid
+    ## calculate the goodnessGrid
     print("Calculating initial goodness grid")
-	
-	save = FALSE
-	loadSave=FALSE
-	
-	if(loadSave) {
-		goodnessGrid =  as.matrix(read.table("test.txt"))
-		grids$goodnessGrid = goodnessGrid
-	}
-	
-	else {
-    grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
-    goodnessGrid = grids$goodnessGrid
-	}
-	
-	if (save) {
-		if (require(MASS)) {
-                    write.matrix(goodnessGrid,file="test.txt")
-                } else {
-                    printError('Could not load MASS package, please install using install.packages().', stop=stop)
-                }
-	}
+    save = FALSE
+    loadSave=FALSE
+    if(loadSave) {
+        goodnessGrid =  as.matrix(read.table("test.txt"))
+        grids$goodnessGrid = goodnessGrid
+    }
+    else {
+        grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
+        goodnessGrid = grids$goodnessGrid
+    }
+    if (save) {
+        if (require(MASS)) {
+            write.matrix(goodnessGrid,file="test.txt")
+        } else {
+            printError('Could not load MASS package, please install using install.packages().', stop=stop)
+        }
+    }
 	
     if(save.inter) inter[[1]] = grids
 	
-	# place user-defined sensors, and down weigh them
-	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
-		len = length(params$sensorList)
-		i = len
-		while(i > 0) {
-			print(paste("- Placing predefined sensor number", len-i+1, "of", len))
-			loc = params$sensorList[[i]]
-			# invert the incoming r/c values
-			placement = list(c=loc$r, r=loc$c)
-			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug, multi=multi)
-			sensorList = c(sensorList, list(placement))
-			i = i - 1
-		}
-	}
+    ## place user-defined sensors, and down weigh them
+    if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
+        len = length(params$sensorList)
+        i = len
+        while(i > 0) {
+            print(paste("- Placing predefined sensor number", len-i+1, "of", len))
+            loc = params$sensorList[[i]]
+            ## invert the incoming r/c values
+            placement = list(c=loc$r, r=loc$c)
+            grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug, multi=multi)
+            sensorList = c(sensorList, list(placement))
+            i = i - 1
+        }
+    }
 	
-    # for each sensor, find a good placement
-	i = numSensors
-	while(i > 0) {
-            print(paste("- Placing sensor number",numSensors-i+1,"of",numSensors))
-            if("depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)) print('Using depth preference ($depth_off_bottom and $depth_off_bottom_sd)')
+    ## for each sensor, find a good placement
+    i = numSensors
+    while(i > 0) {
+        print(paste("- Placing sensor number",numSensors-i+1,"of",numSensors))
+        if("depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)) print('Using depth preference ($depth_off_bottom and $depth_off_bottom_sd)')
 
-            ## find the max location 
-            maxLoc = which.max(grids$goodnessGrid)
-            ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
-            c = ceiling(maxLoc/rows)
-            r = (maxLoc %% rows)
-            if (r==0) {
-                r=rows
-            }
-            maxLoc = list(c=c,r=r)
-            ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
+        ## find the max location 
+        maxLoc = which.max(grids$goodnessGrid)
+        ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
+        c = ceiling(maxLoc/rows)
+        r = (maxLoc %% rows)
+        if (r==0) {
+            r=rows
+        }
+        maxLoc = list(c=c,r=r)
+        ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
         
         ## append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
@@ -239,33 +235,33 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 	
     ##Fish
     if (bias == 1) {
-		if(debug) {
-			print("bias=1; Calling goodnessGrid.sumSimple")
-		}
+        if(debug) {
+            print("bias=1; Calling goodnessGrid.sumSimple")
+        }
         return(goodnessGrid.sumSimple.opt(grids, "behaviorGrid", params, debug=debug, silent=silent))
     }
     #Bathy
     else if (bias == 2) {
-		if(debug) {
-			print("bias=2; Calling goodnessGrid.sumBathy.opt")
-		}
-                if(multi) {
-                    return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
-                }else{
-                    return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
-                }
+        if(debug) {
+            print("bias=2; Calling goodnessGrid.sumBathy.opt")
+        }
+        if(multi) {
+            return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
+        }else{
+            return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
+        }
     }
-    #Combo
-	else if (bias == 3) {
+    ##Combo
+    else if (bias == 3) {
         ## Note goodnessGrid.sumBathy.opt also handles bias 3
-		if(debug) {
-			print("bias=3; Calling goodnessGrid.sumBathy.opt")
-		}
-                if(multi) {
-                    return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
-                }else{
-                    return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
-                }
+        if(debug) {
+            print("bias=3; Calling goodnessGrid.sumBathy.opt")
+        }
+        if(multi) {
+            return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
+        }else{
+            return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
+        }
     }
     else {
         stop("ERROR: Invalid Bias")
@@ -705,37 +701,39 @@ suppress.opt = function(goodnessGrid, dims, loc, params, topographyGrid, debug=F
     }
     ## Use detection function variant
     if(dfflag){
-      ## Save a temporary copy of params
-      partmp = params
-      ## Alter the SD value such that the shape function uses the suppression SD and not the detection SD since the shape function looks for the sd key
-      partmp$sd = partmp$suppsd 
-      ## Detection fun suppression
-      supgrid2 = do.call(params$shapeFcn, list(dist, partmp))
-      ## If shadowing should be accounted for in the suppression
-      if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
-        ## Create a matrix where land cells have value TRUE
-        land = topographyGrid >= 0
-        ## Create the depth value of a sensor placed at loc
-        sensorDepth = topographyGrid[loc$r,loc$c] + params$sensorElevation
-        ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-        dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
-        ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, topographyGrid, land, sensorDepth, dpflag, params, debug)
-        ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
-        ## Initialize
-        testmap = matrix(0,rows,cols)
-        ## Insert values at correct indices
-        testmap[pctviz$linearIndex] = pctviz$percentVisibility
-        ## 100% detected in self cell
-        testmap[loc$r,loc$c] = 1
-        ## Copy relevant area to dgrid1
-        supgrid1 = testmap[rind,cind]
-        ## supgrid contains suppression values
-        supgrid = 1 - (supgrid1 * supgrid2)
-      }else{
-        ## supgrid contains suppression values
-        supgrid = 1 - supgrid2
-      }
+        ## Save a temporary copy of params
+        partmp = params
+        ## Alter the SD value such that the shape function uses the suppression SD and not the detection SD since the shape function looks for the sd key
+        partmp$sd = partmp$suppsd 
+        ## Detection fun suppression
+        beta = do.call(params$shapeFcn, list(dist, partmp))
+        ## If shadowing should be accounted for in the suppression
+        if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
+            ## Create a matrix where land cells have value TRUE
+            land = topographyGrid >= 0
+            ## Create the depth value of a sensor placed at loc
+            sensorDepth = topographyGrid[loc$r,loc$c] + params$sensorElevation
+            ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+            dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
+            ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
+            pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, topographyGrid, land, sensorDepth, dpflag, params, debug)
+            ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+            ## Initialize
+            testmap = matrix(0,rows,cols)
+            ## Insert values at correct indices
+            testmap[pctviz$linearIndex] = pctviz$percentVisibility
+            ## 100% detected in self cell
+            testmap[loc$r,loc$c] = 1
+            ## Copy relevant area
+            alpha = testmap[rind,cind]
+            ## supgrid contains suppression values
+            ## alpha accounts for signal blocking
+            ## beta accounts for horizontal detection function
+            supgrid = 1 - (alpha * beta)
+        }else{
+            ## supgrid contains suppression values
+            supgrid = 1 - beta
+        }
     }
     ## Do suppression at the relevant indices given by rind and cind
     goodnessGrid[rind,cind] = goodnessGrid[rind,cind] * supgrid
@@ -1108,7 +1106,9 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         sensors = cbind(sensors, smat, smat2, smat3 )
         colnames(sensors) = c('loc_row', 'loc_col', 'glob_row', 'glob_col', 'Uniq_RR', 'd_Uniq_RR')
         rownamesSensors = paste(' Sensor_', 1:totaNumSensors, sep="")
-        for (kk in 1:params$numUserSensors) rownamesSensors[kk] = paste(rownamesSensors[kk],'predef')
+        if('userSensorList' %in% names(params)) {
+            for (kk in 1:params$numUserSensors) rownamesSensors[kk] = paste(rownamesSensors[kk],'predef')
+        }
         rownames(sensors) = rownamesSensors
         
         

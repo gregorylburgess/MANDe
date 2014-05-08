@@ -208,69 +208,127 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
 #' @param bias Determines whether to account for species behavior and/or detection shadows when designing network. Choose between bias 1 (behavior only), 2 (shadowing only) or 3 (behavior and shadowing).
 #' @param real If TRUE real topographical data are DOWNLOADED (from ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip) and used for analysis, if FALSE a made-up topography is used.
 #' @param exact If TRUE use exact calculations (slow because goodness grid is updated with line of sight after each sensor placement), if FALSE use approximate calculations (faster).
-#' @param multi If TRUE use multicore package to speed up calculations, if FALSE don't.
+#' @param multi If TRUE use multicore package to speed up calculations, if FALSE don't. This is useful if your CPU has multiple cores, however it will probably slow down all other processes on your system.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
+#' @param paper If TRUE runs analysis that is shown as example in the scientific paper describing this method. If exact=TRUE example 1 is run, otherwise example 2 is run. Note: to run these examples real topography must be downloaded. The user will be asked at runtime if this is OK.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, the program will not print status updates for LOS calculation (which may take a very long time).
 #' @return A dictionary of return objects, see ?acousticRun for all details.
 #' @export
-acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots=TRUE, silent=FALSE, debug=FALSE) {
+acousticTest <- function(bias=3, real=FALSE, exact=FALSE, multi=FALSE, showPlots=TRUE, paper=FALSE, silent=FALSE, debug=FALSE) {
 	acousticStatus <<- {}
 	#### TEST RUN
 	params = list()
-        
-	## Sensor variables
-	params$timestamp = 0
-	params$numSensors = 4
-	params$bias = bias
-	params$sensorElevation = 1
-	params$shapeFcn = 'shape.gauss'
-	params$peak = .98
-        params$detectionRange <- 20
-	
-	# topographyGrid Variables
-        if(real){
+
+        if(paper){
+            params = list()
+            params$timestamp = 00
+            params$numSensors = 6
+            params$bias = 3
+            params$sensorElevation = 1
+            params$shapeFcn = "shape.gauss"
+            params$peak = 0.98
+            params$detectionRange <- 120
+            ##params$inputFile = "pal_dbmb.asc"
+            ##params$inputFileType = "asc"
             params$inputFile = "pal_dbmb.RData"
             params$inputFileType = "RData"
             params$seriesName = 'bath'
             if(!file.exists(params$inputFile)){
-                print("Downloading real topography...")
-                dest <- 'Pal_IKONOS.zip'
-                download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
-                unzip(zipfile=dest)
-                filename = "pal_dbmb.asc"
-                bath = loadASC(filename)
-                save(bath,file=params$inputFile)
+                answ <- readline('Did not find required topography file! do you want to download it? [y/n] ')
+                if(answ=='yes' | answ=='y' | answ=='Y'){
+                    print("Downloading real topography...")
+                    dest <- 'Pal_IKONOS.zip'
+                    download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
+                    unzip(zipfile=dest)
+                    filename = "pal_dbmb.asc"
+                    bath = loadASC(filename)
+                    save(bath,file=params$inputFile)
+                } else {
+                    stop('Stopping, cannot run paper examples without downloading real topography data!')
+                }
+            }
+            params$cellSize = 5 ## meters
+            ##params$maxsuppressionValue = 1
+            ##params$minsuppressionValue = 0.5
+            params$fishmodel <- "ou"
+            params$mux <- 0.5
+            params$muy <- 0.5
+            params$ousdx <- 300
+            params$ousdy <- 300
+            params$oucor <- 0
+            ## Example 1+2
+            params$startX = 290
+            params$XDist = 230
+            params$startY = 1125
+            params$YDist = 240
+            params$depth_off_bottom <- 0.5
+            params$depth_off_bottom_sd <- 1.5
+
+            if(exact){
+                ## --- Scenario 1 ---
+                cat("  Running paper scenario 1. (set exact=FALSE if you want to run scenario 2)\n")
+                cat("  \n")
+                params$suppressionFcn = "detection.function.exact"
+            } else {
+                ## --- Scenario 2 ---
+                cat("  Running paper scenario 2. (set exact=TRUE if you want to run scenario 1)\n")
+                params$suppressionRangeFactor = 3
+                params$suppressionFcn = "detection.function"
+            }
+        } else {
+            ## Sensor variables
+            params$timestamp = 0
+            params$numSensors = 4
+            params$bias = bias
+            params$sensorElevation = 1
+            params$shapeFcn = 'shape.gauss'
+            params$peak = .98
+            params$detectionRange <- 20
+            
+            ## topographyGrid Variables
+            if(real){
+                params$inputFile = "pal_dbmb.RData"
+                params$inputFileType = "RData"
+                params$seriesName = 'bath'
+                if(!file.exists(params$inputFile)){
+                    print("Downloading real topography...")
+                    dest <- 'Pal_IKONOS.zip'
+                    download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
+                    unzip(zipfile=dest)
+                    filename = "pal_dbmb.asc"
+                    bath = loadASC(filename)
+                    save(bath,file=params$inputFile)
+                }
+            }
+            params$cellSize = 5
+            params$startX = 290
+            params$XDist = 30
+            params$startY = 1125
+            params$YDist = 30
+            
+            ## Suppression Variables
+            if(exact){
+                params$suppressionFcn = "detection.function.exact"
+            } else {
+                params$suppressionRangeFactor = 1
+                params$suppressionFcn = "detection.function"
+            }
+
+            ## Behaviour variables
+            params$fishmodel <- 'ou'
+            params$mux <- .3 
+            params$muy <- .3 
+            params$ousdx <- 45
+            params$ousdy <- 45
+            params$oucor <- 0
+
+            ## Depth preference
+            if(real){
+                params$depth_off_bottom <- 3
+                params$depth_off_bottom_sd <- 3
             }
         }
-	params$cellSize = 5
-	params$startX = 290
-	params$XDist = 30
-	params$startY = 1125
-	params$YDist = 30
-	
-	## Suppression Variables
-        if(exact){
-            params$suppressionFcn = "detection.function.exact"
-        } else {
-            params$suppressionRangeFactor = 1
-            params$suppressionFcn = "detection.function"
-        }
-
-	## Behaviour variables
-	params$fishmodel <- 'ou'
-        params$mux <- .3 
-        params$muy <- .3 
-        params$ousdx <- 45
-        params$ousdy <- 45
-        params$oucor <- 0
-
-	## Depth preference
-        if(real){
-            params$depth_off_bottom <- 3
-            params$depth_off_bottom_sd <- 3
-        }
-
 	return(acousticRun(params=params, showPlots=showPlots, silent=silent, debug=debug, multi=multi))
 }
 
