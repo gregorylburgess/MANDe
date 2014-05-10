@@ -6,7 +6,19 @@ body {
 
 a {
 	color: #555;
+	font-color: #000;
 }
+
+input:disabled
+{
+background:#aaa;
+}
+
+select:disabled
+{
+background:#aaa;
+}
+
 #hero {
 	margin-top: 35px;
 	background-image: -moz-linear-gradient(100% 95% 90deg, #000, #333);
