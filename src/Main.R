@@ -121,6 +121,7 @@ source('src/Utility.R')
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, silent=FALSE, multi=FALSE) {
     startTime = Sys.time()
+    print(save.inter)
     if(debug) {
         cat("\n[acousticRun]\n")
     }
@@ -134,6 +135,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
     sensors = {}
     sensors$goodnessGrid = {}
     sensors$sensorList = {}
+    sensors$inter = {}
     statDict = {}
     results = {}
     filenames = {}
@@ -175,6 +177,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
             "stats" = statDict, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
         
         if(save.inter) {
+            print("Saving intermediary calculations in key inter")
             results$inter = sensors$inter
         }
         endTime = Sys.time()
@@ -182,7 +185,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
         
         ## Graph results and make data file.
         results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
-        
+        print(names(results))
         invisible(results)
         
     }, error = function(e) {
@@ -192,7 +195,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
     }, finally = function(e){}  )
     
     ## only params and errors should actually have values
-    results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, "stats" = statDict, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
+    results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, "stats" = statDict, "inter" = sensors$inter, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
     
     ## writeFiles returns json and txt file locations, but only if showPlots == FALSE
     if(!showPlots) results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)

@@ -1194,19 +1194,22 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
         grid = result$topographyGrid$topographyGrid
     }
     if(type=='behaviorGrid'){
-        col = colorRampPalette(c("white","lightseagreen","mediumvioletred"))(n)
+        ##col = colorRampPalette(c("white","lightseagreen","mediumvioletred"))(n)
+        col = colorRampPalette(c("white","aquamarine","hotpink"))(n)
         ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
         grid = result$behaviorGrid
     }
     if(type=='goodnessGrid'){
-        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        ##col = colorRampPalette(c("white","cadetblue", "gold", "deeppink"))(n)
+        col = colorRampPalette(c("white","cadetblue", "gold", "yellow", "deeppink"))(n)
         ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$goodnessGrid
     }
     if(type=='coverageGrid'){
-        ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        col = colorRampPalette(c("white","black"))(n)
+        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        ##col = colorRampPalette(c("white","black"))(n)
         ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$stats$coverageGrid
     }
