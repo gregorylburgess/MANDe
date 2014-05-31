@@ -1,0 +1,48 @@
+This software designs acoustic sensor networks for animal monitoring.
+Date: 2014-05-30
+Author: Greg Burgess, Martin W. Pedersen, Kevin Weng
+Maintainer: Greg Burgess <gregory.l.burgess@gmail.com>
+
+This package is useful in the design phase of an acoustic sensor network. The package requires information about bathymetry and detections conditions (detection function) and generates in return an optimal sensor configuration that accounts for fish behavior and detection shadows. Source code for building the package and installing a web-based GUI can be downloaded from the URL below.
+
+License: GNU General Public License, GPL (>= 2)
+
+
+== The R package (for command line interface via R) ==
+To build the R package run the bash script from the acoustic-deploy directory using the command:
+
+sudo ./scripts/package.sh
+
+This should create the tarball acoustic_1.0.tar.gz. The package is then installed using the command:
+
+R CMD INSTALL acoustic_1.0.tar.gz
+
+From R you should now be able to load the package with the command:
+
+library(acoustic)
+
+To run an example run:
+
+example(acoustic)
+
+For more example options try:
+
+?acousticTest
+
+For make your own acoustic design read the help for the acousticRun function, i.e. run
+
+?acousticRun
+
+And get inspiration for your script by checking the code for the acousticTest function by running:
+
+acousticTest
+
+
+== Acoustic web app server (for GUI via a browser) ==
+To start the acoustic web app server run the following command from the acoustic-deploy directory:
+
+sudo Rscript Publicserver.R
+
+This will start the server while the script appears to be "hanging" and not doing anything, however if you interact with the web app using a browser the server activity will be shown in this prompt.
+
+The URL for the web app is "{baseURL}/custom/static/pages/index.html", where {baseURL} is the IP of your computer or the URL you have assigned to it.

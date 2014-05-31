@@ -14,6 +14,7 @@ source('src/Utility.R')
 #' values are missing. Then bathymetry is loaded and the fish distribution generated. Then the
 #' goodness grid (goodnessGrid) is calculated depending on the design parameters (this is the heavy part).
 #' When the goodnessGrid is finished sensors can be placed optimally and stats and figures can be generated.
+#' Source code for building the package and installing a web-based GUI can be downloaded from https://github.com/gregorylburgess/acoustic-deploy.
 #' @section INPUT DETAILS params:
 #' - Behaviour parameters
 #' 
@@ -21,7 +22,7 @@ source('src/Utility.R')
 #'
 #' 'rw' means purely diffusive movements with no locational or directional preference. This results in a uniform distribution of fish over the study region. A random walk is useful when no knowledge about fish behaviour is available or can be assumed.
 #'
-#' 'ou' results in movements within a limited region mimicking fish with a home range. This results in a normal distribution with two parameters: 1) the home range center (mean) specified by $mux and $muy as proportions of the X and Y axes. 2) the home range extents (variance) and shape (covariance) specified by the standard deviations in X and Y directions in meters, $ousdx and $ousdy respectively, and by the correlation between X and Y specified by $oucor. This is useful if the study species is known to prefer a specific geographic region. A rule of thumb says that for each direction in isolation approximately 95% of the time is spent within plus minus two standard deviations. The correlation is used if the elliptical home range shape is angled relative to the X,Y coordinate system. The correlation must be in the range [-1; 1].
+#' 'ou' results in movements within a limited region mimicking fish with a home range. This results in a normal distribution with two parameters: 1) the home range center (mean) specified by $mux and $muy as proportions of the X and Y axes. 2) the home range extents (variance) and shape (covariance) specified by the standard deviations in X and Y directions in meters, $ousdx and $ousdy respectively, and by the correlation between X and Y specified by $oucor. This is useful if the study species is known to prefer a specific geographic region. A rule of thumb says that for each direction in isolation approximately 95% of the time is spent within plus minus two standard deviations. The correlation is used if the elliptical home range shape is angled relative to the X,Y coordinate system. The correlation must be in the range [-1; 1]. Note: multiple home range centers can be specified by assigning vectors containing values for each home range, e.g. $mux = c(0.3, 0.6) etc..
 #' 
 #' Optional: Vertical habitat restriction. Useful if the fish is known to live in a certain vertical habitat say from -10 to -50 meters. If unspecified the species is assumed to be able to utilize the whole water column. The minimum and maximum depth must be specified in meters using $mindepth (shallow) and $maxdepth (deep), for example $mindepth = -5 and $maxdepth = -10. Only areas within the vertical habitat are considered in the network design.
 #'
@@ -30,6 +31,10 @@ source('src/Utility.R')
 #' - Sensor parameters
 #'
 #' $numSensors: Specifies the number of sensors to be placed. Positive integer values are accepted.
+#'
+#' $projectedSensors: Specifies the number of sensors to project. This is can be used to see the development in sensor value if more sensors were placed.
+#'
+#' $userSensorList: Userdefined sensor locations specified in grid cell coordinates. For example, pre-placed sensors in row1=3 col1=4 and row2=7 col2=9 are specified as $userSensorList <- '3, 4, 7, 9'.
 #' 
 #' $bias: Specifies how the "goodness" of a cell is determined. Possible values are 1, 2, or 3. Default: 1. $bias = 1 indicates that a "good" cell has a high number of animals within detection range (ignoring line of sight). This is useful for sensors not restricted to line-of-sight detection. $bias = 2 indicates that a "good" cell has the best visibility (taking into account bathymetry and shadowing, but completely ignoring fish density). This is useful for networks restricted to line-of-sight detection and having no prior knowledge of animal habitat. $bias = 3 indicates that a "good" cell has a high number of visible fish (incorporating both bathymetry and animal density). This is useful for networks restricted to line-of-sight detection, and having some idea of animal habitat.
 #'
@@ -116,146 +121,217 @@ source('src/Utility.R')
 #' @export
 acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, silent=FALSE, multi=FALSE) {
     startTime = Sys.time()
+    print(save.inter)
     if(debug) {
         cat("\n[acousticRun]\n")
     }
-	if (!exists("acousticStatus", where = -1, mode = "any",inherits = TRUE)) {
-		acousticStatus <<- {}
-	}
-	acousticErrors <<- {}
-	topographyGrid = {}
-	behaviorGrid = {}
-	goodnessGrid = {}
-	sensors = {}
-	sensors$goodnessGrid = {}
-	sensors$sensorList = {}
-	statDict = {}
-	results = {}
-	filenames = {}
+    if (!exists("acousticStatus", where = -1, mode = "any",inherits = TRUE)) {
+        acousticStatus <<- {}
+    }
+    acousticErrors <<- {}
+    topographyGrid = {}
+    behaviorGrid = {}
+    goodnessGrid = {}
+    sensors = {}
+    sensors$goodnessGrid = {}
+    sensors$sensorList = {}
+    sensors$inter = {}
+    statDict = {}
+    results = {}
+    filenames = {}
+    
+    tryCatch({
+        if(!silent) {
+            cat("\n  Checking params\n")
+        }
+        params = checkParams(params=params)
+        if(!silent) {
+            cat("\n  Parameters checked!\n")
+        }
 	
-	tryCatch({
-	    params = checkParams(params)
+        ## Create/Load the Bathy grid for the area of interest
+        topographyGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
+            params$XDist, params$YDist, params$seriesName, debug)
+        topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
+        ## Convert parameter values from meters to number of grid cell 
+        params = convertMetersToGrid(params,topographyGrid)
+        ## Specify a standard scale of x and y axes if previously undefined
+        if(!("x" %in% names(topographyGrid))) {
+            topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
+        }
+        if(!("y" %in% names(topographyGrid))) {
+            topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
+        }
+        ## Calculate fish grid
+        print('Calculate fish grid')
+        behaviorGrid = fish(params, topographyGrid)
 	
-	    ## Create/Load the Bathy grid for the area of interest
-	    topographyGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
-	            params$XDist, params$YDist, params$seriesName, debug)
-	    topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
-	    ## Convert parameter values from meters to number of grid cell 
-	    params = convertMetersToGrid(params,topographyGrid)
-	    ## Specify a standard scale of x and y axes if previously undefined
-	    if(!("x" %in% names(topographyGrid))) {
-			topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
-		}
-	    if(!("y" %in% names(topographyGrid))) {
-			topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
-		}
-	    ## Calculate fish grid
-	    behaviorGrid = fish(params, topographyGrid)
+        ## Find good sensor placements
+        sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, silent=silent, multi=multi)
 	
-	    ## Find good sensor placements
-	    sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, silent=silent, multi=multi)
-	
-	    ## Stat analysis of proposed setup.
-	    statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)
-		
-		## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
-		results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
-				"stats" = statDict, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
-		
-		if(save.inter) {
-			results$inter = sensors$inter
-		}
-		endTime = Sys.time()
-		results$runTime = endTime - startTime
-		
-		## Graph results and make data file.
-		results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
-		
-		return(results)
-		
-	}, error = function(e) {
-		print("Error")
-		print(e)
-		appendError(e, toString(params$timestamp))
-	}, finally = function(e){})
-	
-	# only params and errors should actually have values
-	results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
-			"stats" = statDict, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
-	
-	# writeFiles returns json and txt file locations
-	results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
-	print(results$filenames)
+        ## Stat analysis of proposed setup.
+        statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)
+        
+        ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
+        results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
+            "stats" = statDict, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
+        
+        if(save.inter) {
+            print("Saving intermediary calculations in key inter")
+            results$inter = sensors$inter
+        }
+        endTime = Sys.time()
+        results$runTime = endTime - startTime
+        
+        ## Graph results and make data file.
+        results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
+        print(names(results))
+        invisible(results)
+        
+    }, error = function(e) {
+        print("Error")
+        print(e)
+        appendError(e, toString(params$timestamp))
+    }, finally = function(e){}  )
+    
+    ## only params and errors should actually have values
+    results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, "stats" = statDict, "inter" = sensors$inter, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
+    
+    ## writeFiles returns json and txt file locations, but only if showPlots == FALSE
+    if(!showPlots) results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
+    ##print(results$filenames)
     ## Return results invisibly (don't print to screen if unassigned because they are usually very long)
     invisible(results)
 }
 
 #' @name acousticTest
 #' @title Executes a test run of the program, using default parameters.
-#' @description Executes a test run of the program, using default parameters.  No addFitional 
+#' @description Executes a test run of the program, using default parameters.  No additional 
 #' parameters are necessary. The code for this function can be used as a template for new projects.
 #' @param bias Determines whether to account for species behavior and/or detection shadows when designing network. Choose between bias 1 (behavior only), 2 (shadowing only) or 3 (behavior and shadowing).
-#' @param real If TRUE real topographical data are downloaded and used, if FALSE a made-up topography is used.
+#' @param real If TRUE real topographical data are DOWNLOADED (from ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip) and used for analysis, if FALSE a made-up topography is used.
 #' @param exact If TRUE use exact calculations (slow because goodness grid is updated with line of sight after each sensor placement), if FALSE use approximate calculations (faster).
-#' @param multi If TRUE use multicore package to speed up calculations, if FALSE don't.
+#' @param multi If TRUE use multicore package to speed up calculations, if FALSE don't. This is useful if your CPU has multiple cores, however it will probably slow down all other processes on your system.
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
+#' @param paper If TRUE runs analysis that is shown as example in the scientific paper describing this method. If exact=TRUE example 1 is run, otherwise example 2 is run. Note: to run these examples real topography must be downloaded. The user will be asked at runtime if this is OK.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param silent If set to TRUE, the program will not print status updates for LOS calculation (which may take a very long time).
 #' @return A dictionary of return objects, see ?acousticRun for all details.
 #' @export
-acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots=TRUE, silent=FALSE, debug=FALSE) {
+acousticTest <- function(bias=3, real=FALSE, exact=FALSE, multi=FALSE, showPlots=TRUE, paper=FALSE, silent=FALSE, debug=FALSE) {
 	acousticStatus <<- {}
 	#### TEST RUN
 	params = list()
-        
-	## Sensor variables
-	params$timestamp = 0
-	params$numSensors = 4
-	params$bias = bias
-	params$sensorElevation = 1
-	params$shapeFcn = 'shape.gauss'
-	params$peak = .98
-        params$detectionRange <- 20
-	
-	# topographyGrid Variables
-        if(real){
-            params$inputFile = "pal_dbmb.asc"
-            params$inputFileType = "asc"
+
+        if(paper){
+            params = list()
+            params$timestamp = 00
+            params$numSensors = 6
+            params$bias = 3
+            params$sensorElevation = 1
+            params$shapeFcn = "shape.gauss"
+            params$peak = 0.98
+            params$detectionRange <- 120
+            ##params$inputFile = "pal_dbmb.asc"
+            ##params$inputFileType = "asc"
+            params$inputFile = "pal_dbmb.RData"
+            params$inputFileType = "RData"
+            params$seriesName = 'bath'
             if(!file.exists(params$inputFile)){
-                print("Downloading real topography...")
-                dest <- 'Pal_IKONOS.zip'
-                download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
-                unzip(zipfile=dest)
+                answ <- readline('Did not find required topography file! do you want to download it? [y/n] ')
+                if(answ=='yes' | answ=='y' | answ=='Y'){
+                    print("Downloading real topography...")
+                    dest <- 'Pal_IKONOS.zip'
+                    download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
+                    unzip(zipfile=dest)
+                    filename = "pal_dbmb.asc"
+                    bath = loadASC(filename)
+                    save(bath,file=params$inputFile)
+                } else {
+                    stop('Stopping, cannot run paper examples without downloading real topography data!')
+                }
+            }
+            params$cellSize = 5 ## meters
+            ##params$maxsuppressionValue = 1
+            ##params$minsuppressionValue = 0.5
+            params$fishmodel <- "ou"
+            params$mux <- 0.5
+            params$muy <- 0.5
+            params$ousdx <- 300
+            params$ousdy <- 300
+            params$oucor <- 0
+            ## Example 1+2
+            params$startX = 290
+            params$XDist = 230
+            params$startY = 1125
+            params$YDist = 240
+            params$depth_off_bottom <- 0.5
+            params$depth_off_bottom_sd <- 1.5
+
+            if(exact){
+                ## --- Scenario 1 ---
+                cat("  Running paper scenario 1. (set exact=FALSE if you want to run scenario 2)\n")
+                cat("  \n")
+                params$suppressionFcn = "detection.function.exact"
+            } else {
+                ## --- Scenario 2 ---
+                cat("  Running paper scenario 2. (set exact=TRUE if you want to run scenario 1)\n")
+                params$suppressionRangeFactor = 3
+                params$suppressionFcn = "detection.function"
+            }
+        } else {
+            ## Sensor variables
+            params$timestamp = 0
+            params$numSensors = 4
+            params$bias = bias
+            params$sensorElevation = 1
+            params$shapeFcn = 'shape.gauss'
+            params$peak = .98
+            params$detectionRange <- 20
+            
+            ## topographyGrid Variables
+            if(real){
+                params$inputFile = "pal_dbmb.RData"
+                params$inputFileType = "RData"
+                params$seriesName = 'bath'
+                if(!file.exists(params$inputFile)){
+                    print("Downloading real topography...")
+                    dest <- 'Pal_IKONOS.zip'
+                    download.file(url='ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Pal_IKONOS.zip',destfile=dest)
+                    unzip(zipfile=dest)
+                    filename = "pal_dbmb.asc"
+                    bath = loadASC(filename)
+                    save(bath,file=params$inputFile)
+                }
+            }
+            params$cellSize = 5
+            params$startX = 290
+            params$XDist = 30
+            params$startY = 1125
+            params$YDist = 30
+            
+            ## Suppression Variables
+            if(exact){
+                params$suppressionFcn = "detection.function.exact"
+            } else {
+                params$suppressionRangeFactor = 1
+                params$suppressionFcn = "detection.function"
+            }
+
+            ## Behaviour variables
+            params$fishmodel <- 'ou'
+            params$mux <- .3 
+            params$muy <- .3 
+            params$ousdx <- 45
+            params$ousdy <- 45
+            params$oucor <- 0
+
+            ## Depth preference
+            if(real){
+                params$depth_off_bottom <- 3
+                params$depth_off_bottom_sd <- 3
             }
         }
-	params$cellSize = 5
-	params$startX = 290
-	params$XDist = 30
-	params$startY = 1125
-	params$YDist = 30
-	
-	## Suppression Variables
-        if(exact){
-            params$suppressionFcn = "detection.function.exact"
-        } else {
-            params$suppressionRangeFactor = 1
-            params$suppressionFcn = "detection.function"
-        }
-
-	## Behaviour variables
-	params$fishmodel <- 'ou'
-        params$mux <- .3 
-        params$muy <- .3 
-        params$ousdx <- 45
-        params$ousdy <- 45
-        params$oucor <- 0
-
-	## Depth preference
-        if(real){
-            params$depth_off_bottom <- 3
-            params$depth_off_bottom_sd <- 3
-        }
-
 	return(acousticRun(params=params, showPlots=showPlots, silent=silent, debug=debug, multi=multi))
 }
 
@@ -266,7 +342,6 @@ acousticTest <- function(bias=1, real=FALSE, exact=FALSE, multi=FALSE, showPlots
 #' @param msg The error message to print.
 #' @param time A timestamp to use as an identifier for associating related outputs.
 #' @return The error message that was passed in.
-#' @export
 appendError = function(msg, time) {
 	acousticErrors[toString(time)] <<- msg[1]
 	print(acousticErrors[toString(time)])

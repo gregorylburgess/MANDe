@@ -1,9 +1,6 @@
 #' @include src/ShapeFunctions.R
 source('src/ShapeFunctions.R')
 
-
-
-
 #' @name sensorFun
 #' @title Calls functions to generate a 'goodness' grid and choose sensor locations.
 #' @details Finds a "good" set of sensor placements for a given setup [topographyGrid, behaviorGrid, params].
@@ -46,61 +43,59 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     cols = dims[2]
     grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
-    # calculate the goodnessGrid
+    ## calculate the goodnessGrid
     print("Calculating initial goodness grid")
-	
-	save = FALSE
-	loadSave=FALSE
-	
-	if(loadSave) {
-		goodnessGrid =  as.matrix(read.table("test.txt"))
-		grids$goodnessGrid = goodnessGrid
-	}
-	
-	else {
-    grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
-    goodnessGrid = grids$goodnessGrid
-	}
-	
-	if (save) {
-		library(MASS)
-		write.matrix(goodnessGrid,file="test.txt") 
-	}
+    save = FALSE
+    loadSave=FALSE
+    if(loadSave) {
+        goodnessGrid =  as.matrix(read.table("test.txt"))
+        grids$goodnessGrid = goodnessGrid
+    }
+    else {
+        grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
+        goodnessGrid = grids$goodnessGrid
+    }
+    if (save) {
+        if (require(MASS)) {
+            write.matrix(goodnessGrid,file="test.txt")
+        } else {
+            printError('Could not load MASS package, please install using install.packages().', stop=stop)
+        }
+    }
 	
     if(save.inter) inter[[1]] = grids
 	
-	# place user-defined sensors, and down weigh them
-	if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
-		len = length(params$sensorList)
-		i = len
-		while(i > 0) {
-			print(paste("- Placing predefined sensor number", len-i+1, "of", len))
-			loc = params$sensorList[[i]]
-			# invert the incoming r/c values
-			placement = list(c=loc$r, r=loc$c)
-			grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug)
-			sensorList = c(sensorList, list(placement))
-			i = i - 1
-		}
-		
-	}
+    ## place user-defined sensors, and down weigh them
+    if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
+        len = length(params$sensorList)
+        i = len
+        while(i > 0) {
+            print(paste("- Placing predefined sensor number", len-i+1, "of", len))
+            loc = params$sensorList[[i]]
+            ## invert the incoming r/c values
+            placement = list(c=loc$r, r=loc$c)
+            grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug, multi=multi)
+            sensorList = c(sensorList, list(placement))
+            i = i - 1
+        }
+    }
 	
-    # for each sensor, find a good placement
-	i = numSensors
-	while(i > 0) {
-            print(paste("- Placing sensor number",numSensors-i+1,"of",numSensors))
-            if("depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)) print('Using depth preference ($depth_off_bottom and $depth_off_bottom_sd)')
+    ## for each sensor, find a good placement
+    i = numSensors
+    while(i > 0) {
+        print(paste("- Placing sensor number",numSensors-i+1,"of",numSensors))
+        if("depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)) print('Using depth preference ($depth_off_bottom and $depth_off_bottom_sd)')
 
-            ## find the max location 
-            maxLoc = which.max(grids$goodnessGrid)
-            ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
-            c = ceiling(maxLoc/rows)
-            r = (maxLoc %% rows)
-            if (r==0) {
-                r=rows
-            }
-            maxLoc = list(c=c,r=r)
-            ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
+        ## find the max location 
+        maxLoc = which.max(grids$goodnessGrid)
+        ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
+        c = ceiling(maxLoc/rows)
+        r = (maxLoc %% rows)
+        if (r==0) {
+            r=rows
+        }
+        maxLoc = list(c=c,r=r)
+        ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
         
         ## append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
@@ -240,35 +235,33 @@ goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALS
 	
     ##Fish
     if (bias == 1) {
-		if(debug) {
-			print("bias=1; Calling goodnessGrid.sumSimple")
-		}
+        if(debug) {
+            print("bias=1; Calling goodnessGrid.sumSimple")
+        }
         return(goodnessGrid.sumSimple.opt(grids, "behaviorGrid", params, debug=debug, silent=silent))
     }
     #Bathy
     else if (bias == 2) {
-		if(debug) {
-			print("bias=2; Calling goodnessGrid.sumBathy.opt")
-		}
-                if(multi) {
-                    require(multicore)
-                    return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
-                }else{
-                    return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
-                }
+        if(debug) {
+            print("bias=2; Calling goodnessGrid.sumBathy.opt")
+        }
+        if(multi) {
+            return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
+        }else{
+            return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
+        }
     }
-    #Combo
-	else if (bias == 3) {
+    ##Combo
+    else if (bias == 3) {
         ## Note goodnessGrid.sumBathy.opt also handles bias 3
-		if(debug) {
-			print("bias=3; Calling goodnessGrid.sumBathy.opt")
-		}
-                if(multi) {
-                    require(multicore)
-                    return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
-                }else{
-                    return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
-                }
+        if(debug) {
+            print("bias=3; Calling goodnessGrid.sumBathy.opt")
+        }
+        if(multi) {
+            return(goodnessGrid.sumBathy.multi(grids, params, debug=debug, silent=silent))
+        }else{
+            return(goodnessGrid.sumBathy.opt(grids, params, debug=debug, silent=silent))
+        }
     }
     else {
         stop("ERROR: Invalid Bias")
@@ -409,6 +402,9 @@ goodnessGrid.sumBathy.opt = function (grids, params, debug=FALSE, silent=FALSE) 
 #' @param silent If set to TRUE, turns off status printing.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
 goodnessGrid.sumBathy.multi = function (grids, params, debug=FALSE, silent=FALSE) {
+    if (!require(multicore)) {
+        printError('Could not load multicore package, please install using install.packages().', stop=stop)
+    }
     ## Open fifo progress file
     progfile <- fifo(tempfile(), open="w+b", blocking=T)
     if (inherits(fork(), "masterProcess")) {
@@ -705,37 +701,39 @@ suppress.opt = function(goodnessGrid, dims, loc, params, topographyGrid, debug=F
     }
     ## Use detection function variant
     if(dfflag){
-      ## Save a temporary copy of params
-      partmp = params
-      ## Alter the SD value such that the shape function uses the suppression SD and not the detection SD since the shape function looks for the sd key
-      partmp$sd = partmp$suppsd 
-      ## Detection fun suppression
-      supgrid2 = do.call(params$shapeFcn, list(dist, partmp))
-      ## If shadowing should be accounted for in the suppression
-      if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
-        ## Create a matrix where land cells have value TRUE
-        land = topographyGrid >= 0
-        ## Create the depth value of a sensor placed at loc
-        sensorDepth = topographyGrid[loc$r,loc$c] + params$sensorElevation
-        ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-        dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
-        ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, topographyGrid, land, sensorDepth, dpflag, params, debug)
-        ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
-        ## Initialize
-        testmap = matrix(0,rows,cols)
-        ## Insert values at correct indices
-        testmap[pctviz$linearIndex] = pctviz$percentVisibility
-        ## 100% detected in self cell
-        testmap[loc$r,loc$c] = 1
-        ## Copy relevant area to dgrid1
-        supgrid1 = testmap[rind,cind]
-        ## supgrid contains suppression values
-        supgrid = 1 - (supgrid1 * supgrid2)
-      }else{
-        ## supgrid contains suppression values
-        supgrid = 1 - supgrid2
-      }
+        ## Save a temporary copy of params
+        partmp = params
+        ## Alter the SD value such that the shape function uses the suppression SD and not the detection SD since the shape function looks for the sd key
+        partmp$sd = partmp$suppsd 
+        ## Detection fun suppression
+        beta = do.call(params$shapeFcn, list(dist, partmp))
+        ## If shadowing should be accounted for in the suppression
+        if(suppressionFcn=='detection.function.shadow' | suppressionFcn=='detection.function.exact'){
+            ## Create a matrix where land cells have value TRUE
+            land = topographyGrid >= 0
+            ## Create the depth value of a sensor placed at loc
+            sensorDepth = topographyGrid[loc$r,loc$c] + params$sensorElevation
+            ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+            dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
+            ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
+            pctviz = calc.percent.viz(loc$r, loc$c, rind, cind, topographyGrid, land, sensorDepth, dpflag, params, debug)
+            ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+            ## Initialize
+            testmap = matrix(0,rows,cols)
+            ## Insert values at correct indices
+            testmap[pctviz$linearIndex] = pctviz$percentVisibility
+            ## 100% detected in self cell
+            testmap[loc$r,loc$c] = 1
+            ## Copy relevant area
+            alpha = testmap[rind,cind]
+            ## supgrid contains suppression values
+            ## alpha accounts for signal blocking
+            ## beta accounts for horizontal detection function
+            supgrid = 1 - (alpha * beta)
+        }else{
+            ## supgrid contains suppression values
+            supgrid = 1 - beta
+        }
     }
     ## Do suppression at the relevant indices given by rind and cind
     goodnessGrid[rind,cind] = goodnessGrid[rind,cind] * supgrid
@@ -1063,7 +1061,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     if (grepl("Rcheck",getwd())) {
         setwd("..")
     }
-	shortRes = ""
+
     ## Write results to a text file
     filename = paste(path, "txt/", time, "-Results.txt", sep="")
     jsonFile = paste(path, "txt/", time, "-Results.json", sep="")
@@ -1081,7 +1079,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     ## Save in compressed R format (this should probably be save in a different folder, but will do for now)
     if (!showPlots) save('result',file=rdataFile)
     ## Save formatted text files with statistics
- 	shortRes =  paste(shortRes,'- Acoustic network design results, generated:',Sys.time(),'\n\n')
+    shortRes =  paste('- Acoustic network design results, generated:',Sys.time(),'\n\n')
     if (is.null(result$errors)) {
         params = result$params
 
@@ -1096,14 +1094,9 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         totaNumSensors = params$numSensors + length(params$sensorList) + params$projectedSensors
         sensors = result$stats$sensorMat
         ## smat translates relative coordinates to absoloute coordinates for the bathymetry file
-        smat = matrix(
-            		c(rep(params$startX, params$numSensors),
-             		rep( params$startY, params$numSensors)),
-           	  		totaNumSensors,
-              		2
-	  			  )
-        smat = smat + sensors
-
+        smat = sensors
+        smat[,1] = smat[,1] + params$startX
+        smat[,2] = smat[,2] + params$startY
         
         ## smat2 contains the running total of unique RR rounded to 5 decimal palces
         smat2 = round(result$stats$uniqRRs, 5)
@@ -1112,7 +1105,12 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         ## make a table of sensor data and print it to the shortResult file
         sensors = cbind(sensors, smat, smat2, smat3 )
         colnames(sensors) = c('loc_row', 'loc_col', 'glob_row', 'glob_col', 'Uniq_RR', 'd_Uniq_RR')
-        rownames(sensors) = paste(' Sensor_', 1:totaNumSensors, sep="")
+        rownamesSensors = paste(' Sensor_', 1:totaNumSensors, sep="")
+        if('userSensorList' %in% names(params)) {
+            for (kk in 1:params$numUserSensors) rownamesSensors[kk] = paste(rownamesSensors[kk],'predef')
+        }
+        rownames(sensors) = rownamesSensors
+        
         
         if (debug) {
             print("smat =")
@@ -1171,7 +1169,6 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
 #' @description In addition to the grid itself sensor locations are also plotted along
 #' with numbers indicating the order in which sensors were placed. Furthermore, bathymetry
 #' contours can be overlayed using the plot.bathy flag.
-#' 
 #' @param result A dictionary of return objects, the result of a successfull call to acousticRun().
 #' @param type Character specifying grid type. Available grids: 'topographyGrid', 'behaviorGrid', 'goodnessGrid', or 'coverageGrid'.
 #' @param main Set title of plot.
@@ -1182,12 +1179,14 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
 #' @param bcol Specifies the color of bathymetry contour lines.
 #' @param nlevels Specifies the number of bathymetry contour lines.
 #' @param drawlabels Specifies if bathymetry contour labels should be drawn.
+#' @param circles Specifies if circles at the 5\% detection probability should be drawn (TRUE/FALSE).
+#' @param circlty Specifies line type for the circles at the 5\% detection probability.
 #' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
 #' @export
-plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.bathy=TRUE,plot.sensors=TRUE,bcol=1,nlevels=5,drawlabels=TRUE,...){
+plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', plot.bathy=TRUE, plot.sensors=TRUE, bcol=1, nlevels=5, drawlabels=TRUE, circles=plot.sensors, circlty=3, ...){
     ## n is number of colors in palette
-    n = 24
+    n = 100
     col = heat.colors(n)
     if(type=='topographyGrid'){
         ##col = colorRampPalette(c("darkviolet","navy","white"))(n)
@@ -1195,19 +1194,23 @@ plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.
         grid = result$topographyGrid$topographyGrid
     }
     if(type=='behaviorGrid'){
-        col = colorRampPalette(c("white","lightseagreen","mediumvioletred"))(n)
+        ##col = colorRampPalette(c("white","lightseagreen","mediumvioletred"))(n)
+        col = colorRampPalette(c("white","aquamarine","hotpink"))(n)
         ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
         grid = result$behaviorGrid
     }
     if(type=='goodnessGrid'){
         ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
+        ##col = colorRampPalette(c("white","cadetblue", "gold", "deeppink"))(n)
+        col = colorRampPalette(c("white","cadetblue", "gold", "yellow", "deeppink"))(n)
+        ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$goodnessGrid
     }
     if(type=='coverageGrid'){
-        ##col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
-        col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
+        col = colorRampPalette(c("white","red", "yellow", "forestgreen"))(n)
+        ##col = colorRampPalette(c("white","black"))(n)
+        ##col = colorRampPalette(c("white","forestgreen","yellow","red"))(n)
         grid = result$stats$coverageGrid
     }
     ## Plot the actual grid as an image
@@ -1218,7 +1221,7 @@ plotGrid = function(result,type='topographyGrid',main=type,xlab='',ylab='',plot.
     }
     if(plot.sensors){
         ## Add sensors and their numbers
-        plotSensors(result)
+        plotSensors(result, circles=circles, circlty=circlty)
     }
 }
 
@@ -1272,7 +1275,7 @@ plotUniqueRR = function(result, debug=FALSE){
 #' @param circles If TRUE circles with radius equal to the detection range are drawn around sensors.
 #' @param circlty Line type for circles.
 #' @return Nothing.
-plotSensors = function(result,circles=TRUE,circlty=3){
+plotSensors = function(result,circles=TRUE,circlty=2){
   ns = dim(result$stats$sensorMat)[1]
   ##print("[plotSensors]")
   ##print("result$stats")
@@ -1443,7 +1446,9 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     ##print(uniqRRs)
     ##print(duniqRRs)
     ## Sort list so best sensors come first
-    srt = sort(duniqRRs,index=TRUE,decreasing=TRUE) 
+    ##srt = sort(duniqRRs,index=TRUE,decreasing=TRUE)
+    ## Turning off sorting
+    srt = list(ix=1:numSensors , x=duniqRRs)
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)
     ## Store the unsorted sensor list (this order may not have a decreasing value per sensor)
     ## That is, the sensor placed as say 10 may be better than sensor 9 (this can happen when
@@ -1461,10 +1466,13 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     distVec = rep(0,numSensors)
 	i = numProj
 	while(i > 0) {
-		k = numProj-i+1
-        dists = sqrt((topographyGrid$x[xSens[srt$ix[k]]]-topographyGrid$x[xSens[srt$ix[1:numSensors]]])^2 + (topographyGrid$y[ySens[srt$ix[k]]]-topographyGrid$y[ySens[srt$ix[1:numSensors]]])^2)
-        distVec[k] = min(dists[dists>0])
-		i = i - 1
+            k = numProj-i+1
+            ## Theres a bug somewhere in that x and y are swapped when indexing the topographyGrid!
+            diffx = topographyGrid$y[xSens[srt$ix[k]]]-topographyGrid$y[xSens[srt$ix[1:numSensors]]]
+            diffy = topographyGrid$x[ySens[srt$ix[k]]]-topographyGrid$x[ySens[srt$ix[1:numSensors]]]
+            dists = sqrt((diffx)^2 + (diffy)^2)
+            distVec[k] = min(dists[dists>0])
+            i = i - 1
     }
     ## a is the median of the distances between the receivers
     if(debug){
@@ -1497,13 +1505,16 @@ checkParams = function(params, stop=TRUE) {
 	## Cast all possible strings to numbers (JSON makes everything strings)
 	## Additionally, check for NA, NaN, +/-INF values.
 	for (name in names) {
-		if(!is.na(suppressWarnings(as.numeric(params[name])))) {
-			if(!is.finite(as.numeric(params[name]))) {
-				printError(sprintf("Found NA, NaN, or +/-INF values in %s.", name), stop=stop)
-			}
-			params[name] = as.numeric(params[name])
-		}
+            tmp <- suppressWarnings(as.numeric(params[[name]]))
+            if(!all(is.na(tmp))) {
+                if(!all(is.finite(tmp))) {
+                    printError(sprintf("Found NA, NaN, or +/-INF values in %s.", name), stop=stop)
+                }
+                ##params[name] = as.numeric(unlist(params[name]))
+                params[[name]] = tmp
+            }
 	}
+    
 	# timestamp
 	if(!('timestamp' %in% names)) {
 		params$timestamp = 0
@@ -1583,9 +1594,10 @@ checkParams = function(params, stop=TRUE) {
 			i = i - 1
 		}
 		params$sensorList = points
+		params$numUserSensors = length(points)
 		
 		# if not enough sensors were specified, throw an error!
-		if((params$numSensors + length(points) + params$projectedSensors  <= 1)) {
+		if((params$numSensors + params$numUserSensors + params$projectedSensors  <= 1)) {
 			printError("Please specify/allow the program to place/project a total of at least two sensors.", stop)
 		}
 	}
@@ -1796,19 +1808,32 @@ checkParams = function(params, stop=TRUE) {
 			}
 			#validation for ou vars
 			else {
-				#mux, muy must be porportions of the x/y axis, between 0 and 1)
-				checkForMin('mux', params$mux, 0, stop)
-				checkForMin('muy', params$muy, 0, stop)
-				checkForMax('mux', params$mux, 1, stop)
-				checkForMax('muy', params$muy, 1, stop)
-				
-				#ousdx and ousdy need only be non negative
-				checkForMin('ousdx', params$ousdx, 0, stop)
-				checkForMin('ousdy', params$ousdy, 0, stop)
-				
-				# -1 < oucor < 1
-				checkForMin('oucor', params$oucor, -1, stop)
-				checkForMax('oucor', params$oucor, 1, stop)
+                                lengths <- c(length(params$mux),length(params$muy),length(params$ousdx),length(params$ousdy),length(params$oucor))
+                                if(all(lengths==1 | lengths==max(lengths))){
+                                    ## Repeat the parameters that are scalar to become vectors
+                                    if(lengths[1]==1) params$mux <- rep(params$mux,max(lengths))
+                                    if(lengths[2]==1) params$muy <- rep(params$muy,max(lengths))
+                                    if(lengths[3]==1) params$ousdx <- rep(params$ousdx,max(lengths))
+                                    if(lengths[4]==1) params$ousdy <- rep(params$ousdy,max(lengths))
+                                    if(lengths[5]==1) params$oucor <- rep(params$oucor,max(lengths))
+                                    for(i in 1:max(lengths)){
+                                        ##mux, muy must be proportions of the x/y axis, between 0 and 1)
+                                        checkForMin('mux', params$mux[i], 0, stop)
+                                        checkForMin('muy', params$muy[i], 0, stop)
+                                        checkForMax('mux', params$mux[i], 1, stop)
+                                        checkForMax('muy', params$muy[i], 1, stop)
+                                        
+                                        ##ousdx and ousdy need only be non negative
+                                        checkForMin('ousdx', params$ousdx[i], 0, stop)
+                                        checkForMin('ousdy', params$ousdy[i], 0, stop)
+                                        
+                                        ## -1 < oucor < 1
+                                        checkForMin('oucor', params$oucor[i], -1, stop)
+                                        checkForMax('oucor', params$oucor[i], 1, stop)
+                                    }
+                            } else {
+                                printError("OU model variable vectors should either be length 1 or equal to number of centers, currently they are not!")
+                            }
 			}
 		}
 		else if(params$fishmodel == "False" | params$fishmodel == "rw") {

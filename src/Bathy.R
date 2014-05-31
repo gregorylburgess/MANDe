@@ -21,22 +21,31 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 			if(startX < 1 || startY < 1) {
 				printError("topographyGrid x and y coordinates must be integers greater than 0.", timestamp)
 			}
-            if(inputFileType == "netcdf" && require(ncdf)){
-                library(ncdf)
-                ## open the netCDF file
-                ncdfObj = open.ncdf(inputFile)
+            if (inputFileType == "netcdf") {
+                if (require(ncdf)) {
+                    ##library(ncdf)
+                    ## open the netCDF file
+                    ncdfObj = open.ncdf(inputFile)
 				#print(summary(ncdfObj))
-                ## grab a slice (in grid form)
-                topographyGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
+                    ## grab a slice (in grid form)
+                    topographyGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
+                } else {
+                    printError('Could not load ncdf package required to load netcdf files, please install the package using install.packages().', stop=stop)
+                }
 	    }
-   	    else if(inputFileType == "arcgis" && require(sp) && require(rgdal) && require(raster)){
-                library(sp)
-                library(raster)
-                library(rgdal)
-                ## For an arc/grid inputFile is the folder!:
-                topographyGrid = raster(inputFile)
+   	    ##else if(inputFileType == "arcgis" && require(sp) && require(rgdal) && require(raster)){
+            else if(inputFileType == "arcgis"){
+                if (require(raster)) {
+                    ##library(sp)
+                    ##library(raster)
+                    ##library(rgdal)
+                    ## For an arc/grid inputFile is the folder!:
+                    topographyGrid = raster(inputFile)
 				dims = dim(topographyGrid)
 				topographyGrid = topographyGrid[1:dims[1],1:dims[2]]
+                } else {
+                    printError('Could not load raster package required to load arcgis files, please install the package using install.packages().', stop=stop)
+                }
             }
 	    #else if(inputFileType == "asc") {
         #        bath = loadASC(inputFile)
