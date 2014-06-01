@@ -11,7 +11,7 @@
 				</Options>
 			</Field>
 			<Field id="north" label="Northern Grid Boundary" type="text" locked="true" toolTip="The Northern Latitude boundary for your study area in Decimal Degrees.">
-				21.76
+				21.78
 			</Field>
 			<Field id="south" label="Southern Grid Boundary" type="text" locked="true" toolTip="The Southern Latitude boundary for your study area in Decimal Degrees.">
 				21.13
@@ -20,7 +20,7 @@
 				-158.39
 			</Field>
 			<Field id="east" label="Eastern Grid Boundary" type="text" locked="true" toolTip="The Eastern Longitude boundary for your study area in Decimal Degrees.">
-				-157.7
+				-157.55
 			</Field>
 			
 			
@@ -115,10 +115,10 @@
 
 			</Field>
 			<Field id="numSensors" label="Number of Sensors to Use" type="text" toolTip="The number of sensors the system should place optimally.">
-				2
+				20
 			</Field>
 			<Field id="projectedSensors" label="Number of Sensors to Project" type="text" toolTip="The number of theoretical sensors to be placed by the system.  These sensors will be placed in addition to any sensors specified above.  This option lets you see what adding more sensors to your setup does to your recovery rate.">
-				1
+				10
 			</Field>
 			<Field id="bias" label="'Goodness' Algorithm" type="select" toolTip="Specifies how the program determines the goodness of a cell.  A value of 1 bases goodness on fish presence, regardless of bathymetry.  A value of 2 bases goodness on bathymetric visibility, regardless of fish presence  A value of 3 bases goodness on the number of visible fish (both fish habitat and bathymetry are considered).">
 				<Options>

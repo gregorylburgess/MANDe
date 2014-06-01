@@ -493,7 +493,11 @@
 		
 		if(!err) {
 			toRet += "</br><h1>Results:</h1>";
-
+			for(var key in filenames) {
+				if(filenames[key].indexOf(".zip") != -1) {
+					toRet += "</br></br></br><a href=\"../" + filenames[key] + "\" style=\"color:red;\"><h2>Download a zipped copy of all results<h2></a>";
+				}
+			}
 			//Parse sensor boundary values
 			var south = params["south"];
 			var west = params["west"];
