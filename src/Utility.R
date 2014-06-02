@@ -1225,7 +1225,29 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
         grid = result$stats$coverageGrid
     }
     ## Plot the actual grid as an image
-    image(result$topographyGrid$x,result$topographyGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col,...)
+    image(result$topographyGrid$x, result$topographyGrid$y, grid, xlab=xlab, ylab=ylab, col=col,...)
+    xmain <- par('usr')[1]
+    ymain <- par('usr')[4]
+    par(xpd=TRUE)
+    ## Title
+    text(xmain, ymain, main, pos=3, cex=1.2, font=2, offset=2)
+
+    ## Plot colorbar
+    nbar <- n
+    barwidth <- 0.25*diff(par('usr')[1:2])
+    barheight <- 0.03*diff(par('usr')[3:4])
+    dbw <- barwidth/(nbar)
+    barx <- par('usr')[2] - 0.02*diff(par('usr')[1:2])
+    bary <- par('usr')[4] + 0.02*diff(par('usr')[3:4])
+    for(i in 1:nbar){
+        xst <- barx - barwidth + (i-1)*dbw
+        rect(xst, bary, xst+dbw, bary+barheight, col=col[i],lty=0)
+    }
+    text(barx, bary+barheight, labels='High', pos=3, cex=0.9)
+    text(barx-barwidth, bary+barheight, labels='Low', pos=3, cex=0.9)
+    rect(barx-barwidth, bary, barx, bary+barheight)
+    par(xpd=FALSE)
+    
     if(plot.bathy) {
         ## Add bathymetry contour
         contour(result$topographyGrid$x,result$topographyGrid$y,result$topographyGrid$topographyGrid,add=TRUE,col=bcol,nlevels=nlevels,drawlabels=drawlabels)
@@ -1234,6 +1256,7 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
         ## Add sensors and their numbers
         plotSensors(result, circles=circles, circlty=circlty)
     }
+    box()
 }
 
 
@@ -1288,7 +1311,7 @@ plotUniqueRR = function(result, debug=FALSE){
     ## Make two way plot
     ## TOP PLOT
     par(plt = c(0.16,0.92,0.52,0.92),las = 1,cex.axis = 0.9,xpd=FALSE)
-    plot(0:ns,c(0,result$stats$uniqRRs[1:ns]), typ='n', xlab='', ylab='', xaxt='n', ylim=c(0,ymax), xlim=c(0,nsmax))
+    plot(0:ns,c(0,result$stats$uniqRRs[1:ns]), typ='n', xlab='', ylab='Unique recovery rate', xaxt='n', ylim=c(0,ymax), xlim=c(0,nsmax))
     if(preflag){
         lines(0:length(preinds), c(0,result$stats$uniqRRs[preinds]), col='gray')
         lines(c(placedinds[1]-1,placedinds), result$stats$uniqRRs[c(placedinds[1]-1,placedinds)], col='blue')
@@ -1349,6 +1372,10 @@ plotSensors = function(result,circles=TRUE,circlty=2){
   ##print(dim(result$sensorMat))
   ##print("ns")
   ##print(ns)
+  plotheight <- diff(par('usr')[3:4])
+  plotwidth <- diff(par('usr')[1:2])
+  plotleft <- par('usr')[1]
+  plottop <- par('usr')[4]
  
   ## Radius of circle
   r = result$params$detectionRange
@@ -1360,15 +1387,20 @@ plotSensors = function(result,circles=TRUE,circlty=2){
   sensy = result$topographyGrid$y[result$stats$sensorMat[1:ns, 1]]
   ## Plot sensor range as circles
   if(circles){
-	i = ns
-    while(i > 0){
-      X = r*cos(a) + sensx[ns-i+1]
-      Y = r*sin(a) + sensy[ns-i+1]
-      lines(X,Y,lty=circlty)
+      i = ns
+      while(i > 0){
+          X = r*cos(a) + sensx[ns-i+1]
+          Y = r*sin(a) + sensy[ns-i+1]
+          lines(X,Y,lty=circlty)
 	  i = i - 1
-    }
+      }
+      ## Circle legend
+      par(xpd=TRUE)
+      lines(c(plotleft+0.7*plotwidth, plotleft+0.75*plotwidth), rep(plottop+0.13*plotheight,2), lty=circlty)
+      text(plotleft+0.75*plotwidth, plottop+0.13*plotheight, paste(result$params$detectionRange,'m detection range'), pos=4, cex=0.9)
   }
 
+  par(xpd=TRUE)
   params <- result$params
   # Default if no user (pre)defined sensors
   preinds <- 0
@@ -1378,6 +1410,8 @@ plotSensors = function(result,circles=TRUE,circlty=2){
               preinds <- 1:params$numUserSensors
               points(sensx[preinds], sensy[preinds], pch=21, bg='gray', cex=3)
               text(sensx[preinds], sensy[preinds], preinds, col='black')
+              points(plotleft+0.4*plotwidth, plottop+0.12*plotheight, pch=21, bg='gray', cex=2.5)
+              text(plotleft+0.4*plotwidth, plottop+0.12*plotheight, 'User-defined', pos=4, cex=0.9, offset=0.7)
           }
       }
   }
@@ -1385,16 +1419,20 @@ plotSensors = function(result,circles=TRUE,circlty=2){
   ## Plot optimally placed sensors
   points(sensx[placedinds], sensy[placedinds], pch=21, bg='blue', cex=3)
   text(sensx[placedinds], sensy[placedinds], placedinds, col='white')
+  points(plotleft+0.4*plotwidth, plottop+0.08*plotheight, pch=21, bg='blue', cex=2.5)
+  text(plotleft+0.4*plotwidth, plottop+0.08*plotheight, 'Optimally placed', pos=4, cex=0.9, offset=0.7)
   
   if('projectedSensors' %in% names(params)) {
       if(params$projectedSensors>0){
           kstart <- params$numSensors + length(params$sensorList)
           projinds <- (kstart+1):(kstart+params$projectedSensors)
           points(sensx[projinds], sensy[projinds], pch=21, bg='green', cex=3)
-          text(sensx[projinds], sensy[projinds], projinds, col='blue')
+          text(sensx[projinds], sensy[projinds], projinds, col='black')
+          points(plotleft+0.4*plotwidth, plottop+0.04*plotheight, pch=21, bg='green', cex=2.5)
+          text(plotleft+0.4*plotwidth, plottop+0.04*plotheight, 'Projected', pos=4, cex=0.9, offset=0.7)
       }
   }
-
+  par(xpd=FALSE)
 }
 
 
