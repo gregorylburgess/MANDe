@@ -184,7 +184,8 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
         results$runTime = endTime - startTime
         
         ## Graph results and make data file.
-        results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
+        filenames = graph(results,params,showPlots=showPlots, debug=debug)
+		results$filenames = filenames
         print(names(results))
         invisible(results)
         
