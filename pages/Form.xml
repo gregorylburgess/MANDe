@@ -151,6 +151,7 @@
 			</Field>
 			<Field id="suppressionFcn"  label="Suppression Function"  type="select"  toolTip="The suppression function to use.  suppression.static will simply replace all cells within the suppression range by a static value.  suppression.scale will apply a gradient with a higher penalty near the center, and a lower penalty towards the edge.">
 				<Options>
+					<Option label="detection.function">detection.function</Option>
 					<Option label="suppression.scale">suppression.scale</Option>
 					<Option label="suppression.static">suppression.static</Option>
 				</Options>
