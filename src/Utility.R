@@ -1092,6 +1092,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         shortRes = paste(shortRes,'Run time:', round(as.numeric(result$runTime, units='mins'), 2),'mins\n')
         
         totaNumSensors = params$numSensors + length(params$sensorList) + params$projectedSensors
+        
         sensors = result$stats$sensorMat
         ## smat translates relative coordinates to absoloute coordinates for the bathymetry file
         smat = sensors
@@ -1107,7 +1108,17 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         colnames(sensors) = c('loc_row', 'loc_col', 'glob_row', 'glob_col', 'Uniq_RR', 'd_Uniq_RR')
         rownamesSensors = paste(' Sensor_', 1:totaNumSensors, sep="")
         if('userSensorList' %in% names(params)) {
-            for (kk in 1:params$numUserSensors) rownamesSensors[kk] = paste(rownamesSensors[kk],'predef')
+            if('numUserSensors' %in% names(params)) {
+                if(params$numUserSensors>0){
+                    for (kk in 1:params$numUserSensors) rownamesSensors[kk] = paste(rownamesSensors[kk],'predef')
+                }
+            }
+        }
+        if('projectedSensors' %in% names(params)) {
+            if(params$projectedSensors>0){
+                kstart <- params$numSensors + length(params$sensorList)
+                for (kk in 1:params$projectedSensors) rownamesSensors[kstart+kk] = paste(rownamesSensors[kstart+kk],'projected')
+            }
         }
         rownames(sensors) = rownamesSensors
         
@@ -1214,7 +1225,29 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
         grid = result$stats$coverageGrid
     }
     ## Plot the actual grid as an image
-    image(result$topographyGrid$x,result$topographyGrid$y,grid,main=main,xlab=xlab,ylab=ylab,col=col,...)
+    image(result$topographyGrid$x, result$topographyGrid$y, grid, xlab=xlab, ylab=ylab, col=col,...)
+    xmain <- par('usr')[1]
+    ymain <- par('usr')[4]
+    par(xpd=TRUE)
+    ## Title
+    text(xmain, ymain, main, pos=3, cex=1.2, font=2, offset=2)
+
+    ## Plot colorbar
+    nbar <- n
+    barwidth <- 0.25*diff(par('usr')[1:2])
+    barheight <- 0.03*diff(par('usr')[3:4])
+    dbw <- barwidth/(nbar)
+    barx <- par('usr')[2] - 0.02*diff(par('usr')[1:2])
+    bary <- par('usr')[4] + 0.02*diff(par('usr')[3:4])
+    for(i in 1:nbar){
+        xst <- barx - barwidth + (i-1)*dbw
+        rect(xst, bary, xst+dbw, bary+barheight, col=col[i],lty=0)
+    }
+    text(barx, bary+barheight, labels='High', pos=3, cex=0.9)
+    text(barx-barwidth, bary+barheight, labels='Low', pos=3, cex=0.9)
+    rect(barx-barwidth, bary, barx, bary+barheight)
+    par(xpd=FALSE)
+    
     if(plot.bathy) {
         ## Add bathymetry contour
         contour(result$topographyGrid$x,result$topographyGrid$y,result$topographyGrid$topographyGrid,add=TRUE,col=bcol,nlevels=nlevels,drawlabels=drawlabels)
@@ -1223,6 +1256,7 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
         ## Add sensors and their numbers
         plotSensors(result, circles=circles, circlty=circlty)
     }
+    box()
 }
 
 
@@ -1236,9 +1270,9 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Nothing.
 plotUniqueRR = function(result, debug=FALSE){
-	if(debug) {
-		print("[plotUniqueRR]")
-	}
+    if(debug) {
+        print("[plotUniqueRR]")
+    }
     ## Find number of placed sensors
     ns = length(result$sensors)
 	##print(result$sensors)
@@ -1249,21 +1283,71 @@ plotUniqueRR = function(result, debug=FALSE){
     ## It looks good to show 1 as the max y val, but only if we are relatively close (above 0.7)
     ##ymax = ifelse(max(result$stats$uniqRRs)>0.7,1.1,max(result$stats$uniqRRs)+0.2)
     ymax = max(result$stats$uniqRRs)+0.2
+
+    params <- result$params
+    ## Default if no user (pre)defined sensors
+    preflag <- FALSE
+    preinds <- 0
+    if('userSensorList' %in% names(params)) {
+        if('numUserSensors' %in% names(params)) {
+            if(params$numUserSensors>0){
+                preinds <- 1:params$numUserSensors
+                preflag <- TRUE
+            }
+        }
+    }
+    
+    placedinds <- (tail(preinds, 1)+1):((tail(preinds, 1))+params$numSensors)
+
+    projflag <- FALSE
+    if('projectedSensors' %in% names(params)) {
+        if(params$projectedSensors>0){
+            kstart <- params$numSensors + length(params$sensorList)
+            projinds <- (kstart+1):(kstart+params$projectedSensors)
+            projflag <- TRUE
+        }
+    }
+    
     ## Make two way plot
-    par(mfrow=c(2,1),las=1)
     ## TOP PLOT
-    plot(0:ns,c(0,result$stats$uniqRRs[1:ns]),typ='l',xlab='Number of sensors',ylab='Unique recovery rate',ylim=c(0,ymax),xlim=c(0,nsmax))
-    points(0:ns,c(0,result$stats$uniqRRs[1:ns]),pch=46,cex=3)
-    lines(ns:length(result$stats$uniqRRs),result$stats$uniqRRs[ns:nsmax],lty=2)
+    par(plt = c(0.16,0.92,0.52,0.92),las = 1,cex.axis = 0.9,xpd=FALSE)
+    plot(0:ns,c(0,result$stats$uniqRRs[1:ns]), typ='n', xlab='', ylab='Unique recovery rate', xaxt='n', ylim=c(0,ymax), xlim=c(0,nsmax))
+    if(preflag){
+        lines(0:length(preinds), c(0,result$stats$uniqRRs[preinds]), col='gray')
+        lines(c(placedinds[1]-1,placedinds), result$stats$uniqRRs[c(placedinds[1]-1,placedinds)], col='blue')
+    } else {
+        lines(c(0, placedinds), c(0, result$stats$uniqRRs[placedinds]), col='blue')
+    }
+    if(projflag) lines(c(projinds[1]-1, projinds), result$stats$uniqRRs[c(projinds[1]-1,projinds)], col='green')
+    points(0:length(result$stats$uniqRRs), c(0,result$stats$uniqRRs),pch=46,cex=3)
     plotIntersect(ns,result$stats$uniqRecoveryRate,col='orange',lty=1)
     grid()
     text(0.05*length(result$stats$uniqRRs),result$stats$uniqRecoveryRate,round(result$stats$uniqRecoveryRate,digits=4),pos=3)
-    ##legend('bottomright',c('Calculated','Requested','Projected'),lty=c(1,1,2),col=c(1,'orange',1),bg='white')
-    duRR = diff(c(0,result$stats$uniqRRs))
+    if(preflag & projflag){
+        legend('topleft', c('User-defined','Optimally placed','Projected'), lty=c(1,1,1), col=c('gray','blue','green'), bg='white', cex=0.85)
+    }
+    if(preflag & !projflag){
+        legend('topleft', c('User-defined','Optimally placed'), lty=c(1,1), col=c('gray','blue'), bg='white', cex=0.85)
+    }
+    if(!preflag & projflag){
+        legend('topleft', c('Optimally placed','Projected'), lty=c(1,1), col=c('blue','green'), bg='white', cex=0.85)
+    }
+    if(!preflag & !projflag){
+        legend('topleft', c('Optimally placed'), lty=c(1), col=c('blue'), bg='white', cex=0.85)
+    }
+
     ## BOTTOM PLOT
-    plot(1:ns,duRR[1:ns],typ='l',xlab='Number of sensors',ylab='Increase in unique RR',ylim=c(0,max(duRR)),xlim=c(0,nsmax))
-    points(1:ns,duRR[1:ns],pch=46,cex=3)
-    lines(ns:nsmax,duRR[ns:nsmax],lty=2)
+    par(new = "TRUE",plt = c(0.16,0.92,0.15,0.52),las = 1,cex.axis = 0.9,xpd=FALSE)
+    duRR = diff(c(0,result$stats$uniqRRs))
+    plot(1:ns,duRR[1:ns],typ='n',xlab='Number of sensors',ylab='Increase in unique RR',ylim=c(0,1.4*max(duRR)),xlim=c(0,nsmax))
+    if(preflag){
+        lines(preinds, duRR[preinds], col='gray')
+        lines(c(placedinds[1]-1,placedinds), duRR[c(placedinds[1]-1,placedinds)], col='blue')
+    } else {
+        lines(placedinds, duRR[placedinds], col='blue')
+    }
+    if(projflag) lines(c(projinds[1]-1, projinds), duRR[c(projinds[1]-1,projinds)], col='green')    
+    points(1:length(result$stats$uniqRRs),duRR[1:length(result$stats$uniqRRs)],pch=46,cex=3)
     grid()
 }
 
@@ -1288,6 +1372,11 @@ plotSensors = function(result,circles=TRUE,circlty=2){
   ##print(dim(result$sensorMat))
   ##print("ns")
   ##print(ns)
+  plotheight <- diff(par('usr')[3:4])
+  plotwidth <- diff(par('usr')[1:2])
+  plotleft <- par('usr')[1]
+  plottop <- par('usr')[4]
+ 
   ## Radius of circle
   r = result$params$detectionRange
   ## Radian values for a full circle
@@ -1298,17 +1387,52 @@ plotSensors = function(result,circles=TRUE,circlty=2){
   sensy = result$topographyGrid$y[result$stats$sensorMat[1:ns, 1]]
   ## Plot sensor range as circles
   if(circles){
-	i = ns
-    while(i > 0){
-      X = r*cos(a) + sensx[ns-i+1]
-      Y = r*sin(a) + sensy[ns-i+1]
-      lines(X,Y,lty=circlty)
+      i = ns
+      while(i > 0){
+          X = r*cos(a) + sensx[ns-i+1]
+          Y = r*sin(a) + sensy[ns-i+1]
+          lines(X,Y,lty=circlty)
 	  i = i - 1
-    }
+      }
+      ## Circle legend
+      par(xpd=TRUE)
+      lines(c(plotleft+0.7*plotwidth, plotleft+0.75*plotwidth), rep(plottop+0.13*plotheight,2), lty=circlty)
+      text(plotleft+0.75*plotwidth, plottop+0.13*plotheight, paste(result$params$detectionRange,'m detection range'), pos=4, cex=0.9)
   }
-  ## Plot sensor locations
-  points(sensx,sensy,pch=21,bg='blue',cex=3)
-  text(sensx,sensy,1:ns,col='white')
+
+  par(xpd=TRUE)
+  params <- result$params
+  # Default if no user (pre)defined sensors
+  preinds <- 0
+  if('userSensorList' %in% names(params)) {
+      if('numUserSensors' %in% names(params)) {
+          if(params$numUserSensors>0){
+              preinds <- 1:params$numUserSensors
+              points(sensx[preinds], sensy[preinds], pch=21, bg='gray', cex=3)
+              text(sensx[preinds], sensy[preinds], preinds, col='black')
+              points(plotleft+0.4*plotwidth, plottop+0.12*plotheight, pch=21, bg='gray', cex=2.5)
+              text(plotleft+0.4*plotwidth, plottop+0.12*plotheight, 'User-defined', pos=4, cex=0.9, offset=0.7)
+          }
+      }
+  }
+  placedinds <- (tail(preinds, 1)+1):((tail(preinds, 1))+params$numSensors)
+  ## Plot optimally placed sensors
+  points(sensx[placedinds], sensy[placedinds], pch=21, bg='blue', cex=3)
+  text(sensx[placedinds], sensy[placedinds], placedinds, col='white')
+  points(plotleft+0.4*plotwidth, plottop+0.08*plotheight, pch=21, bg='blue', cex=2.5)
+  text(plotleft+0.4*plotwidth, plottop+0.08*plotheight, 'Optimally placed', pos=4, cex=0.9, offset=0.7)
+  
+  if('projectedSensors' %in% names(params)) {
+      if(params$projectedSensors>0){
+          kstart <- params$numSensors + length(params$sensorList)
+          projinds <- (kstart+1):(kstart+params$projectedSensors)
+          points(sensx[projinds], sensy[projinds], pch=21, bg='green', cex=3)
+          text(sensx[projinds], sensy[projinds], projinds, col='black')
+          points(plotleft+0.4*plotwidth, plottop+0.04*plotheight, pch=21, bg='green', cex=2.5)
+          text(plotleft+0.4*plotwidth, plottop+0.04*plotheight, 'Projected', pos=4, cex=0.9, offset=0.7)
+      }
+  }
+  par(xpd=FALSE)
 }
 
 
@@ -1326,9 +1450,9 @@ plotSensors = function(result,circles=TRUE,circlty=2){
 #' @return A dictionary (list) of statistical values containing the keys: "delta", "sensorMat"         
 #' "uniqRRs", "coverageGrid", "absRecoveryRate", "uniqRecoveryRate".
 getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) {
-	if(debug) {
-		print("[getstats]")
-	}
+    if(debug) {
+        print("[getstats]")
+    }
     statDict = list()
     ## Number of requested sensors
     numSensors = length(sensors$sensorList)
@@ -1342,34 +1466,34 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     goodnessGridSupp = sensors$goodnessGridSupp
     sensorList = sensors$sensorList
     ## Calculate locations of projected sensors
-	numProjected = params$projectedSensors
-	i = numProjected
+    numProjected = params$projectedSensors
+    i = numProjected
     while (i > 0) { 
-	  print(paste("Projecting sensor number",numProjected-i+1,"of",numProjected))    
-      ## find the max location 
-      maxLoc = which.max(goodnessGridSupp)
-      ## Switch the row/col vals since R references Grid coords differently
-      c=ceiling(maxLoc/rows)
-      r=(maxLoc %% rows)
-      if (r==0) {
-        r=rows
-      }
-      maxLoc = list(c=c,r=r)
-      ## append maxLoc to the sensor list.
-      sensorList = c(sensorList, list(maxLoc))
-      ## down-weigh all near-by cells to discourage them from being chosen by the program
-      goodnessGridSupp = suppress.opt(goodnessGridSupp, dim(behaviorGrid), maxLoc, params, topographyGrid$topographyGrid, debug)
-	  i = i - 1
+        print(paste("Projecting sensor number",numProjected-i+1,"of",numProjected))    
+        ## find the max location 
+        maxLoc = which.max(goodnessGridSupp)
+        ## Switch the row/col vals since R references Grid coords differently
+        c=ceiling(maxLoc/rows)
+        r=(maxLoc %% rows)
+        if (r==0) {
+            r=rows
+        }
+        maxLoc = list(c=c,r=r)
+        ## append maxLoc to the sensor list.
+        sensorList = c(sensorList, list(maxLoc))
+        ## down-weigh all near-by cells to discourage them from being chosen by the program
+        goodnessGridSupp = suppress.opt(goodnessGridSupp, dim(behaviorGrid), maxLoc, params, topographyGrid$topographyGrid, debug)
+        i = i - 1
     }
 
     xSens = rep(0,numProj)
     ySens = rep(0,numProj)
-	i = numProj
+    i = numProj
     while(i > 0){ 
-		k = numProj-i+1
+        k = numProj-i+1
         xSens[k] = sensorList[[k]]$c
         ySens[k] = sensorList[[k]]$r
-		i = i - 1
+        i = i - 1
     }
     
     ## Distance maps (the distance from any grid cell to a receiver)
@@ -1378,60 +1502,60 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     X = matrix(rep(1:cols,rows),rows,cols,byrow=TRUE)
     Y = matrix(rep(1:rows,cols),rows,cols,byrow=FALSE)
     dimap = array(0,dim=c(rows,cols,numProj))
-	i = numProj
+    i = numProj
     while(i > 0) {
-		k = numProj-i+1
-		## Distance to receiver
-		dimap[,,k] = sqrt( (X-xSens[k])^2 + (Y-ySens[k])^2 )
-		i = i - 1
-	}
+        k = numProj-i+1
+        ## Distance to receiver
+        dimap[,,k] = sqrt( (X-xSens[k])^2 + (Y-ySens[k])^2 )
+        i = i - 1
+    }
     
     ## Horizontal detection maps using detection function
     demap = array(0,dim=c(rows,cols,numProj))
-	i = numProj
-	while(i > 0) {
-		k = numProj-i+1
-		demap[,,k] = do.call(params$shapeFcn, list(dimap[,,k], params))
-		i = i - 1
-	} 
+    i = numProj
+    while(i > 0) {
+        k = numProj-i+1
+        demap[,,k] = do.call(params$shapeFcn, list(dimap[,,k], params))
+        i = i - 1
+    } 
 
     ## Incorporate vertical detection probability using line of sight
     if(params$bias!=1){
-      bG = topographyGrid$topographyGrid
-      ## Create a matrix where land cells have value TRUE
-      land = bG >= 0
-      ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
-      sensorDepth = bG + params$sensorElevation
-      ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
-      dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
-      i = numProj
-      while(i > 0) {
-          k = numProj-i+1
-          r = ySens[k]
-          c = xSens[k]
-        cind = max(c(1,c-rng)):min(c(cols,c+rng))
-        rind = max(c(1,r-rng)):min(c(rows,r+rng))
-        ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
-        pctviz = calc.percent.viz(ySens[k], xSens[k], rind, cind, bG, land, sensorDepth[ySens[k], xSens[k]], dpflag, params, debug)
-        ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
-        ## Initialize
-        testmap = matrix(0,rows,cols)
-        ## Insert values at correct indices
-        testmap[pctviz$linearIndex] = pctviz$percentVisibility
-        ## 100% detected in self cell
-        testmap[r,c] = 1
-        ## Update demap (detection map)
-        demap[,,k] = demap[,,k] * testmap
-		i = i - 1
-      }
+        bG = topographyGrid$topographyGrid
+        ## Create a matrix where land cells have value TRUE
+        land = bG >= 0
+        ## Calculate a matrix containing the depth values of a sensor placed in each grid cell
+        sensorDepth = bG + params$sensorElevation
+        ## If dpflag is false then proportion of water column is calculated, if true depth preference is used
+        dpflag = "depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)
+        i = numProj
+        while(i > 0) {
+            k = numProj-i+1
+            r = ySens[k]
+            c = xSens[k]
+            cind = max(c(1,c-rng)):min(c(cols,c+rng))
+            rind = max(c(1,r-rng)):min(c(rows,r+rng))
+            ## Calculate the proportion of signals in each of the surrounding cell that can be detected by a sensor at loc
+            pctviz = calc.percent.viz(ySens[k], xSens[k], rind, cind, bG, land, sensorDepth[ySens[k], xSens[k]], dpflag, params, debug)
+            ## testmap is a matrix with size as the full grid containing the percentage visibility of each cell
+            ## Initialize
+            testmap = matrix(0,rows,cols)
+            ## Insert values at correct indices
+            testmap[pctviz$linearIndex] = pctviz$percentVisibility
+            ## 100% detected in self cell
+            testmap[r,c] = 1
+            ## Update demap (detection map)
+            demap[,,k] = demap[,,k] * testmap
+            i = i - 1
+        }
     }
 
     ## Coverage map
     cover = matrix(1,rows,cols)
     uniqRRs = rep(0,numProj)
-	i = numProj
-	while(i > 0) {
-		k = numProj-i+1
+    i = numProj
+    while(i > 0) {
+        k = numProj-i+1
         r = ySens[k]
         c = xSens[k]
         cind = max(c(1,c-rng)):min(c(cols,c+rng))
@@ -1440,7 +1564,7 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
         cover[rind,cind] = cover[rind,cind] * (1 - demap[rind,cind,k]) 
         covertmp = 1-cover
         uniqRRs[k] = sum(covertmp * behaviorGrid)
-		i = i - 1
+        i = i - 1
     }
     duniqRRs = diff(c(0,uniqRRs))
     ##print(uniqRRs)
@@ -1448,7 +1572,7 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
     ## Sort list so best sensors come first
     ##srt = sort(duniqRRs,index=TRUE,decreasing=TRUE)
     ## Turning off sorting
-    srt = list(ix=1:numSensors , x=duniqRRs)
+    srt = list(ix=1:numProj , x=duniqRRs)
     sensorMat = matrix(unlist(sensorList),numProj,2,byrow=TRUE)
     ## Store the unsorted sensor list (this order may not have a decreasing value per sensor)
     ## That is, the sensor placed as say 10 may be better than sensor 9 (this can happen when
@@ -1464,22 +1588,24 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
 
     ## Calculate distance matrix needed to calculate sparsity
     distVec = rep(0,numSensors)
-	i = numProj
-	while(i > 0) {
-            k = numProj-i+1
-            ## Theres a bug somewhere in that x and y are swapped when indexing the topographyGrid!
-            diffx = topographyGrid$y[xSens[srt$ix[k]]]-topographyGrid$y[xSens[srt$ix[1:numSensors]]]
-            diffy = topographyGrid$x[ySens[srt$ix[k]]]-topographyGrid$x[ySens[srt$ix[1:numSensors]]]
-            dists = sqrt((diffx)^2 + (diffy)^2)
-            distVec[k] = min(dists[dists>0])
-            i = i - 1
+    i = numProj
+    while(i > 0) {
+        k = numProj-i+1
+        ## Theres a bug somewhere in that x and y are swapped when indexing the topographyGrid!
+        diffx = topographyGrid$y[xSens[srt$ix[k]]]-topographyGrid$y[xSens[srt$ix[1:numSensors]]]
+        diffy = topographyGrid$x[ySens[srt$ix[k]]]-topographyGrid$x[ySens[srt$ix[1:numSensors]]]
+        dists = sqrt((diffx)^2 + (diffy)^2)
+        distVec[k] = min(dists[dists>0])
+        i = i - 1
     }
     ## a is the median of the distances between the receivers
     if(debug){
         print("distVec")
         print(distVec)
     }
+
     a = median(distVec)
+
     ## delta is a sparsity measure (see Pedersen & Weng 2013)
     statDict$delta = a/(2*params$detectionRange)
     
