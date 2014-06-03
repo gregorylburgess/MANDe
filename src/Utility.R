@@ -44,7 +44,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
     ## calculate the goodnessGrid
-    print("Calculating goodnessGrid...")
+    print("Calculating initial goodness grid")
     save = FALSE
     loadSave=FALSE
     if(loadSave) {
@@ -953,12 +953,13 @@ offset= function(point){
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A dictionary containing the filenames of the generated images.
-graph = function(result, params, showPlots, plot.bathy=TRUE, path="", debug=FALSE, zip=TRUE) {
+graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 	if (debug) {
 		print("[graph]")
 	}
 	
 	time = "1"
+	path = ""
         if(!showPlots) {
             if('timestamp' %in%  names(params)) {
                 ## Prevent R from using scientific notation (messes up filenames on windows)
@@ -1032,7 +1033,8 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, path="", debug=FALS
         plotUniqueRR(result, debug)
 	if(!showPlots) dev.off()
 
-	filenames = writeFiles(filenames, result, path, time, zip, showPlots=showPlots, debug)
+	
+	filenames = writeFiles(filenames, result, path, time, zip=TRUE, showPlots=showPlots, debug)
 	##print(filenames)
 	return(filenames)
 }
@@ -1090,7 +1092,6 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         shortRes = paste(shortRes,'Run time:', round(as.numeric(result$runTime, units='mins'), 2),'mins\n')
         
         totaNumSensors = params$numSensors + length(params$sensorList) + params$projectedSensors
-        
         sensors = result$stats$sensorMat
         ## smat translates relative coordinates to absoloute coordinates for the bathymetry file
         smat = sensors
@@ -1157,7 +1158,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         cat(paste(shortRes,'\n'),file=shortresFile,append=FALSE)
     }
     ## If true, write a zipped copy of files
-    if (zip) {
+    if (!showPlots & zip) {
         ## Zip the text results and image files
         filename = paste(path, "zip/", time, ".zip", sep="")
         zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
@@ -1170,7 +1171,6 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     result$behaviorGrid = NULL
     result$goodnessGrid = NULL
     result$coverageGrid = NULL
-	
     return(filenames)
 }
 
@@ -1602,7 +1602,6 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
         print("distVec")
         print(distVec)
     }
-
     a = median(distVec)
 
     ## delta is a sparsity measure (see Pedersen & Weng 2013)
