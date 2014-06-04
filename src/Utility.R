@@ -44,7 +44,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
     
     ## calculate the goodnessGrid
-    print("Calculating goodnessGrid...")
+    print("Calculating initial goodness grid")
     save = FALSE
     loadSave=FALSE
     if(loadSave) {
@@ -953,12 +953,13 @@ offset= function(point){
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return A dictionary containing the filenames of the generated images.
-graph = function(result, params, showPlots, plot.bathy=TRUE, path="", debug=FALSE, zip=TRUE) {
+graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 	if (debug) {
 		print("[graph]")
 	}
 	
 	time = "1"
+	path = ""
         if(!showPlots) {
             if('timestamp' %in%  names(params)) {
                 ## Prevent R from using scientific notation (messes up filenames on windows)
@@ -1032,7 +1033,8 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, path="", debug=FALS
         plotUniqueRR(result, debug)
 	if(!showPlots) dev.off()
 
-	filenames = writeFiles(filenames, result, path, time, zip, showPlots=showPlots, debug)
+	
+	filenames = writeFiles(filenames, result, path, time, zip=TRUE, showPlots=showPlots, debug)
 	##print(filenames)
 	return(filenames)
 }
@@ -1090,7 +1092,6 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         shortRes = paste(shortRes,'Run time:', round(as.numeric(result$runTime, units='mins'), 2),'mins\n')
         
         totaNumSensors = params$numSensors + length(params$sensorList) + params$projectedSensors
-        
         sensors = result$stats$sensorMat
         ## smat translates relative coordinates to absoloute coordinates for the bathymetry file
         smat = sensors
@@ -1157,7 +1158,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         cat(paste(shortRes,'\n'),file=shortresFile,append=FALSE)
     }
     ## If true, write a zipped copy of files
-    if (zip) {
+    if (!showPlots & zip) {
         ## Zip the text results and image files
         filename = paste(path, "zip/", time, ".zip", sep="")
         zip(zipfile=filename, files=filenames, flags="-r9X", extras="", zip=Sys.getenv("R_ZIPCMD", "zip"))
@@ -1170,7 +1171,6 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
     result$behaviorGrid = NULL
     result$goodnessGrid = NULL
     result$coverageGrid = NULL
-	
     return(filenames)
 }
 
@@ -1229,21 +1229,21 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
     ymain <- par('usr')[4]
     par(xpd=TRUE)
     ## Title
-    text(xmain, ymain, main, pos=3, cex=1.2, font=2, offset=2)
+    text(xmain+0.01*diff(par('usr')[1:2]), ymain, main, pos=3, cex=1, font=2, offset=2)
 
     ## Plot colorbar
     nbar <- n
     barwidth <- 0.25*diff(par('usr')[1:2])
-    barheight <- 0.03*diff(par('usr')[3:4])
+    barheight <- 0.02*diff(par('usr')[3:4])
     dbw <- barwidth/(nbar)
     barx <- par('usr')[2] - 0.02*diff(par('usr')[1:2])
-    bary <- par('usr')[4] + 0.02*diff(par('usr')[3:4])
+    bary <- par('usr')[4] + 0.01*diff(par('usr')[3:4])
     for(i in 1:nbar){
         xst <- barx - barwidth + (i-1)*dbw
         rect(xst, bary, xst+dbw, bary+barheight, col=col[i],lty=0)
     }
-    text(barx, bary+barheight, labels='High', pos=3, cex=0.9)
-    text(barx-barwidth, bary+barheight, labels='Low', pos=3, cex=0.9)
+    text(barx, bary+barheight, labels='High', pos=3, cex=0.8)
+    text(barx-barwidth, bary+barheight, labels='Low', pos=3, cex=0.8)
     rect(barx-barwidth, bary, barx, bary+barheight)
     par(xpd=FALSE)
     
@@ -1395,8 +1395,8 @@ plotSensors = function(result,circles=TRUE,circlty=2){
       }
       ## Circle legend
       par(xpd=TRUE)
-      lines(c(plotleft+0.7*plotwidth, plotleft+0.75*plotwidth), rep(plottop+0.13*plotheight,2), lty=circlty)
-      text(plotleft+0.75*plotwidth, plottop+0.13*plotheight, paste(result$params$detectionRange,'m detection range'), pos=4, cex=0.9)
+      lines(c(plotleft+0.7*plotwidth, plotleft+0.75*plotwidth), rep(plottop+0.095*plotheight,2), lty=circlty)
+      text(plotleft+0.75*plotwidth, plottop+0.095*plotheight, paste(result$params$detectionRange,'m detection range'), pos=4, cex=0.8)
   }
 
   par(xpd=TRUE)
@@ -1407,28 +1407,28 @@ plotSensors = function(result,circles=TRUE,circlty=2){
       if('numUserSensors' %in% names(params)) {
           if(params$numUserSensors>0){
               preinds <- 1:params$numUserSensors
-              points(sensx[preinds], sensy[preinds], pch=21, bg='gray', cex=3)
-              text(sensx[preinds], sensy[preinds], preinds, col='black')
-              points(plotleft+0.4*plotwidth, plottop+0.12*plotheight, pch=21, bg='gray', cex=2.5)
-              text(plotleft+0.4*plotwidth, plottop+0.12*plotheight, 'User-defined', pos=4, cex=0.9, offset=0.7)
+              points(sensx[preinds], sensy[preinds], pch=21, bg='gray', cex=2.5)
+              text(sensx[preinds], sensy[preinds], preinds, col='black', cex=0.8)
+              points(plotleft+0.352*plotwidth, plottop+0.08*plotheight, pch=21, bg='gray', cex=1.6)
+              text(plotleft+0.35*plotwidth, plottop+0.08*plotheight, 'User-defined', pos=4, cex=0.8, offset=0.7)
           }
       }
   }
   placedinds <- (tail(preinds, 1)+1):((tail(preinds, 1))+params$numSensors)
   ## Plot optimally placed sensors
-  points(sensx[placedinds], sensy[placedinds], pch=21, bg='blue', cex=3)
-  text(sensx[placedinds], sensy[placedinds], placedinds, col='white')
-  points(plotleft+0.4*plotwidth, plottop+0.08*plotheight, pch=21, bg='blue', cex=2.5)
-  text(plotleft+0.4*plotwidth, plottop+0.08*plotheight, 'Optimally placed', pos=4, cex=0.9, offset=0.7)
+  points(sensx[placedinds], sensy[placedinds], pch=21, bg='blue', cex=2.5)
+  text(sensx[placedinds], sensy[placedinds], placedinds, col='white', cex=0.8)
+  points(plotleft+0.35*plotwidth, plottop+0.05*plotheight, pch=21, bg='blue', cex=1.6)
+  text(plotleft+0.35*plotwidth, plottop+0.05*plotheight, 'Optimally placed', pos=4, cex=0.8, offset=0.7)
   
   if('projectedSensors' %in% names(params)) {
       if(params$projectedSensors>0){
           kstart <- params$numSensors + length(params$sensorList)
           projinds <- (kstart+1):(kstart+params$projectedSensors)
-          points(sensx[projinds], sensy[projinds], pch=21, bg='green', cex=3)
-          text(sensx[projinds], sensy[projinds], projinds, col='black')
-          points(plotleft+0.4*plotwidth, plottop+0.04*plotheight, pch=21, bg='green', cex=2.5)
-          text(plotleft+0.4*plotwidth, plottop+0.04*plotheight, 'Projected', pos=4, cex=0.9, offset=0.7)
+          points(sensx[projinds], sensy[projinds], pch=21, bg='green', cex=2.5)
+          text(sensx[projinds], sensy[projinds], projinds, col='black', cex=0.8)
+          points(plotleft+0.35*plotwidth, plottop+0.02*plotheight, pch=21, bg='green', cex=1.6)
+          text(plotleft+0.35*plotwidth, plottop+0.02*plotheight, 'Projected', pos=4, cex=0.8, offset=0.7)
       }
   }
   par(xpd=FALSE)
@@ -1602,7 +1602,6 @@ getStats = function(params, topographyGrid, behaviorGrid, sensors, debug=FALSE) 
         print("distVec")
         print(distVec)
     }
-
     a = median(distVec)
 
     ## delta is a sparsity measure (see Pedersen & Weng 2013)
