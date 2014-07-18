@@ -3,23 +3,23 @@
 	<Group id="Bathymetry Variables">
 		<Fields>
 			<!--  Pre-defined Server File support. Comment out if you want to use local files-->
-			<Field id="inputFile" label="Bathymetry Dataset" type="select" locked="true" toolTip="Specifies the dataset and resolution to use. Selecting smaller cell sizes will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
+			<Field id="inputFile" label="Bathymetry Dataset" type="select"  toolTip="Specifies the dataset and resolution to use. Selecting smaller cell sizes will use a higher resolution bathymetry and give better results, but will cause the request to take longer to complete.">
 				<Options>
 					<Option label="Hawaii 1km cells">src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd</Option>
 					<Option label="Hawaii 50m cells">src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd</Option>
 					<Option label="Palmyra 40m cells">src/palmyra_40m.grd</Option>
 				</Options>
 			</Field>
-			<Field id="north" label="Northern Grid Boundary" type="text" locked="true" toolTip="The Northern Latitude boundary for your study area in Decimal Degrees.">
+			<Field id="north" label="Northern Grid Boundary" type="text"  toolTip="The Northern Latitude boundary for your study area in Decimal Degrees.">
 				21.78
 			</Field>
-			<Field id="south" label="Southern Grid Boundary" type="text" locked="true" toolTip="The Southern Latitude boundary for your study area in Decimal Degrees.">
+			<Field id="south" label="Southern Grid Boundary" type="text"  toolTip="The Southern Latitude boundary for your study area in Decimal Degrees.">
 				21.13
 			</Field>
-			<Field id="west" label="Western Grid Boundary" type="text" locked="true" toolTip="The Western Longitude boundary for your study area in Decimal Degrees.">
+			<Field id="west" label="Western Grid Boundary" type="text"  toolTip="The Western Longitude boundary for your study area in Decimal Degrees.">
 				-158.39
 			</Field>
-			<Field id="east" label="Eastern Grid Boundary" type="text" locked="true" toolTip="The Eastern Longitude boundary for your study area in Decimal Degrees.">
+			<Field id="east" label="Eastern Grid Boundary" type="text"  toolTip="The Eastern Longitude boundary for your study area in Decimal Degrees.">
 				-157.55
 			</Field>
 			
@@ -29,15 +29,15 @@
 			<Field id="inputFile"  label="Input File"  type="text"  toolTip="The bathymetry file you wish to use.">
 				src/palmyrabath.RData
 			</Field>
-			<Field id="inputFileType"  label="Input File Type"  type="select"  locked="true" toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS and NetCDF">
+			<Field id="inputFileType"  label="Input File Type"  type="select"   toolTip="Specifies the file type of the Bathy file you provided.  Supported file types are ArcGIS and NetCDF">
 				<Options>
 					<Option label="NetCDF">netcdf</Option>
 				</Options>
 			</Field>
-			<Field id="seriesName"  label="Data Series Name"  type="text"  locked="true" toolTip="For ArcGIS/NetCDF, this specifies the name of the data series to use.">
+			<Field id="seriesName"  label="Data Series Name"  type="text"   toolTip="For ArcGIS/NetCDF, this specifies the name of the data series to use.">
 				z
 			</Field>
-			<Field id="cellSize"  label="Grid Cell Size"  type="text"  locked="true" toolTip="Specifies the size of the grid cell in meters.">
+			<Field id="cellSize"  label="Grid Cell Size"  type="text"   toolTip="Specifies the size of the grid cell in meters.">
 				1000
 			</Field>
 			<Field id="startX"  label="Beginning X Index"  type="text"  toolTip="Specifies the starting X cell-index of the area of interest for the file chosen.">
@@ -111,7 +111,7 @@
 	</Group>
 	<Group id="Sensor Variables">
 		<Fields>
-			<Field id="userSensors" label="User-Specified Sensors" locked="true" type="text" toolTip="List of already existing sensors.  These sensors are placed and down-weighed before running the program.  Useful for including already existing sensors, or forcing the placement of a few sensors.  Do not include these sensors in the sensor count below.  Provide sensor locations as a string in the format: &lt;sensor1_Long&gt;, &lt;sensor1_Lat&gt;, &lt;sensor2_Long&gt;, &lt;sensor2_Lat&gt;...">
+			<Field id="userSensors" label="User-Specified Sensors"  type="text" toolTip="List of already existing sensors.  These sensors are placed and down-weighed before running the program.  Useful for including already existing sensors, or forcing the placement of a few sensors.  Do not include these sensors in the sensor count below.  Provide sensor locations as a string in the format: &lt;sensor1_Long&gt;, &lt;sensor1_Lat&gt;, &lt;sensor2_Long&gt;, &lt;sensor2_Lat&gt;...">
 
 			</Field>
 			<Field id="numSensors" label="Number of Sensors to Use" type="text" toolTip="The number of sensors the system should place optimally.">
@@ -130,7 +130,7 @@
 			<Field id="sensorElevation"  label="Sensor Elevation"  type="text"  toolTip="Elevation of all sensors off of the bottom in meters.  This is includes any moorings used.">
 				30
 			</Field>
-			<Field id="shapeFcn"  label="Sensor Shape Function"  type="select"  locked="true" toolTip="Determines which shape function to use for simulating signal attenuation. 'shape.gauss' is currently the only supported shape function.">
+			<Field id="shapeFcn"  label="Sensor Shape Function"  type="select"   toolTip="Determines which shape function to use for simulating signal attenuation. 'shape.gauss' is currently the only supported shape function.">
 				<Options>
 					<Option label="shape.gauss">shape.gauss</Option>
 				</Options>
@@ -138,7 +138,7 @@
 			<Field id="peak"  label="Max Detection Value"  type="text"  toolTip="The probability of detecting a fish right next to your sensor.  Specifies a maximum value for the shape function.">
 				.98
 			</Field>
-			<Field id="detectionRange"  label="Detection Range"  type="text"  locked="true" toolTip="The distance in meters from the sensor where the probability of detecting a signal falls below 0.05.">
+			<Field id="detectionRange"  label="Detection Range"  type="text"   toolTip="The distance in meters from the sensor where the probability of detecting a signal falls below 0.05.">
 				2001
 			</Field>		
 		</Fields>
@@ -146,7 +146,7 @@
 
 	<Group id="Suppression Variables">
 		<Fields>
-			<Field id="suppressionRangeFactor"  label="Suppression Factor"  type="text"  locked="true" toolTip="Specifies the ratio of suppression range to sensor detection range.  Larger values cause sensors to be placed farther apart.  We recommend a value of at least 2.  See the documentation for an explaination of the suppression mechanism">
+			<Field id="suppressionRangeFactor"  label="Suppression Factor"  type="text"   toolTip="Specifies the ratio of suppression range to sensor detection range.  Larger values cause sensors to be placed farther apart.  We recommend a value of at least 2.  See the documentation for an explaination of the suppression mechanism">
 				2
 			</Field>
 			<Field id="suppressionFcn"  label="Suppression Function"  type="select"  toolTip="The suppression function to use.  suppression.static will simply replace all cells within the suppression range by a static value.  suppression.scale will apply a gradient with a higher penalty near the center, and a lower penalty towards the edge.">
