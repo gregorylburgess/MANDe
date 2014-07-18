@@ -86,6 +86,7 @@ source('src/Utility.R')
 #' @param debug If enabled, turns on debug printing (console only).
 #' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @param multi If set to TRUE, uses multicore to parallelize calculations.
+#' @param zip If enabled, writes a zip file with graphs and results for each execution.
 #' @param silent If set to TRUE, the program will not print status updates for LOS calculation (which may take a very long time).
 #' @return A dictionary (list) containing the following return objects:
 #'
@@ -119,7 +120,7 @@ source('src/Utility.R')
 #' @examples 
 #' result <- acousticTest() # check the code of acousticTest for details
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, silent=FALSE, multi=FALSE) {
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, silent=FALSE, multi=FALSE, zip=TRUE) {
     startTime = Sys.time()
     print(save.inter)
     if(debug) {
@@ -184,7 +185,10 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
         results$runTime = endTime - startTime
         
         ## Graph results and make data file.
-        results$filenames = graph(results,params,showPlots=showPlots, debug=debug)
+        filenames = graph(results,params,showPlots=showPlots, zip=zip, debug=debug)
+	print("========================")
+	print(filenames)
+	print("==========================")
         print(names(results))
         invisible(results)
         
@@ -196,9 +200,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
     
     ## only params and errors should actually have values
     results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, "stats" = statDict, "inter" = sensors$inter, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
-    
-    ## writeFiles returns json and txt file locations, but only if showPlots == FALSE
-    if(!showPlots) results$filenames = writeFiles(filenames, results, path="", as.numeric(params$timestamp), showPlots=showPlots, zip=FALSE, debug)
+
     ##print(results$filenames)
     ## Return results invisibly (don't print to screen if unassigned because they are usually very long)
     invisible(results)

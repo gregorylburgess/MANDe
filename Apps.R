@@ -47,7 +47,7 @@ query <- function(env) {
 #' @param parameters A dictionary of parameters to pass to acousticRun().
 execute = function (res, parameters) {
 	res$write("processing...")
-	result = acousticRun(parameters)
+	result = acousticRun(parameters, showPlots=FALSE)
 	writeJSON(result$filenames$jsonFile, result)
 	res$write("finished!")
 }

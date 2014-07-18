@@ -952,8 +952,9 @@ offset= function(point){
 #' @param showPlots If TRUE plots are shown on the screen, if FALSE plots are stored in the img folder.
 #' @param plot.bathy Specifies whether contour lines for bathymetry should be overlayed in the graphs.
 #' @param debug If enabled, turns on debug printing (console only).
+#' @param zip If enabled, writes a zip file with graphs and results for each execution.
 #' @return A dictionary containing the filenames of the generated images.
-graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
+graph = function(result, params, showPlots, plot.bathy=TRUE, zip=TRUE, debug=FALSE) {
 	if (debug) {
 		print("[graph]")
 	}
@@ -1034,7 +1035,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 	if(!showPlots) dev.off()
 
 	
-	filenames = writeFiles(filenames, result, path, time, zip=TRUE, showPlots=showPlots, debug)
+	filenames = writeFiles(filenames, result, path, time, zip=zip, showPlots=showPlots, debug)
 	##print(filenames)
 	return(filenames)
 }
@@ -1052,6 +1053,7 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, debug=FALSE) {
 #' @param zip If TRUE, writes a zip file containing the txt dump, and images of a run.
 #' @param showPlots If TRUE, writes a zip file containing the txt dump, and images of a run.
 #' @param debug If enabled, turns on debug printing (console only).
+#' @param zip If enabled, writes a zip file with graphs and results for each execution.
 #' @return A dictionary containing the filenames of the generated images.
 writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, debug=FALSE) {
     if(debug) {
