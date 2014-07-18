@@ -39,8 +39,9 @@ And get inspiration for your script by checking the code for the acousticTest fu
 acousticTest
 
 
-== Acoustic web app server (for GUI via a browser) ==
-To start the acoustic web app server run the following command from the acoustic-deploy directory:
+== Acoustic web app (GUI) ==
+First, make sure you have built the program with the install.sh script (see above).
+To start the acoustic web app, run the following command from the acoustic-deploy directory:
 
 sudo Rscript Publicserver.R
 
