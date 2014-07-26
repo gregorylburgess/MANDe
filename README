@@ -17,7 +17,7 @@ sudo ./scripts/package.sh
 
 This should create the tarball acoustic_1.0.tar.gz. The package is then installed using the command:
 
-R CMD INSTALL acoustic_1.0.tar.gz
+sudo R CMD INSTALL acoustic_1.0.tar.gz
 
 From R you should now be able to load the package with the command:
 
