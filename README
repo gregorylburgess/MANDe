@@ -49,3 +49,19 @@ sudo Rscript Publicserver.R
 This will start the server while the script appears to be "hanging" and not doing anything, however if you interact with the web app using a browser the server activity will be shown in this prompt.
 
 The URL for the web app is "{baseURL}/custom/static/pages/index.html", where {baseURL} is the IP of your computer or the URL you have assigned to it.
+
+Note that the server is initally configured to work with the files found here: 
+ftp://ftp.soest.hawaii.edu/pjohnson/MultibeamSynthesis_V19/netcdf/himbsyn.bathy.v19.grd.zip
+ftp://ftp.soest.hawaii.edu/pjohnson/MBS19/netcdf/himbsyn.bathytopo.1km.v19.grd.zip
+ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Palmyra_40m.grd.zip
+
+extract these files to the src folder, as such:
+
+src/himbsyn.bathy.v19.grd/himbsyn.bathy.v19.grd
+src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd
+src/palmyra_40m.grd
+
+To use your own bathymetry files with the GUI, modify the pages/Form.xml file.  
+Edit the inputFile <Field> tag to include the display name and file path to your bathymetry files.
+The pages/Form.xml file is also where you can edit the default values for your GUI.
+After modifying the Form.xml file, it may be necessary to restart your server to see the changes take effect.
