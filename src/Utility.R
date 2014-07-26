@@ -1053,7 +1053,6 @@ graph = function(result, params, showPlots, plot.bathy=TRUE, zip=TRUE, debug=FAL
 #' @param zip If TRUE, writes a zip file containing the txt dump, and images of a run.
 #' @param showPlots If TRUE, writes a zip file containing the txt dump, and images of a run.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @param zip If enabled, writes a zip file with graphs and results for each execution.
 #' @return A dictionary containing the filenames of the generated images.
 writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, debug=FALSE) {
     if(debug) {

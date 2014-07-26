@@ -60,8 +60,7 @@ for (file in files) {
 
 # Call Roxygen to make the .Rd files
 print('--- Roxygenize ---')
-roxygen2::upgradeRoxygen(packageName)
-roxygenize(packageName)
+roxygenise(packageName)
 
 # Changes all file paths in source() calls to their new values.
 for (file in files) {
