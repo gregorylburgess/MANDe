@@ -62,6 +62,6 @@ src/himbsyn.bathytopo.1km.v19.grd/himbsyn.bathytopo.1km.v19.grd
 src/palmyra_40m.grd
 
 To use your own bathymetry files with the GUI, modify the pages/Form.xml file.  
-Edit the inputFile <Field> tag to include the display name and file path to your bathymetry files.
+Add an <Option> tag within the inputFile <Field><Options> tag to include the label (display name) and file path to your bathymetry files.
 The pages/Form.xml file is also where you can edit the default values for your GUI.
 After modifying the Form.xml file, it may be necessary to restart your server to see the changes take effect.
