@@ -7,8 +7,8 @@ This package is useful in the design phase of an acoustic sensor network. The pa
 
 License: GNU General Public License, GPL (>= 2)
 
-Requires: R version 3.1.1 or later (3.1.1 supported)
-          Ubuntu 13.10 (supported)
+Requires: R version 3.0.2 or later (3.0.2 supported)
+          Ubuntu 14.04.1 (supported)
           
 == The R package (for command line interface via R) ==
 To build the R package run the bash script from the acoustic-deploy directory using the commands:
