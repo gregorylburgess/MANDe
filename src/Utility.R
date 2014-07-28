@@ -1187,7 +1187,8 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
 #' @param xlab Set label of x axis.
 #' @param ylab Set label of y axis.
 #' @param plot.bathy Specifies whether bathymetry contour lines should be added to plots.
-#' @param plot.sensors Specifies if sensors should be added to plot.
+#' @param plot.sensors Specifies if sensors should be added to the plot.
+#' @param plot.colorbar Specifies if a colorbar should be added to the plot.
 #' @param bcol Specifies the color of bathymetry contour lines.
 #' @param nlevels Specifies the number of bathymetry contour lines.
 #' @param drawlabels Specifies if bathymetry contour labels should be drawn.
@@ -1196,7 +1197,7 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
 #' @param ... Additional parameters to image, see ?image.
 #' @return Nothing.
 #' @export
-plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', plot.bathy=TRUE, plot.sensors=TRUE, bcol=1, nlevels=5, drawlabels=TRUE, circles=plot.sensors, circlty=3, ...){
+plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', plot.bathy=TRUE, plot.sensors=TRUE, plot.colorbar=TRUE, bcol=1, nlevels=5, drawlabels=TRUE, circles=plot.sensors, circlty=3, ...){
     ## n is number of colors in palette
     n = 100
     col = heat.colors(n)
@@ -1231,22 +1232,23 @@ plotGrid = function(result, type='topographyGrid', main=type, xlab='', ylab='', 
     ymain <- par('usr')[4]
     par(xpd=TRUE)
     ## Title
-    text(xmain, ymain, main, pos=3, cex=1.2, font=2, offset=2)
+    text(xmain+0.01*diff(par('usr')[1:2]), ymain, main, pos=3, cex=1, font=2, offset=2)
 
-    ## Plot colorbar
-    nbar <- n
-    barwidth <- 0.25*diff(par('usr')[1:2])
-    barheight <- 0.03*diff(par('usr')[3:4])
-    dbw <- barwidth/(nbar)
-    barx <- par('usr')[2] - 0.02*diff(par('usr')[1:2])
-    bary <- par('usr')[4] + 0.02*diff(par('usr')[3:4])
-    for(i in 1:nbar){
-        xst <- barx - barwidth + (i-1)*dbw
-        rect(xst, bary, xst+dbw, bary+barheight, col=col[i],lty=0)
+    if(plot.colorbar){
+        nbar <- n
+        barwidth <- 0.25*diff(par('usr')[1:2])
+        barheight <- 0.02*diff(par('usr')[3:4])
+        dbw <- barwidth/(nbar)
+        barx <- par('usr')[2] - 0.02*diff(par('usr')[1:2])
+        bary <- par('usr')[4] + 0.01*diff(par('usr')[3:4])
+        for(i in 1:nbar){
+            xst <- barx - barwidth + (i-1)*dbw
+            rect(xst, bary, xst+dbw, bary+barheight, col=col[i],lty=0)
+        }
+        text(barx, bary+barheight, labels='High', pos=3, cex=0.8)
+        text(barx-barwidth, bary+barheight, labels='Low', pos=3, cex=0.8)
+        rect(barx-barwidth, bary, barx, bary+barheight)
     }
-    text(barx, bary+barheight, labels='High', pos=3, cex=0.9)
-    text(barx-barwidth, bary+barheight, labels='Low', pos=3, cex=0.9)
-    rect(barx-barwidth, bary, barx, bary+barheight)
     par(xpd=FALSE)
     
     if(plot.bathy) {
@@ -1397,8 +1399,8 @@ plotSensors = function(result,circles=TRUE,circlty=2){
       }
       ## Circle legend
       par(xpd=TRUE)
-      lines(c(plotleft+0.7*plotwidth, plotleft+0.75*plotwidth), rep(plottop+0.13*plotheight,2), lty=circlty)
-      text(plotleft+0.75*plotwidth, plottop+0.13*plotheight, paste(result$params$detectionRange,'m detection range'), pos=4, cex=0.9)
+      lines(c(plotleft+0.7*plotwidth, plotleft+0.75*plotwidth), rep(plottop+0.095*plotheight,2), lty=circlty)
+      text(plotleft+0.75*plotwidth, plottop+0.095*plotheight, paste(result$params$detectionRange,'m detection range'), pos=4, cex=0.8)
   }
 
   par(xpd=TRUE)
@@ -1409,28 +1411,28 @@ plotSensors = function(result,circles=TRUE,circlty=2){
       if('numUserSensors' %in% names(params)) {
           if(params$numUserSensors>0){
               preinds <- 1:params$numUserSensors
-              points(sensx[preinds], sensy[preinds], pch=21, bg='gray', cex=3)
-              text(sensx[preinds], sensy[preinds], preinds, col='black')
-              points(plotleft+0.4*plotwidth, plottop+0.12*plotheight, pch=21, bg='gray', cex=2.5)
-              text(plotleft+0.4*plotwidth, plottop+0.12*plotheight, 'User-defined', pos=4, cex=0.9, offset=0.7)
+              points(sensx[preinds], sensy[preinds], pch=21, bg='gray', cex=2.5)
+              text(sensx[preinds], sensy[preinds], preinds, col='black', cex=0.8)
+              points(plotleft+0.352*plotwidth, plottop+0.08*plotheight, pch=21, bg='gray', cex=1.6)
+              text(plotleft+0.35*plotwidth, plottop+0.08*plotheight, 'User-defined', pos=4, cex=0.8, offset=0.7)
           }
       }
   }
   placedinds <- (tail(preinds, 1)+1):((tail(preinds, 1))+params$numSensors)
   ## Plot optimally placed sensors
-  points(sensx[placedinds], sensy[placedinds], pch=21, bg='blue', cex=3)
-  text(sensx[placedinds], sensy[placedinds], placedinds, col='white')
-  points(plotleft+0.4*plotwidth, plottop+0.08*plotheight, pch=21, bg='blue', cex=2.5)
-  text(plotleft+0.4*plotwidth, plottop+0.08*plotheight, 'Optimally placed', pos=4, cex=0.9, offset=0.7)
+  points(sensx[placedinds], sensy[placedinds], pch=21, bg='blue', cex=2.5)
+  text(sensx[placedinds], sensy[placedinds], placedinds, col='white', cex=0.8)
+  points(plotleft+0.35*plotwidth, plottop+0.05*plotheight, pch=21, bg='blue', cex=1.6)
+  text(plotleft+0.35*plotwidth, plottop+0.05*plotheight, 'Optimally placed', pos=4, cex=0.8, offset=0.7)
   
   if('projectedSensors' %in% names(params)) {
       if(params$projectedSensors>0){
           kstart <- params$numSensors + length(params$sensorList)
           projinds <- (kstart+1):(kstart+params$projectedSensors)
-          points(sensx[projinds], sensy[projinds], pch=21, bg='green', cex=3)
-          text(sensx[projinds], sensy[projinds], projinds, col='black')
-          points(plotleft+0.4*plotwidth, plottop+0.04*plotheight, pch=21, bg='green', cex=2.5)
-          text(plotleft+0.4*plotwidth, plottop+0.04*plotheight, 'Projected', pos=4, cex=0.9, offset=0.7)
+          points(sensx[projinds], sensy[projinds], pch=21, bg='green', cex=2.5)
+          text(sensx[projinds], sensy[projinds], projinds, col='black', cex=0.8)
+          points(plotleft+0.35*plotwidth, plottop+0.02*plotheight, pch=21, bg='green', cex=1.6)
+          text(plotleft+0.35*plotwidth, plottop+0.02*plotheight, 'Projected', pos=4, cex=0.8, offset=0.7)
       }
   }
   par(xpd=FALSE)
