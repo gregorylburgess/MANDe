@@ -42,6 +42,10 @@ acousticTest
 
 
 == Acoustic web app (GUI) ==
+Supported Browsers:
+          Google Chrome 36.0.1985.125 or later (36.0.1985.125 supported)
+          Mozilla Firefox Version 29.0.1 or later (29.0.1 supported)
+          
 First, make sure you have built the program with the install.sh script (see above).
 To start the acoustic web app, run the following command from the acoustic-deploy directory:
 
