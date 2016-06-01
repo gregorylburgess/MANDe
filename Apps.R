@@ -25,7 +25,7 @@ query <- function(env) {
 
 	#Once we have all the packets, run the request.
 	if(params$part == params$complete) {
-		parameters = parseJSON(gsub("\'", "\"", acousticQueries[toString(params$timestamp)]))
+		parameters = parseJSON(gsub("\'", "\"", paste("{",acousticQueries[toString(params$timestamp)],"}",sep="")))
 		# Try and run an asynchrynous request if multicore is present
 		if(require('multicore')) {
 			library('multicore')
@@ -82,6 +82,7 @@ getStatus <- function(env) {
 #' @param params A JSON string without the outter curly braces.
 #' @return an R dictionary containing the key/value pairs given.
 parseJSON <- function(params) {
+	params = substring(params,2)
 	params = paste("{",params,"}", sep="")
 	parser = newJSONParser()
 	parser$addData(params)

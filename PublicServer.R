@@ -21,28 +21,19 @@ if (status == 0) {
 	rook$listenAddr <- myInterface
 	rook$listenPort <- myPort
 	# Home page
-	rook$add(name="base", Redirect$new("/../static/pages/index.html"))
+	rook$add(name="base", app=Redirect$new("/../static/pages/index.html"))
 	# Submit a job
-	rook$add(query, name="query")
+	rook$add(app=query, name="query")
 	# Check on the status of a job
-	rook$add(getStatus, name="status")
+	rook$add(app=getStatus, name="status")
 	## Expose static directories via URL.
 	rook$add(name="static", 
-			Builder$new( 
-					Static$new(
-							urls = c('/css','/img','/js', '/pages', '/txt', '/zip'),
-							root = '.'
-					),
-					Static$new(urls='/plots',root=tempdir()), 
-					Brewery$new(url='/brew',root='.'),
-					App$new(function(env) {
-								req <- Request$new(env)
-								res <- Response$new()
-								res$redirect(req$to_url('/pages/404.html'))
-								res$finish()
-							}
-					)
+		app=Builder$new( 
+			Static$new(
+				urls = c('/css','/img','/js', '/pages', '/txt', '/zip'),
+				root = '.'
 			)
+		)
 	)
 	print("Server is Running!")
 	while(TRUE) Sys.sleep(1)

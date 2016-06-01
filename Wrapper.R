@@ -5,6 +5,7 @@ library("rjson")
 #' @param params A JSON string without the outter curly braces.
 #' @return an R dictionary containing the key/value pairs given.
 parseJSON <- function(params) {
+	print(params)
 	params = as.character(paste("{",params,"}", sep=""))
 	print(params)
 	parser = newJSONParser()
