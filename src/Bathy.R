@@ -23,22 +23,24 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 			}
             if (inputFileType == "netcdf") {
                 if (require(ncdf)) {
-                    ##library(ncdf)
-                    ## open the netCDF file
+		    ## open the netCDF file
                     ncdfObj = open.ncdf(inputFile)
-				#print(summary(ncdfObj))
+
                     ## grab a slice (in grid form)
                     topographyGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
-                } else {
-                    printError('Could not load ncdf package required to load netcdf files, please install the package using install.packages().', stop=stop)
+                } else if(require(ncdf4) {
+		    ## open the netCDF file
+                    ncdfObj = nc_open(inputFile)
+
+                    ## grab a slice (in grid form)
+                    topographyGrid = ncvar_get(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
+		}
+		else {
+                    printError('Could not load ncdf or ncdf4 packages required to load netcdf files, please install one of the packages using install.packages().  ncdf is supported on older versions of R.  Newer versions of R (3.0+) should use the ncdf4 package.', stop=stop)
                 }
 	    }
-   	    ##else if(inputFileType == "arcgis" && require(sp) && require(rgdal) && require(raster)){
             else if(inputFileType == "arcgis"){
                 if (require(raster)) {
-                    ##library(sp)
-                    ##library(raster)
-                    ##library(rgdal)
                     ## For an arc/grid inputFile is the folder!:
                     topographyGrid = raster(inputFile)
 				dims = dim(topographyGrid)
@@ -47,10 +49,6 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
                     printError('Could not load raster package required to load arcgis files, please install the package using install.packages().', stop=stop)
                 }
             }
-	    #else if(inputFileType == "asc") {
-        #        bath = loadASC(inputFile)
-        #        topographyGrid = bath[startY:(startY-1+YDist),startX:(startX-1+XDist)]
-        #    }
             else if(inputFileType == "RData") {
                 bathname = load(inputFile)
                 topographyGrid = get(seriesName)

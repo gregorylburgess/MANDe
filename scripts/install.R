@@ -2,6 +2,8 @@ args <- commandArgs(trailingOnly = TRUE)
 dependencies = c("multicore",
 		 "mvtnorm", 
 		 "raster",
+		 "ncdf",
+		 "ncdf4",
 		 "rgdal",
 		 "rjson", 
                  "Rook", 
