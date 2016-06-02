@@ -1097,8 +1097,8 @@ writeFiles = function(filenames, result, path, time, zip=TRUE, showPlots=FALSE, 
         sensors = result$stats$sensorMat
         ## smat translates relative coordinates to absoloute coordinates for the bathymetry file
         smat = sensors
-        smat[,1] = smat[,1] + params$startX
-        smat[,2] = smat[,2] + params$startY
+        smat[,1] = smat[,1] + params$startY
+        smat[,2] = smat[,2] + params$startX
         
         ## smat2 contains the running total of unique RR rounded to 5 decimal palces
         smat2 = round(result$stats$uniqRRs, 5)
