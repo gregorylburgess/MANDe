@@ -28,7 +28,7 @@ getBathy <- function(inputFile, inputFileType, startX=0, startY=0, XDist, YDist,
 
                     ## grab a slice (in grid form)
                     topographyGrid = get.var.ncdf(ncdfObj, 'z', start=c(startX, startY), count=c( XDist, YDist))
-                } else if(require(ncdf4) {
+                } else if(require(ncdf4)) {
 		    ## open the netCDF file
                     ncdfObj = nc_open(inputFile)
 
