@@ -8,7 +8,7 @@ dependencies = c("multicore",
 		 "rjson", 
                  "Rook", 
                  "sp",
-		 "roxygen2")
+		 "roxygen2") 
 if (length(args) > 0 && tolower(args[1]) == "uninstall") {
     print("Uninstalling R packages")
     uninstall.packages(dependencies)
