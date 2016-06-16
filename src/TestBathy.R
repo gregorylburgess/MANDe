@@ -19,15 +19,16 @@ TestBathy.checkPackages = function() {
 }
 
 TestBathy.getBathy = function() {
-	inputFile = "src/palmyra_40m.grd"
+	params = {}
+	params$inputFile = "src/palmyra_40m.grd"
 	linkLocation = "ftp://ftp.soest.hawaii.edu/pibhmc/website/data/pria/bathymetry/Palmyra_40m.grd.zip"
-	inputFileType = "netcdf"
-	startX = 100
-	startY = 100
-	XDist = 5
-	YDist = 5
-	seriesName = 'z'
-	timestamp = 0
+	params$inputFileType = "netcdf"
+	params$startX = 100
+	params$startY = 100
+	params$XDist = 5
+	params$YDist = 5
+	params$seriesName = 'z'
+	params$timestamp = 0
 	debug = FALSE
 	
 	sol = matrix(c(-1915.0788574219, -1896.7038574219, -1885.7969970703, -1878.0434570312,
@@ -40,10 +41,10 @@ TestBathy.getBathy = function() {
 					 nrow=5,
 				 	 ncol=5)
 
-	topographyGrid = getBathy(inputFile, inputFileType, startX, startY, XDist, YDist, seriesName, timestamp, debug)
+	topographyGrid = getBathy(params, debug)
 	
 	#The default simulated grid
-	fakeGrid = simulatetopographyGrid(XDist, YDist)
+	fakeGrid = simulatetopographyGrid(params)
 	
 	#Ensure that the system is indeed pulling the results from our file and not simply
 	#simulating them.

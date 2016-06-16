@@ -151,8 +151,7 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
         }
 	
         ## Create/Load the Bathy grid for the area of interest
-        topographyGrid = getBathy(params$inputFile, params$inputFileType, params$startX, params$startY, 
-            params$XDist, params$YDist, params$seriesName, debug)
+        topographyGrid = getBathy(params, debug)
         topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
         ## Convert parameter values from meters to number of grid cell 
         params = convertMetersToGrid(params,topographyGrid)
