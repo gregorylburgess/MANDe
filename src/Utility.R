@@ -52,7 +52,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
         grids$goodnessGrid = goodnessGrid
     }
     else {
-        grids = goodnessGridFun(grids, range, bias, params, debug=debug, silent=silent, multi=multi)
+        grids = goodnessGridFun(grids, params, debug=debug, silent=silent, multi=multi)
         goodnessGrid = grids$goodnessGrid
     }
     if (save) {
@@ -136,7 +136,7 @@ sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE
             print("Updating goodness grid")
             ## Downweigh observed region
             grids = updatebehaviorGrid(loc,grids,params,debug)
-            grids = goodnessGridFun(grids, range, bias, params, debug=debug, multi=multi)
+            grids = goodnessGridFun(grids, params, debug=debug, multi=multi)
 	}
 	return(grids)
 }
@@ -215,8 +215,10 @@ updatebehaviorGrid = function(loc, grids, params, debug=FALSE){
 #' @param silent If set to TRUE, disables status printing.
 #' @param multi If set to TRUE, uses multicore to parallelize calculations.
 #' @return Returns the grids parameter, with an updated goodnessGrid.
-goodnessGridFun = function (grids, range, bias, params, debug=FALSE, silent=FALSE, multi=FALSE) {
-    if (debug) {
+goodnessGridFun = function (grids, params, debug=FALSE, silent=FALSE, multi=FALSE) {
+    range = params$range
+	bias = params$bias
+	if (debug) {
         cat("\n[goodnessGrid]\n")
         print("topographyGrid")
         print(grids$topographyGrid)
@@ -2025,10 +2027,9 @@ checkForMax = function(name, value, maxVal, stop=TRUE){
 #' @description These are used for internal calculations and are invisible to the user.
 #' 
 #' @param params A dictionary of parameters, see ?acousticRun for more info.
-#' @param topographyGrid A valid topographyGrid.
 #' @return The 'params' parameter, populated with necessary internal variables ("sd",
 #' "suppsd", "range", "suppressionRange") with unit 'grid cells'.
-convertMetersToGrid = function(params, topographyGrid=NA){
+convertMetersToGrid = function(params){
   ## Cell size in meters
   cellSize = params$cellSize
   ## Detection range with SD=1, dx=1
