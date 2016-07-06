@@ -55,11 +55,11 @@ getBathy <- function(params, debug=FALSE) {
                 topographyGrid = get(params$seriesName)
                 topographyGrid = topographyGrid[params$startY:(params$startY-1+params$YDist),params$startX:(params$startX-1+params$XDist)]
             } else {
-                topographyGrid = simulatetopographyGrid(params$XDist,params$YDist)
+                topographyGrid = simulatetopographyGrid(params)
             }
 	} else {
             print("Bathymetry file not found.")
-            topographyGrid = simulatetopographyGrid(params$XDist,params$YDist)
+            topographyGrid = simulatetopographyGrid(params)
 	}
         ## Check if all values in topographyGrid are NA
         if(all(is.na(topographyGrid))) {
