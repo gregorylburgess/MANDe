@@ -347,4 +347,4 @@ appendError = function(msg, time) {
 	acousticErrors[toString(time)] <<- msg[1]
 	print(acousticErrors[toString(time)])
 }
-##results = acousticTest(showPlots=FALSE, silent=TRUE)
+results = acousticTest(showPlots=FALSE, silent=TRUE)

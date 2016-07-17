@@ -53,8 +53,8 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     }
     else {
         grids = goodnessGridFun(grids, params, debug=debug, silent=silent, multi=multi)
-        goodnessGrid = grids$goodnessGrid
     }
+	goodnessGridPerfect = grids$goodnessGrid
     if (save) {
         if (require(MASS)) {
             write.matrix(goodnessGrid,file="test.txt")
@@ -74,7 +74,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
             loc = params$sensorList[[i]]
             ## invert the incoming r/c values
             placement = list(c=loc$r, r=loc$c)
-            grids = sensorFun.suppressHelper(placement, grids, range, bias, params, debug, multi=multi)
+            grids = suppressionFun(placement, grids, params, debug)
             sensorList = c(sensorList, list(placement))
             i = i - 1
         }
@@ -87,6 +87,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
         if("depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)) print('Using depth preference ($depth_off_bottom and $depth_off_bottom_sd)')
 
         ## find the max location 
+	print(grids$goodnessGrid)
         maxLoc = which.max(grids$goodnessGrid)
         ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
         c = ceiling(maxLoc/rows)
@@ -100,7 +101,7 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
         ## append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
         ## down-weigh all near-by cells to discourage them from being chosen by the program
-        grids = sensorFun.suppressHelper(maxLoc, grids, range, bias, params, debug=debug, multi=multi)
+        grids$goodnessGrid = suppressionFun(maxLoc, grids, params, debug)
         if(save.inter){
             ## Save intermediary grids
             inter[[numSensors-i+1+1]] = grids
@@ -111,34 +112,8 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
     if(save.inter){
         return(list(sensorList=sensorList, goodnessGrid=goodnessGrid, goodnessGridSupp=grids$goodnessGrid, inter=inter))
     }else{
-        return(list(sensorList=sensorList, goodnessGrid=goodnessGrid, goodnessGridSupp=grids$goodnessGrid))
+        return(list(sensorList=sensorList, goodnessGrid=goodnessGridPerfect, goodnessGridSupp=grids$goodnessGrid))
     }
-}
-
-#' @title Performs suppression on the goodnessGrid/behaviorGrid depending upon the suppressionFcn specified.
-#' @description The suppressionFcn 'detection.function.exact' indicates that the behaviorGrid must be suppressed, then the entire 
-#' goodnessGrid recalculated based upon the new behaviorGrid.  Any other suppressionFcn simply calls suppress.opt, which just suppresses
-#' the goodnessGrid, avoiding the need to recalculate the whole goodnessGrid (a very expensive operation).  The latter approach can be
-#' considered a 'fast approximation', while the former an 'exact count'.
-#'
-#' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
-#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
-#' @param range The range of the sensor in bathymetric cells.
-#' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
-#' @param params A dictionary of parameters, see ?acousticRun for more info.
-#' @param debug If enabled, turns on debug printing (console only).
-#' @param multi If set to TRUE, uses multicore to parallelize calculations.
-#' @return Returns the grids parameter, with an updated behaviorGrid.
-sensorFun.suppressHelper = function(loc, grids, range, bias, params, debug=FALSE, multi=FALSE) {
-	if(params$suppressionFcn != 'detection.function.exact'){
-		grids$goodnessGrid = suppress.opt(grids$goodnessGrid, dim(grids$behaviorGrid), loc, params, grids$topographyGrid$topographyGrid, debug)
-	}else{
-            print("Updating goodness grid")
-            ## Downweigh observed region
-            grids = updatebehaviorGrid(loc,grids,params,debug)
-            grids = goodnessGridFun(grids, params, debug=debug, multi=multi)
-	}
-	return(grids)
 }
 
 #' @title Updates the behaviorGrid after each sensor is placed to reflect which areas that are already covered by sensors.
@@ -649,17 +624,27 @@ calc.percent.viz = function(r, c, rind, cind, topographyGrid, land, sensorDepth,
     return(list(percentVisibility=percentVisibility, dists=dists[linearIndexNotLand], linearIndex=linearIndex[disttmp$ix[linearIndexNotLand]]))
 }
 
-#' @title Suppresses the values of cells around a sensor using a specified suppressionFunction.
+
+#' @title Performs suppression on the goodnessGrid/behaviorGrid depending upon the suppressionFcn specified.
+#' @description The suppressionFcn 'detection.function.exact' indicates that the behaviorGrid must be suppressed, then the entire 
+#' goodnessGrid recalculated based upon the new behaviorGrid.  Any other suppressionFcn simply calls suppress.opt, which just suppresses
+#' the goodnessGrid, avoiding the need to recalculate the whole goodnessGrid (a very expensive operation).  The latter approach can be
+#' considered a 'fast approximation', while the former an 'exact count'.
 #' @description This is an optimized version, which uses vectorization.
 #' 
 #' @param goodnessGrid A valid goodnessGrid.
-#' @param dims The dimensions of the topographyGrid.  Just call dim() on the topographyGrid for this.
 #' @param loc A dictionary containing the keys 'r' and 'c', which hold the row and column indicies of the chosen sensor location.
 #' @param params A dictionary of parameters, see ?acousticRun for more info.
-#' @param topographyGrid valid topographyGrid.
+#' @param grids A dictionary containing the keys 'topographyGrid', 'behaviorGrid', and 'goodnessGrid', which hold a valid topographyGrid, behaviorGrid and goodnessGrid.
 #' @param debug If enabled, turns on debug printing (console only).
 #' @return Returns a suppressed goodnessGrid.
-suppress.opt = function(goodnessGrid, dims, loc, params, topographyGrid, debug=FALSE) {
+suppressionFun = function(loc, grids, params, debug=FALSE) {
+    dims = dim(grids$behaviorGrid)
+    goodnessGrid = grids$goodnessGrid
+    topographyGrid = grids$topographyGrids
+    suppressionFcn = params$suppressionFcn
+    minsuppressionValue = params$minsuppressionValue
+    maxsuppressionValue = params$maxsuppressionValue
     if(debug) {
         cat("\n[suppress.opt]\n")
         print(sprintf("suppressionFcn: %s", params$suppressionFcn))
@@ -669,9 +654,6 @@ suppress.opt = function(goodnessGrid, dims, loc, params, topographyGrid, debug=F
         print("topographyGrid")
         print(topographyGrid)
     }
-    suppressionFcn = params$suppressionFcn
-    minsuppressionValue = params$minsuppressionValue
-    maxsuppressionValue = params$maxsuppressionValue
     ## dfflag indicates whether detection function variant should be used for suppression
     dfflag = suppressionFcn=='detection.function' ||
 			 suppressionFcn=='detection.function.shadow' ||
