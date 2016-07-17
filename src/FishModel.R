@@ -9,7 +9,7 @@
 #' @param params A dictionary of parameters, see PARAMETER_DESCRIPTIONS.html for more info.  
 #' @param topographyGrid A valid topographyGrid.
 #' @return An behaviorGrid of the same dimensions as the provided topographyGrid.
-fish <- function(params, topographyGrid) {
+fish <- function(params, topographyGrid, debug=FALSE) {
     rows <- dim(topographyGrid$topographyGrid)[1]
     cols <- dim(topographyGrid$topographyGrid)[2]
     land <- topographyGrid$topographyGrid>=0
