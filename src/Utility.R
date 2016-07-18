@@ -11,60 +11,40 @@ source('src/ShapeFunctions.R')
 #' 2. Visibility due to Bathy only.
 #' 3. Detectable fish accounting for bathy.
 #'
-#' @param numSensors The number of sensors the program should place.
 #' @param topographyGrid A valid topographyGrid.
 #' @param behaviorGrid A valid behaviorGrid.
-#' @param range The range of the sensor in bathymetric cells.
-#' @param bias The goodness algorithm to use, choose 1, 2, or 3.  See above for descriptions.
 #' @param params A dictionary of parameters, see ?acousticRun for more info.
 #' @param debug If enabled, turns on debug printing (console only).
-#' @param save.inter If TRUE intermediary calculations are output as key inter.
 #' @param silent If set to TRUE, disables status printing.
 #' @param multi If set to TRUE, uses multicore to parallelize calculations.
 #' @return A dictionary of return objects, see RETURN_DESCRIPTIONS.html for more info.
-sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, params, debug=FALSE, silent = FALSE, save.inter=FALSE, multi=FALSE) {
+sensorFun = function(grids,params, debug=FALSE, silent = FALSE, multi=FALSE) {
     if (debug) {
         cat("\n[sensorFun]\n")
         print("topographyGrid")
-        print(topographyGrid)
+        print(grids$topographyGrid)
         print("behaviorGrid")
-        print(behaviorGrid)
+        print(grids$behaviorGrid)
         print(sprintf("bias=%g",bias))
         print("params")
         print(params)
     }
-
-    ## This is used to collect intermediary grids (warning: may use up lots of memory)
-    if(save.inter) inter = list()
-    
+	numSensors = params$numSensors
+	range = params$range
+	bias = params$bias
     sensorList = {}
-    dims = dim(behaviorGrid)
+    dims = dim(grids$behaviorGrid)
     rows = dims[1]
     cols = dims[2]
-    grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
+
     
     ## calculate the goodnessGrid
     print("Calculating initial goodness grid")
-    save = FALSE
-    loadSave=FALSE
-    if(loadSave) {
-        goodnessGrid =  as.matrix(read.table("test.txt"))
-        grids$goodnessGrid = goodnessGrid
-    }
-    else {
+    
         grids = goodnessGridFun(grids, params, debug=debug, silent=silent, multi=multi)
-    }
+   
 	goodnessGridPerfect = grids$goodnessGrid
-    if (save) {
-        if (require(MASS)) {
-            write.matrix(goodnessGrid,file="test.txt")
-        } else {
-            printError('Could not load MASS package, please install using install.packages().', stop=stop)
-        }
-    }
-	
-    if(save.inter) inter[[1]] = grids
-	
+
     ## place user-defined sensors, and down weigh them
     if("sensorList" %in% names(params) && length(params$sensorList) > 0) {
         len = length(params$sensorList)
@@ -87,33 +67,23 @@ sensorFun = function(numSensors, topographyGrid, behaviorGrid, range, bias, para
         if("depth_off_bottom" %in% names(params) && "depth_off_bottom_sd" %in% names(params)) print('Using depth preference ($depth_off_bottom and $depth_off_bottom_sd)')
 
         ## find the max location 
-	print(grids$goodnessGrid)
         maxLoc = which.max(grids$goodnessGrid)
-        ## Switch the row/col vals since R references Grid coords as (y,x) instead of (x,y)
         c = ceiling(maxLoc/rows)
         r = (maxLoc %% rows)
         if (r==0) {
             r=rows
         }
         maxLoc = list(c=c,r=r)
-        ##print(paste('Placed sensor',i,'at: ',maxLoc$c,maxLoc$c))
-        
+
         ## append maxLoc to the sensor list.
         sensorList = c(sensorList, list(maxLoc))
         ## down-weigh all near-by cells to discourage them from being chosen by the program
         grids$goodnessGrid = suppressionFun(maxLoc, grids, params, debug)
-        if(save.inter){
-            ## Save intermediary grids
-            inter[[numSensors-i+1+1]] = grids
-        }
         i = i - 1
     }
     print("Done placing sensors")
-    if(save.inter){
-        return(list(sensorList=sensorList, goodnessGrid=goodnessGrid, goodnessGridSupp=grids$goodnessGrid, inter=inter))
-    }else{
-        return(list(sensorList=sensorList, goodnessGrid=goodnessGridPerfect, goodnessGridSupp=grids$goodnessGrid))
-    }
+
+	return(list(sensorList=sensorList, goodnessGrid=goodnessGridPerfect, goodnessGridSupp=grids$goodnessGrid))
 }
 
 #' @title Updates the behaviorGrid after each sensor is placed to reflect which areas that are already covered by sensors.

@@ -76,7 +76,6 @@ getBathy <- function(params, debug=FALSE) {
                 topographyGrid[is.na(topographyGrid)] <- 0
         }
     }
-	#print(topographyGrid)
     return(topographyGrid)
 }
 

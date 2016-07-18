@@ -120,9 +120,8 @@ source('src/Utility.R')
 #' @examples 
 #' result <- acousticTest() # check the code of acousticTest for details
 #' @export
-acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, silent=FALSE, multi=FALSE, zip=TRUE) {
+acousticRun <- function(params, showPlots=FALSE, debug=FALSE, silent=FALSE, multi=FALSE, zip=TRUE) {
     startTime = Sys.time()
-    print(save.inter)
     if(debug) {
         cat("\n[acousticRun]\n")
     }
@@ -166,20 +165,19 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
         print('Calculate fish grid')
         behaviorGrid = fish(params, topographyGrid)
 	
+    	grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
+
         ## Find good sensor placements
-        sensors <- sensorFun(params$numSensors, topographyGrid, behaviorGrid, params$range, params$bias, params, debug, save.inter=save.inter, silent=silent, multi=multi)
+        sensors <- sensorFun(grids, params, debug=debug, silent=silent, multi=multi)
 	
         ## Stat analysis of proposed setup.
-        statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug)
+        statDict = getStats(params, topographyGrid, behaviorGrid, sensors, debug=debug)
         
         ## Return Fish grid, Bathy grid, and Sensor Placements as a Dictionary.
         results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, 
             "stats" = statDict, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
         
-        if(save.inter) {
-            print("Saving intermediary calculations in key inter")
-            results$inter = sensors$inter
-        }
+
         endTime = Sys.time()
         results$runTime = endTime - startTime
         
@@ -200,7 +198,6 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, save.inter=FALSE, 
     ## only params and errors should actually have values
     results = list("topographyGrid" = topographyGrid, "behaviorGrid" = behaviorGrid, "goodnessGrid"=sensors$goodnessGrid, "sensors" = sensors$sensorList, "stats" = statDict, "inter" = sensors$inter, "filenames"=filenames, "params"=params, "errors"=acousticErrors[toString(params$timestamp)])
 
-    ##print(results$filenames)
     ## Return results invisibly (don't print to screen if unassigned because they are usually very long)
     invisible(results)
 }
