@@ -22,61 +22,73 @@ getBathy <- function(params, debug=FALSE) {
 			if(params$startX < 1 || params$startY < 1) {
 				printError("topographyGrid x and y coordinates must be integers greater than 0.", params$timestamp)
 			}
-            if (params$inputFileType == "netcdf") {
-                if (require(ncdf)) {
-		    ## open the netCDF file
-                    ncdfObj = open.ncdf(params$inputFile)
+		    if (params$inputFileType == "netcdf") {
+		        if (require(ncdf)) {
+			## open the netCDF file
+		            ncdfObj = open.ncdf(params$inputFile)
 
-                    ## grab a slice (in grid form)
-                    topographyGrid = get.var.ncdf(ncdfObj, 'z', start=c(params$startX, params$startY), count=c( params$XDist, params$YDist))
-                } else if(require(ncdf4)) {
-		    ## open the netCDF file
-                    ncdfObj = nc_open(params$inputFile)
+		            ## grab a slice (in grid form)
+		            topographyGrid = get.var.ncdf(ncdfObj, 'z', start=c(params$startX, params$startY), count=c( params$XDist, params$YDist))
+		        } else if(require(ncdf4)) {
+			## open the netCDF file
+		            ncdfObj = nc_open(params$inputFile)
 
-                    ## grab a slice (in grid form)
-                    topographyGrid = ncvar_get(ncdfObj, 'z', start=c(params$startX, params$startY), count=c( params$XDist, params$YDist))
+		            ## grab a slice (in grid form)
+		            topographyGrid = ncvar_get(ncdfObj, 'z', start=c(params$startX, params$startY), count=c( params$XDist, params$YDist))
 		}
 		else {
-                    printError('Could not load ncdf or ncdf4 packages required to load netcdf files, please install one of the packages using install.packages().  ncdf is supported on older versions of R.  Newer versions of R (3.0+) should use the ncdf4 package.', stop=stop)
-                }
-	    }
-            else if(params$inputFileType == "arcgis"){
-                if (require(raster)) {
-                    ## For an arc/grid params$inputFile is the folder!:
-                    topographyGrid = raster(params$inputFile)
+		            printError('Could not load ncdf or ncdf4 packages required to load netcdf files, please install one of the packages using install.packages().  ncdf is supported on older versions of R.  Newer versions of R (3.0+) should use the ncdf4 package.', stop=stop)
+		        }
+		}
+		    else if(params$inputFileType == "arcgis"){
+		        if (require(raster)) {
+		            ## For an arc/grid params$inputFile is the folder!:
+		            topographyGrid = raster(params$inputFile)
 				dims = dim(topographyGrid)
 				topographyGrid = topographyGrid[1:dims[1],1:dims[2]]
-                } else {
-                    printError('Could not load raster package required to load arcgis files, please install the package using install.packages().', stop=stop)
-                }
-            }
-            else if(params$inputFileType == "RData") {
-                bathname = load(params$inputFile)
-                topographyGrid = get(params$seriesName)
-                topographyGrid = topographyGrid[params$startY:(params$startY-1+params$YDist),params$startX:(params$startX-1+params$XDist)]
-            } else {
-                topographyGrid = simulatetopographyGrid(params)
-            }
+		        } else {
+		            printError('Could not load raster package required to load arcgis files, please install the package using install.packages().', stop=stop)
+		        }
+		    }
+		    else if(params$inputFileType == "RData") {
+		        bathname = load(params$inputFile)
+		        topographyGrid = get(params$seriesName)
+		        topographyGrid = topographyGrid[params$startY:(params$startY-1+params$YDist),params$startX:(params$startX-1+params$XDist)]
+		    } else {
+		        topographyGrid = simulatetopographyGrid(params)
+		    }
 	} else {
-            print("Bathymetry file not found.")
-            topographyGrid = simulatetopographyGrid(params)
+		    print("Bathymetry file not found.")
+		    topographyGrid = simulatetopographyGrid(params)
 	}
-        ## Check if all values in topographyGrid are NA
-        if(all(is.na(topographyGrid))) {
-            printError("all values in topographyGrid are NA!", stop=TRUE)
-        } else {
-            ## Check if all values in topographyGrid are positive and if so make them negative
-            if(all(topographyGrid >= 0)){
-                print("Warning: No negative values found in topography grid and therefore nowhere to place sensors. Multiplying all values by -1. This may be inappropriate!!")
-                topographyGrid <- -topographyGrid
-            }
-            ## Quick fix to get rid of NA in topographyGrid, should probably be interpolated (or something)
-            if(any(is.na(topographyGrid))){
-                print("Warning: NAs found in topographyGrid! setting to zero. This may be inappropriate so you may want to manually remove them.")
-                topographyGrid[is.na(topographyGrid)] <- 0
+		## Check if all values in topographyGrid are NA
+		if(all(is.na(topographyGrid))) {
+		    printError("all values in topographyGrid are NA!", stop=TRUE)
+		} else {
+		    ## Check if all values in topographyGrid are positive and if so make them negative
+		    if(all(topographyGrid >= 0)){
+		        print("Warning: No negative values found in topography grid and therefore nowhere to place sensors. Multiplying all values by -1. This may be inappropriate!!")
+		        topographyGrid <- -topographyGrid
+		    }
+		    ## Quick fix to get rid of NA in topographyGrid, should probably be interpolated (or something)
+		    if(any(is.na(topographyGrid))){
+		        print("Warning: NAs found in topographyGrid! setting to zero. This may be inappropriate so you may want to manually remove them.")
+		        topographyGrid[is.na(topographyGrid)] <- 0
+		}
+
+	}
+		topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
+        ## Convert parameter values from meters to number of grid cell 
+
+        ## Specify a standard scale of x and y axes if previously undefined
+        if(!("x" %in% names(topographyGrid))) {
+            topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
         }
-    }
-    return(topographyGrid)
+        if(!("y" %in% names(topographyGrid))) {
+            topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
+        }
+	
+	return(topographyGrid)
 }
 
 #' @name simulatetopographyGrid

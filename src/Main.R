@@ -148,21 +148,11 @@ acousticRun <- function(params, showPlots=FALSE, debug=FALSE, silent=FALSE, mult
         if(!silent) {
             cat("\n  Parameters checked!\n")
         }
-	
+	        params = convertMetersToGrid(params)
         ## Create/Load the Bathy grid for the area of interest
         topographyGrid = getBathy(params, debug)
-        topographyGrid = list("topographyGrid"=topographyGrid, "cellRatio"=params$cellSize)
-        ## Convert parameter values from meters to number of grid cell 
-        params = convertMetersToGrid(params)
-        ## Specify a standard scale of x and y axes if previously undefined
-        if(!("x" %in% names(topographyGrid))) {
-            topographyGrid$x = (1:dim(topographyGrid$topographyGrid)[1])*params$cellSize 
-        }
-        if(!("y" %in% names(topographyGrid))) {
-            topographyGrid$y = (1:dim(topographyGrid$topographyGrid)[2])*params$cellSize
-        }
+        
         ## Calculate fish grid
-        print('Calculate fish grid')
         behaviorGrid = fish(params, topographyGrid)
 	
     	grids = list("topographyGrid" = topographyGrid, "behaviorGrid"=behaviorGrid)
